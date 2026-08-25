@@ -6,3 +6,8 @@ dist
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# Manim's generated media (partial movie files, cache) — keep the scene
+# source and the final rendered clip out of this.
+manim_diagrams/output
+manim_diagrams/**/__pycache__
