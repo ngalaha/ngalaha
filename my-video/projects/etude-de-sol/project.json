@@ -1,0 +1,16 @@
+{
+  "slug": "etude-de-sol",
+  "title": "Pourquoi et comment faire une étude de sol avant de construire",
+  "format": "landscape",
+  "status": "produced-pre-engine",
+  "note": "Vidéo produite avant la création du moteur engine/. Son code Remotion vit dans ../../src (Composition.tsx, SoilStudyVideo.tsx, scenes/), pas ici. Ce fichier documente son existence sans rien déplacer.",
+  "entry": {
+    "remotionRoot": "../../src/Root.tsx",
+    "compositionId": "EtudeDeSol",
+    "compositionFile": "../../src/Composition.tsx"
+  },
+  "durationSeconds": 120,
+  "fps": 30,
+  "width": 1920,
+  "height": 1080
+}

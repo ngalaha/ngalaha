@@ -21,8 +21,6 @@ const SoilCrossSection: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
-  let yCursor = 0;
-
   return (
     <div style={{ position: "absolute", right: 130, top: 150 }}>
       <div
@@ -65,7 +63,6 @@ const SoilCrossSection: React.FC = () => {
           const delay = 40 + i * 26;
           const p = spring({ frame: frame - delay, fps, config: { damping: 200 } });
           const revealY = interpolate(p, [0, 1], [layer.h, 0]);
-          yCursor += layer.h;
           const labelP = spring({ frame: frame - delay - 10, fps, config: { damping: 200 } });
           return (
             <div

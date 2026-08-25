@@ -1,0 +1,12 @@
+{
+  "slug": "beam-reactions-demo",
+  "title": "Poutre sur deux appuis — réactions d'appui",
+  "format": null,
+  "status": "produced-pre-engine",
+  "note": "Diagramme Manim isolé, produit avant la création du moteur engine/. Le script et le rendu vivent dans ../../manim_diagrams/, pas ici. Ce fichier documente son existence sans rien déplacer.",
+  "entry": {
+    "manimScene": "../../manim_diagrams/beam_scene.py",
+    "sceneClass": "BeamReactions",
+    "render": "../../manim_diagrams/beam_reactions.mp4"
+  }
+}

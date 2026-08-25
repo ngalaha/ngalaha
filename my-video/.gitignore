@@ -11,3 +11,13 @@ out
 # source and the final rendered clip out of this.
 manim_diagrams/output
 manim_diagrams/**/__pycache__
+
+# Per-project generated output — regenerable from script.json/manim/*.py,
+# never the source of truth. Keep public/audio, public/images,
+# public/captions and a project's own README/manifests tracked. The .gitkeep
+# placeholders stay so the empty template folders are still versioned.
+projects/*/render/*
+!projects/*/render/.gitkeep
+projects/*/public/manim-render/*
+!projects/*/public/manim-render/.gitkeep
+projects/**/__pycache__

@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Project script.json",
+  "description": "Content manifest for one video: format, scene breakdown, and where each scene's voiceover comes from. This is data the engine's Remotion components read — it is not itself a Remotion file.",
+  "type": "object",
+  "required": ["slug", "title", "format", "scenes"],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "Matches the projects/<slug> folder name."
+    },
+    "title": { "type": "string" },
+    "format": {
+      "type": "string",
+      "enum": ["vertical", "landscape"],
+      "description": "See engine/remotion/formats.ts. \"vertical\" (1080x1920) is the default for Facebook/Reels."
+    },
+    "fps": { "type": "integer", "default": 30 },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": { "type": "string" },
+          "text": {
+            "type": "string",
+            "description": "Narration / on-screen text for this scene."
+          },
+          "durationInFrames": {
+            "type": ["integer", "null"],
+            "description": "Set once the scene's audio duration is known (from voiceover.file or TTS output). Left null while only text exists."
+          },
+          "voiceover": {
+            "type": "object",
+            "description": "Voiceover is always a local audio file at render time — this engine never calls a TTS provider directly. A separate, optional module can populate voiceover.file from a script.",
+            "required": ["source"],
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": ["local-file", "tts-generated", "none"]
+              },
+              "file": {
+                "type": ["string", "null"],
+                "description": "Path relative to this project's public/ folder, e.g. \"public/audio/scene1.mp3\"."
+              }
+            },
+            "additionalProperties": false
+          },
+          "manim": {
+            "type": ["string", "null"],
+            "description": "Optional path to a rendered Manim clip for this scene, relative to public/, e.g. \"public/manim-render/scene3.mp4\"."
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,18 @@
+{
+  "slug": "_template",
+  "title": "Nouvelle vidéo",
+  "format": "vertical",
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "scene1",
+      "text": "Texte de la scène 1.",
+      "durationInFrames": null,
+      "voiceover": {
+        "source": "none",
+        "file": null
+      },
+      "manim": null
+    }
+  ]
+}

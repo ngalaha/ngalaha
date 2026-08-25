@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Project sources.json",
+  "description": "Traceability record for every external image/video/audio asset used in a project's public/ folder. One entry per downloaded/imported file.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "type", "url", "localPath"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Short unique key, referenced from script.json if needed (e.g. \"scene2-soil-photo\")."
+      },
+      "type": {
+        "type": "string",
+        "enum": ["image", "video", "audio", "font", "other"]
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "The original source URL the asset was found or downloaded from."
+      },
+      "source": {
+        "type": ["string", "null"],
+        "description": "Platform/provider name, e.g. \"Unsplash\", \"Pexels\", \"ElevenLabs\"."
+      },
+      "author": {
+        "type": ["string", "null"],
+        "description": "Creator/photographer name, when known."
+      },
+      "license": {
+        "type": ["string", "null"],
+        "description": "License name or summary, e.g. \"Unsplash License\", \"CC-BY 4.0\"."
+      },
+      "licenseUrl": {
+        "type": ["string", "null"],
+        "format": "uri"
+      },
+      "localPath": {
+        "type": "string",
+        "description": "Path to the file inside this project's public/ folder, e.g. \"public/images/scene2-soil.jpg\"."
+      },
+      "downloadedAt": {
+        "type": ["string", "null"],
+        "format": "date-time"
+      },
+      "notes": {
+        "type": ["string", "null"]
+      }
+    },
+    "additionalProperties": false
+  }
+}

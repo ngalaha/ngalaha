@@ -26,7 +26,12 @@
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "new-project": "scripts/new-project.sh",
+    "produce": "scripts/produce.sh",
+    "check-sources": "node scripts/check-sources.mjs",
+    "render-manim": "scripts/render-manim.sh",
+    "render-remotion": "scripts/render-remotion.sh"
   },
   "sideEffects": [
     "*.css"
