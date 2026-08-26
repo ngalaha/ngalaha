@@ -30,6 +30,7 @@
     "new-project": "scripts/new-project.sh",
     "produce": "scripts/produce.sh",
     "check-sources": "node scripts/check-sources.mjs",
+    "prepare-media": "node scripts/prepare-media.mjs",
     "render-manim": "scripts/render-manim.sh",
     "render-remotion": "scripts/render-remotion.sh"
   },

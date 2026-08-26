@@ -5,7 +5,7 @@
   "type": "array",
   "items": {
     "type": "object",
-    "required": ["id", "type", "url", "localPath"],
+    "required": ["id", "type", "localPath"],
     "properties": {
       "id": {
         "type": "string",
@@ -16,13 +16,13 @@
         "enum": ["image", "video", "audio", "font", "other"]
       },
       "url": {
-        "type": "string",
+        "type": ["string", "null"],
         "format": "uri",
-        "description": "The original source URL the asset was found or downloaded from."
+        "description": "The original source URL the asset was found or downloaded from. Null for Local Mode assets with no known internet origin (source: \"local\")."
       },
       "source": {
         "type": ["string", "null"],
-        "description": "Platform/provider name, e.g. \"Unsplash\", \"Pexels\", \"ElevenLabs\"."
+        "description": "Platform/provider name, e.g. \"Unsplash\", \"Pexels\", \"ElevenLabs\", or \"local\" for a manually supplied file with no external origin."
       },
       "author": {
         "type": ["string", "null"],
