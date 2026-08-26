@@ -10,7 +10,11 @@ export const BalconyIllustration: React.FC<{
   showLoads?: boolean;
   showGlow?: boolean;
   glowOpacity?: number;
-}> = ({ showLoads = false, showGlow = false, glowOpacity = 1 }) => {
+  /** Staged reveal for the Charges scene: 0=bare, 1=dalle (pulse), 2=+meubles,
+   * 3=+personne, 4=+poteau. Omit to fall back to the all-at-once showLoads. */
+  loadStage?: number;
+}> = ({ showLoads = false, showGlow = false, glowOpacity = 1, loadStage }) => {
+  const stage = loadStage ?? (showLoads ? 4 : 0);
   const windowRows = [180, 280, 380, 480, 580];
   return (
     <svg viewBox="0 0 800 900" width="100%" height="100%">
@@ -50,7 +54,20 @@ export const BalconyIllustration: React.FC<{
         <circle cx={385} cy={384} r={110} fill="url(#junctionGlow)" opacity={glowOpacity} />
       )}
 
-      {showLoads && (
+      {stage >= 1 && (
+        <rect
+          x="370"
+          y="368"
+          width="330"
+          height="32"
+          fill="none"
+          stroke={colors.amber}
+          strokeWidth={5}
+          opacity={0.9}
+        />
+      )}
+
+      {stage >= 2 && (
         <>
           {/* furniture: table + two chairs, simple shapes */}
           <rect x={440} y={340} width="60" height="10" fill={colors.mist} />
@@ -58,10 +75,22 @@ export const BalconyIllustration: React.FC<{
           <rect x={489} y={350} width="6" height="18" fill={colors.mist} />
           <circle cx={415} cy={358} r={10} fill={colors.mist} />
           <circle cx={520} cy={358} r={10} fill={colors.mist} />
-          {/* small plant */}
-          <circle cx={560} cy={355} r={13} fill={colors.green} />
-          <rect x={556} y={365} width="8" height="10" fill={colors.clayDark} />
+        </>
+      )}
 
+      {stage >= 3 && (
+        <>
+          {/* person: simple silhouette standing on the slab */}
+          <circle cx={565} cy={338} r={11} fill={colors.clay} />
+          <path
+            d="M 553 368 Q 553 348 565 348 Q 577 348 577 368 L 570 368 L 570 358 L 560 358 L 560 368 Z"
+            fill={colors.clay}
+          />
+        </>
+      )}
+
+      {stage >= 4 && (
+        <>
           {/* post + small roof near the outer end (~70% of slab) */}
           <rect x={636} y={230} width="14" height="138" fill={colors.amber} />
           <path d="M 600 230 L 645 200 L 690 230 Z" fill={colors.amberDark} stroke={colors.amber} strokeWidth={2} />

@@ -39,7 +39,11 @@ const SentenceBeat: React.FC<{ text: string; start: number; end: number }> = ({ 
 export const ChargesScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const loadsP = spring({ frame: frame - 20, fps, config: { damping: 200 } });
+  const loadsP = spring({ frame: frame - 10, fps, config: { damping: 200 } });
+
+  // Staged reveal synced to the narration naming each load in turn:
+  // "dalle, meubles, une personne" (first sentence) then "un poteau" (second).
+  const loadStage = frame >= 160 ? 4 : frame >= 90 ? 3 : frame >= 55 ? 2 : frame >= 20 ? 1 : 0;
 
   return (
     <AbsoluteFill>
@@ -49,12 +53,12 @@ export const ChargesScene: React.FC = () => {
       <SentenceBeat
         text="Sur toute sa longueur, le balcon porte du poids : dalle, meubles, personnes."
         start={5}
-        end={124}
+        end={145}
       />
       <SentenceBeat
         text="Et là, un poteau ajoute son propre poids, à un endroit précis."
-        start={129}
-        end={242}
+        start={150}
+        end={267}
       />
 
       <div
@@ -67,7 +71,7 @@ export const ChargesScene: React.FC = () => {
           opacity: interpolate(loadsP, [0, 1], [0, 1], { extrapolateRight: "clamp" }),
         }}
       >
-        <BalconyIllustration showLoads />
+        <BalconyIllustration loadStage={loadStage} />
       </div>
     </AbsoluteFill>
   );

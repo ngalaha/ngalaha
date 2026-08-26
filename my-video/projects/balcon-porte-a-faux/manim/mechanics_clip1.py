@@ -37,12 +37,19 @@ class Mechanics1(Scene):
         # --- Phase 2: encastrement label (~3s) ---
         wall_glow = SurroundingRectangle(wall, color=AMBER, buff=0.08, stroke_width=4)
         enc_label = diagram_label("ENCASTREMENT", size=26, color=AMBER, weight=BOLD)
-        enc_label.next_to(wall, DOWN, buff=1.1).shift(LEFT * 0.3)
+        # Centered on the frame's x-axis rather than next_to(wall, ...) —
+        # the wall sits near the left edge, and "ENCASTREMENT" at this
+        # size is wide enough to clip off-screen if anchored there
+        # (only ever caught once this label's hold was long enough to
+        # actually screenshot it). An arrow still points back to the wall.
+        enc_label.move_to(np.array([0, wall.get_bottom()[1] - 1.1, 0]))
         enc_arrow = Arrow(enc_label.get_top(), wall.get_bottom() + DOWN * 0.1, color=AMBER, stroke_width=3, buff=0.1)
 
         self.play(Create(wall_glow), run_time=0.6)
         self.play(FadeIn(enc_label), Create(enc_arrow), run_time=0.8)
-        self.wait(1.4)
+        # Held well past just naming it — this is the "grand public" beat
+        # that explains ENCASTREMENT before any vocabulary appears again.
+        self.wait(4.0)
         self.play(FadeOut(wall_glow), FadeOut(enc_label), FadeOut(enc_arrow))
 
         # --- Phase 3: simple support vs encastrement (~8s) ---
@@ -84,7 +91,7 @@ class Mechanics1(Scene):
             FadeIn(fail_mark),
             run_time=1.1,
         )
-        self.wait(1.3)
+        self.wait(0.9)
         self.play(FadeOut(pin_group), FadeOut(fail_mark), run_time=0.5)
 
         # -- 3b: encastrement holds --
@@ -95,7 +102,7 @@ class Mechanics1(Scene):
 
         ok_mark = Text("✓", font_size=54, color=GREEN).next_to(fixed_group, UP, buff=0.45)
         self.play(FadeIn(ok_mark), Indicate(fixed_rod, color=AMBER, scale_factor=1.03), run_time=0.9)
-        self.wait(1.5)
+        self.wait(1.1)
 
         self.play(FadeOut(fixed_group), FadeOut(label_fixed), FadeOut(ok_mark))
 
@@ -124,9 +131,11 @@ class Mechanics1(Scene):
         )
         r_calc.next_to(full_diagram, DOWN, buff=0.55)
         self.play(FadeIn(r_calc, shift=UP * 0.15), run_time=0.7)
-        self.wait(1.2)
+        # Held longer so "R = 14 kN" fully lands before the moment teaser.
+        self.wait(2.6)
 
         m_teaser = diagram_label("M = ?", size=26, color=AMBER, weight=BOLD)
         m_teaser.next_to(r_calc, DOWN, buff=0.35)
         self.play(FadeIn(m_teaser, shift=UP * 0.15), run_time=0.7)
-        self.wait(2.4)
+        # Held well into the crossfade so the question carries into clip 2.
+        self.wait(3.9)

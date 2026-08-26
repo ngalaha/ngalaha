@@ -1,6 +1,7 @@
-"""Clip 2 (~24s): generic lever-arm demo (M = F x d) -> full numeric
-calculation for this exact balcony. No narrative text — Remotion overlays
-captions on top of this clip.
+"""Clip 2 (~34.6s): progressive lever-arm demo (M = F x d) -> full numeric
+calculation for this exact balcony, with a highlight beat per value as it
+lands (w -> W -> M répartie -> M poteau -> M total -> R). No narrative
+text — Remotion overlays captions on top of this clip.
 """
 
 from manim import *
@@ -64,12 +65,21 @@ class Mechanics2(Scene):
         self.play(FadeIn(m_group), run_time=0.5)
         self.wait(0.8)
 
-        self.play(d_tracker.animate.set_value(3.0), run_time=2.6, rate_func=smooth)
-        self.wait(0.5)
+        # Three discrete steps instead of one continuous slide: each step
+        # is followed by a hold so the growing d -> growing M relationship
+        # reads as a deliberate, staged demonstration rather than a single
+        # fast animation (or, at the other extreme, one long slow drift).
+        self.play(d_tracker.animate.set_value(1.7), run_time=1.0, rate_func=smooth)
+        self.wait(1.0)
+        self.play(d_tracker.animate.set_value(2.4), run_time=1.0, rate_func=smooth)
+        self.wait(1.0)
+        self.play(d_tracker.animate.set_value(3.0), run_time=1.0, rate_func=smooth)
+        self.wait(1.0)
+
         note = diagram_label("Plus d grandit,\nplus M grandit", size=26, color=MIST)
         note.next_to(m_group, DOWN, buff=0.45)
         self.play(FadeIn(note, shift=UP * 0.15), run_time=0.7)
-        self.wait(2.0)
+        self.wait(3.7)
 
         m_group.clear_updaters()
         self.play(
@@ -78,53 +88,73 @@ class Mechanics2(Scene):
             run_time=0.7,
         )
 
-        # --- Phase 2: full numeric calculation (~12s) ---
+        # --- Phase 2: full numeric calculation, one highlighted value at a
+        # time (~19.9s): w -> W -> M répartie -> M poteau -> M total -> R.
+        # Every reveal is followed by an Indicate() pulse so each number
+        # is unmistakably "the one being named right now", then the two
+        # moment contributions visibly merge into the total.
         diagram = build_full_diagram()
-        diagram.scale(0.75).to_edge(UP, buff=0.55)
+        wall, beam, w_arrows, p_arrow, dim, p_label, w_label = diagram
+        diagram.scale(0.55).to_edge(UP, buff=0.4)
         self.play(FadeIn(diagram), run_time=0.9)
+
+        # Beat 1: w = 4 kN/m is already on screen from the recap — highlight
+        # it first so "avec les vrais chiffres de ce balcon" has a target.
+        self.play(Indicate(w_label, color=AMBER, scale_factor=1.25), run_time=0.8)
+        self.wait(1.5)
 
         # Frame is only 4.5 units wide (portrait) — every formula is split
         # onto two shorter lines so it fits without clipping the edges.
         line1 = diagram_label(
             f"W = w × L\n= {fr(W_LOAD)} × {fr(L)} = {fr(W_RESULT)} kN", size=24, color=MIST
         )
-        line1.next_to(diagram, DOWN, buff=0.5)
+        line1.next_to(diagram, DOWN, buff=0.4)
         self.play(FadeIn(line1, shift=UP * 0.15), run_time=0.7)
-        self.wait(1.2)
+        self.play(Indicate(line1, color=AMBER, scale_factor=1.08), run_time=0.7)
+        self.wait(1.6)
 
         line2 = diagram_label(
             f"M répartie = W × {fr(L / 2)}\n= {fr(M_REPARTIE)} kN·m", size=24, color=MIST
         )
-        line2.next_to(line1, DOWN, buff=0.3)
+        line2.next_to(line1, DOWN, buff=0.22)
         self.play(FadeIn(line2, shift=UP * 0.15), run_time=0.7)
-        self.wait(1.3)
+        self.play(Indicate(line2, color=AMBER, scale_factor=1.08), run_time=0.7)
+        self.wait(0.9)
 
         line3 = diagram_label(
             f"M poteau = P × d\n= {fr(P_LOAD)} × {fr(D_POST)} = {fr(M_POTEAU)} kN·m", size=24, color=AMBER
         )
-        line3.next_to(line2, DOWN, buff=0.3)
+        line3.next_to(line2, DOWN, buff=0.22)
         self.play(FadeIn(line3, shift=UP * 0.15), run_time=0.7)
-        self.wait(1.3)
+        self.play(Indicate(line3, color=AMBER, scale_factor=1.08), run_time=0.7)
+        self.wait(0.9)
+
+        # The two moment contributions visibly "participate" in the total
+        # before it appears, instead of the total just fading in on its own.
+        self.play(Indicate(VGroup(line2, line3), color=GREEN, scale_factor=1.05), run_time=0.9)
 
         total_box_text = diagram_label(
             f"M total = {fr(M_REPARTIE)} + {fr(M_POTEAU)}\n= {fr(M_TOTAL)} kN·m", size=27, color=GREEN, weight=BOLD
         )
-        total_box_text.next_to(line3, DOWN, buff=0.45)
+        total_box_text.next_to(line3, DOWN, buff=0.35)
         total_box = SurroundingRectangle(total_box_text, color=GREEN, buff=0.18, stroke_width=3)
         self.play(FadeIn(total_box_text, shift=UP * 0.15), Create(total_box), run_time=0.9)
-        self.wait(1.6)
+        self.play(Indicate(VGroup(total_box_text, total_box), color=GREEN, scale_factor=1.08), run_time=0.8)
 
-        # Fade the earlier lines out completely before sliding the total
-        # into their place — doing both at once briefly overlapped the
-        # still-fading "M poteau" line with the incoming "M total" box.
+        # Move up to its resting spot right away — with 4 stacked elements
+        # this "natural" position sits low enough to reach the caption
+        # scrim at the bottom of the frame, so the box doesn't linger
+        # there; the settling wait happens only once it's safely higher.
         self.play(FadeOut(line1), FadeOut(line2), FadeOut(line3), run_time=0.5)
         self.play(
             VGroup(total_box_text, total_box).animate.move_to(np.array([0, -1.2, 0])),
             run_time=0.6,
         )
+        self.wait(1.3)
 
         r_badge_text = diagram_label(f"R = {fr(R_REACTION)} kN", size=28, color=GREEN, weight=BOLD)
         r_badge = VGroup(r_badge_text)
         r_badge.next_to(VGroup(total_box_text, total_box), DOWN, buff=0.5)
         self.play(FadeIn(r_badge, shift=UP * 0.15), run_time=0.8)
-        self.wait(1.9)
+        self.play(Indicate(r_badge, color=GREEN, scale_factor=1.1), run_time=0.7)
+        self.wait(2.6)

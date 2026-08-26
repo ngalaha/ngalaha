@@ -3,41 +3,33 @@ import { AbsoluteFill, interpolate, staticFile, useCurrentFrame, Video } from "r
 import { colors } from "../../../../engine/remotion/theme";
 import { ScrimCaption } from "../ScrimCaption";
 
-// Frame boundaries scaled from the source clip's native 696 frames to the
-// new 936-frame slot (factor 936/696 ≈ 1.3448, same as the Video's
-// playbackRate below) so captions stay aligned with the slowed-down
-// animation instead of the original real-time markers.
+// Frame boundaries match the re-rendered clip's own native pacing (see
+// manim/mechanics_clip2.py: progressive lever-arm demo = 441f, highlighted
+// calculation = 597f — 1038f / 34.6s total). No playbackRate here: the
+// clip was re-timed at the source instead of stretched.
 const PHASES = [
   {
     start: 0,
-    end: 407,
+    end: 441,
     kicker: "Le bras de levier",
     text: "Plus une force est loin du point d'appui, plus elle le fait travailler fort.",
     accent: colors.amber,
   },
   {
-    start: 407,
-    end: 936,
+    start: 441,
+    end: 1038,
     kicker: "Le calcul",
-    text: "On additionne l'effet du poids réparti et celui du poteau pour obtenir le moment total.",
+    text: "Chaque valeur s'ajoute au moment total, puis on retrouve la réaction du mur.",
     accent: colors.green,
   },
 ];
-
-// Source clip is 696 frames (23.2s) at 30fps; this slot is 936 frames
-// (31.2s) to match the voiceover pace, so playback runs at 696/936.
-const CLIP_PLAYBACK_RATE = 696 / 936;
 
 export const MechClip2Scene: React.FC = () => {
   const frame = useCurrentFrame();
 
   return (
     <AbsoluteFill style={{ backgroundColor: colors.navyDark }}>
-      <Video
-        src={staticFile("manim-render/mechanics_clip2.webm")}
-        style={{ width: "100%", height: "100%" }}
-        playbackRate={CLIP_PLAYBACK_RATE}
-      />
+      <Video src={staticFile("manim-render/mechanics_clip2.webm")} style={{ width: "100%", height: "100%" }} />
       {PHASES.map((phase, i) => {
         if (frame < phase.start - 2 || frame >= phase.end) return null;
         const fadeOut = interpolate(frame, [phase.end - 10, phase.end], [1, 0], {

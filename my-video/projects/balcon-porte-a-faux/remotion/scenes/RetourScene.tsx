@@ -64,11 +64,11 @@ export const RetourScene: React.FC = () => {
       >
         <BalconyIllustration showGlow glowOpacity={glowOpacity} />
       </div>
-      <BigLine text="Ce balcon ne tient pas par magie." start={5} end={124} color={colors.white} fontSize={64} />
+      <BigLine text="Ce balcon ne tient pas par magie." start={4} end={92} color={colors.white} fontSize={64} />
       <BigLine
         text="L'encastrement transmet les efforts et le moment au bâtiment."
-        start={129}
-        end={282}
+        start={96}
+        end={219}
         color={colors.green}
         fontSize={56}
       />
