@@ -1,0 +1,18 @@
+{
+  "slug": "balcon-porte-a-faux",
+  "title": "Ce balcon n'a aucun poteau dessous… pourquoi ne tombe-t-il pas ?",
+  "format": "vertical",
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "scene1",
+      "text": "Texte de la scène 1.",
+      "durationInFrames": null,
+      "voiceover": {
+        "source": "none",
+        "file": null
+      },
+      "manim": null
+    }
+  ]
+}
