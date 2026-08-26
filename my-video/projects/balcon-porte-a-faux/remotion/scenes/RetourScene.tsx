@@ -1,9 +1,11 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { SceneBackground, Kicker } from "../../../../engine/remotion/components/Shared";
 import { useFormat } from "../../../../engine/remotion/format-context";
 import { colors, headingFont } from "../../../../engine/remotion/theme";
 import { BalconyIllustration } from "../BalconyIllustration";
+
+const easeInOut = Easing.inOut(Easing.ease);
 
 const BigLine: React.FC<{ text: string; start: number; end: number; color?: string; fontSize?: number }> = ({
   text,
@@ -16,7 +18,11 @@ const BigLine: React.FC<{ text: string; start: number; end: number; color?: stri
   const { fps } = useVideoConfig();
   const format = useFormat();
   const inP = spring({ frame: frame - start, fps, config: { damping: 200, mass: 0.7 } });
-  const outP = interpolate(frame, [end - 12, end], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const outP = interpolate(frame, [end - 14, end], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: easeInOut,
+  });
   const opacity = Math.min(interpolate(inP, [0, 1], [0, 1], { extrapolateRight: "clamp" }), outP);
   if (frame < start - 2 || opacity <= 0) return null;
 
@@ -46,7 +52,11 @@ export const RetourScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const illustrationP = spring({ frame, fps, config: { damping: 200 } });
-  const glowOpacity = interpolate(frame, [20, 80], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const glowOpacity = interpolate(frame, [20, 80], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: easeInOut,
+  });
 
   return (
     <AbsoluteFill>

@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, staticFile } from "remotion";
+import { AbsoluteFill, Audio, Easing, staticFile } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 
@@ -43,7 +43,13 @@ export const TOTAL_DURATION =
   DURATIONS.cta -
   TRANSITION_FRAMES * 5;
 
-const fadeTiming = linearTiming({ durationInFrames: TRANSITION_FRAMES });
+// Eased rather than a perfectly linear opacity ramp, so every crossfade
+// accelerates in and decelerates out instead of blending at a constant
+// rate — reads as a smoother, more deliberate cut between scenes.
+const fadeTiming = linearTiming({
+  durationInFrames: TRANSITION_FRAMES,
+  easing: Easing.inOut(Easing.ease),
+});
 
 export const BalconPorteAFaux: React.FC = () => {
   return (

@@ -1,7 +1,9 @@
 import React from "react";
-import { AbsoluteFill, interpolate, staticFile, useCurrentFrame, Video } from "remotion";
+import { AbsoluteFill, Easing, interpolate, staticFile, useCurrentFrame, Video } from "remotion";
 import { colors } from "../../../../engine/remotion/theme";
 import { ScrimCaption } from "../ScrimCaption";
+
+const easeInOut = Easing.inOut(Easing.ease);
 
 // Frame boundaries match the re-rendered clip's own native pacing (see
 // manim/mechanics_clip2.py: progressive lever-arm demo = 441f, highlighted
@@ -32,9 +34,10 @@ export const MechClip2Scene: React.FC = () => {
       <Video src={staticFile("manim-render/mechanics_clip2.webm")} style={{ width: "100%", height: "100%" }} />
       {PHASES.map((phase, i) => {
         if (frame < phase.start - 2 || frame >= phase.end) return null;
-        const fadeOut = interpolate(frame, [phase.end - 10, phase.end], [1, 0], {
+        const fadeOut = interpolate(frame, [phase.end - 15, phase.end], [1, 0], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
+          easing: easeInOut,
         });
         return (
           <div key={i} style={{ position: "absolute", inset: 0, opacity: fadeOut }}>

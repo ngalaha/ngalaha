@@ -5,6 +5,11 @@ import { colors } from "../../../engine/remotion/theme";
  * Shared hero illustration: a building with a cantilevered balcony and
  * deliberately no visible support underneath (sells "aucun poteau dessous").
  * Reused across the hook, charges and "retour" scenes with different props.
+ *
+ * Proportions are deliberately architectural: a 6-storey facade with a
+ * roof cap and ground-floor entrance, and a balcony that projects only a
+ * modest fraction of the building's width (a real cantilever slab, not a
+ * platform wider than the building itself).
  */
 export const BalconyIllustration: React.FC<{
   showLoads?: boolean;
@@ -14,8 +19,26 @@ export const BalconyIllustration: React.FC<{
    * 3=+personne, 4=+poteau. Omit to fall back to the all-at-once showLoads. */
   loadStage?: number;
 }> = ({ showLoads = false, showGlow = false, glowOpacity = 1, loadStage }) => {
+  // Continuous 0-4 value (the caller eases it) rather than an integer
+  // stage — each element below fades in over its own 0-1 window instead
+  // of popping in on a hard threshold.
   const stage = loadStage ?? (showLoads ? 4 : 0);
-  const windowRows = [180, 280, 380, 480, 580];
+  const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+  const dalleOpacity = clamp01(stage);
+  const furnitureOpacity = clamp01(stage - 1);
+  const personOpacity = clamp01(stage - 2);
+  const postOpacity = clamp01(stage - 3);
+  const windowRows = [110, 205, 300, 395, 490, 585];
+
+  // Balcony sits in the facade gap between the 3rd and 4th floor, and
+  // projects only ~37% of the building's width — a credible cantilever
+  // slab rather than a platform wider than the building.
+  const balconyX = 370;
+  const balconyY = 372;
+  const balconyDepth = 112;
+  const balconyThick = 20;
+  const balconyOuterX = balconyX + balconyDepth;
+
   return (
     <svg viewBox="0 0 800 900" width="100%" height="100%">
       <defs>
@@ -25,76 +48,112 @@ export const BalconyIllustration: React.FC<{
         </radialGradient>
       </defs>
 
-      {/* Building */}
-      <rect x="70" y="70" width="300" height="760" fill={colors.navyLight} stroke={colors.mist} strokeWidth={4} />
+      {/* Roof cap */}
+      <rect x={58} y={46} width={324} height={16} fill={colors.navyLight} stroke={colors.mist} strokeWidth={3} />
+
+      {/* Building facade */}
+      <rect x="70" y="62" width="300" height="768" fill={colors.navyLight} stroke={colors.mist} strokeWidth={4} />
+
+      {/* Subtle floor-division lines for an architectural facade feel */}
+      {[205, 300, 395, 490, 585].map((y) => (
+        <line key={y} x1={74} x2={366} y1={y - 15} y2={y - 15} stroke={colors.mist} strokeWidth={1} opacity={0.22} />
+      ))}
+
       {windowRows.map((y) => (
         <React.Fragment key={y}>
-          <rect x="115" y={y} width="80" height="70" fill={colors.navyDark} stroke={colors.mist} strokeWidth={2.5} />
-          <rect x="245" y={y} width="80" height="70" fill={colors.navyDark} stroke={colors.mist} strokeWidth={2.5} />
+          {[115, 245].map((x) => (
+            <React.Fragment key={x}>
+              <rect x={x} y={y} width="80" height="70" fill={colors.navyDark} stroke={colors.mist} strokeWidth={2.5} />
+              <line x1={x + 40} x2={x + 40} y1={y} y2={y + 70} stroke={colors.mist} strokeWidth={1.5} opacity={0.6} />
+              <line x1={x} x2={x + 80} y1={y + 35} y2={y + 35} stroke={colors.mist} strokeWidth={1.5} opacity={0.6} />
+            </React.Fragment>
+          ))}
         </React.Fragment>
       ))}
 
+      {/* Ground-floor entrance */}
+      <rect x={195} y={758} width={50} height={72} fill={colors.navyDark} stroke={colors.mist} strokeWidth={2.5} />
+
       {/* Balcony slab — protrudes right, nothing visible underneath */}
-      <rect x="370" y="368" width="330" height="32" fill={colors.white} stroke={colors.mist} strokeWidth={3} />
+      <rect
+        x={balconyX}
+        y={balconyY}
+        width={balconyDepth}
+        height={balconyThick}
+        fill={colors.white}
+        stroke={colors.mist}
+        strokeWidth={3}
+      />
+      {/* underside shadow line — reads as a solid cantilevered slab with
+          genuinely nothing propping it up */}
+      <rect x={balconyX} y={balconyY + balconyThick} width={balconyDepth} height={7} fill={colors.navyDark} opacity={0.4} />
+
       {/* railing */}
-      {Array.from({ length: 10 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <line
           key={i}
-          x1={390 + i * 32}
-          y1={368}
-          x2={390 + i * 32}
-          y2={300}
+          x1={balconyX + 16 + i * 16}
+          y1={balconyY}
+          x2={balconyX + 16 + i * 16}
+          y2={balconyY - 52}
           stroke={colors.mist}
-          strokeWidth={4}
+          strokeWidth={3.5}
         />
       ))}
-      <line x1={385} y1={300} x2={695} y2={300} stroke={colors.mist} strokeWidth={4} />
+      <line
+        x1={balconyX + 10}
+        y1={balconyY - 52}
+        x2={balconyOuterX - 4}
+        y2={balconyY - 52}
+        stroke={colors.mist}
+        strokeWidth={3.5}
+      />
 
       {showGlow && (
-        <circle cx={385} cy={384} r={110} fill="url(#junctionGlow)" opacity={glowOpacity} />
+        <circle cx={balconyX + 15} cy={balconyY + 10} r={95} fill="url(#junctionGlow)" opacity={glowOpacity} />
       )}
 
-      {stage >= 1 && (
+      {dalleOpacity > 0 && (
         <rect
-          x="370"
-          y="368"
-          width="330"
-          height="32"
+          x={balconyX}
+          y={balconyY}
+          width={balconyDepth}
+          height={balconyThick}
           fill="none"
           stroke={colors.amber}
           strokeWidth={5}
-          opacity={0.9}
+          opacity={0.9 * dalleOpacity}
         />
       )}
 
-      {stage >= 2 && (
-        <>
-          {/* furniture: table + two chairs, simple shapes */}
-          <rect x={440} y={340} width="60" height="10" fill={colors.mist} />
-          <rect x={445} y={350} width="6" height="18" fill={colors.mist} />
-          <rect x={489} y={350} width="6" height="18" fill={colors.mist} />
-          <circle cx={415} cy={358} r={10} fill={colors.mist} />
-          <circle cx={520} cy={358} r={10} fill={colors.mist} />
-        </>
+      {furnitureOpacity > 0 && (
+        <g opacity={furnitureOpacity}>
+          {/* furniture: small table + two chairs, near the building side */}
+          <rect x={392} y={350} width="34" height="7" fill={colors.mist} />
+          <rect x={395} y={357} width="4" height="14" fill={colors.mist} />
+          <rect x={419} y={357} width="4" height="14" fill={colors.mist} />
+          <circle cx={386} cy={363} r={7} fill={colors.mist} />
+          <circle cx={432} cy={363} r={7} fill={colors.mist} />
+        </g>
       )}
 
-      {stage >= 3 && (
-        <>
-          {/* person: simple silhouette standing on the slab */}
-          <circle cx={565} cy={338} r={11} fill={colors.clay} />
+      {personOpacity > 0 && (
+        <g opacity={personOpacity}>
+          {/* person: simple silhouette standing further out on the slab */}
+          <circle cx={452} cy={346} r={8} fill={colors.clay} />
           <path
-            d="M 553 368 Q 553 348 565 348 Q 577 348 577 368 L 570 368 L 570 358 L 560 358 L 560 368 Z"
+            d="M 442 372 Q 442 356 452 356 Q 462 356 462 372 L 456 372 L 456 364 L 448 364 L 448 372 Z"
             fill={colors.clay}
           />
-        </>
+        </g>
       )}
 
-      {stage >= 4 && (
-        <>
-          {/* post + small roof near the outer end (~70% of slab) */}
-          <rect x={636} y={230} width="14" height="138" fill={colors.amber} />
-          <path d="M 600 230 L 645 200 L 690 230 Z" fill={colors.amberDark} stroke={colors.amber} strokeWidth={2} />
-        </>
+      {postOpacity > 0 && (
+        <g opacity={postOpacity}>
+          {/* post + small roof near the outer end of the slab (~70% out) */}
+          <rect x={462} y={298} width="10" height="74" fill={colors.amber} />
+          <path d="M 448 298 L 467 274 L 486 298 Z" fill={colors.amberDark} stroke={colors.amber} strokeWidth={2} />
+        </g>
       )}
     </svg>
   );

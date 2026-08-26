@@ -134,8 +134,18 @@ def build_full_diagram():
     p_arrow = build_point_load_arrow()
     dim = build_dimension_lines()
 
-    p_label = diagram_label("P = 6 kN", size=22, color=AMBER).next_to(p_arrow, UP, buff=0.1)
+    # P sits at 70% along the beam. Its arrow is tall (tail at BEAM_Y+0.95)
+    # and its label (measured width ~1.39) is wide, while w_label (measured
+    # width ~1.83) is wide too — the two combined are wider than the gap
+    # between the wall and P's arrow, so no purely horizontal placement of
+    # both labels at the same height can avoid overlap. Fix: keep w_label
+    # low (next to its own shorter arrows) but shift it left so its own
+    # span never reaches P's arrow x — and put p_label distinctly higher,
+    # in its own vertical band above w_label entirely, rather than in the
+    # same row.
+    p_label = diagram_label("P = 6 kN", size=22, color=AMBER).next_to(p_arrow, UP, buff=0.18)
     w_label = diagram_label("w = 4 kN/m", size=22, color=MIST).next_to(w_arrows, UP, buff=0.12)
+    w_label.set_x(WALL_X + 1.15)
 
     group = VGroup(wall, beam, w_arrows, p_arrow, dim, p_label, w_label)
     group.move_to(np.array([0, 1.5, 0]))

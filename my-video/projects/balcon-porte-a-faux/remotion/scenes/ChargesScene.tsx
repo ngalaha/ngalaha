@@ -1,16 +1,22 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { SceneBackground, Kicker } from "../../../../engine/remotion/components/Shared";
 import { useFormat } from "../../../../engine/remotion/format-context";
 import { colors, bodyFont } from "../../../../engine/remotion/theme";
 import { BalconyIllustration } from "../BalconyIllustration";
+
+const easeInOut = Easing.inOut(Easing.ease);
 
 const SentenceBeat: React.FC<{ text: string; start: number; end: number }> = ({ text, start, end }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const format = useFormat();
   const inP = spring({ frame: frame - start, fps, config: { damping: 200, mass: 0.7 } });
-  const outP = interpolate(frame, [end - 10, end], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const outP = interpolate(frame, [end - 14, end], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: easeInOut,
+  });
   const opacity = Math.min(interpolate(inP, [0, 1], [0, 1], { extrapolateRight: "clamp" }), outP);
   if (frame < start - 2 || opacity <= 0) return null;
 
@@ -42,8 +48,16 @@ export const ChargesScene: React.FC = () => {
   const loadsP = spring({ frame: frame - 10, fps, config: { damping: 200 } });
 
   // Staged reveal synced to the narration naming each load in turn:
-  // "dalle, meubles, une personne" (first sentence) then "un poteau" (second).
-  const loadStage = frame >= 160 ? 4 : frame >= 90 ? 3 : frame >= 55 ? 2 : frame >= 20 ? 1 : 0;
+  // "dalle, meubles, une personne" (first sentence) then "un poteau"
+  // (second). Each stage crossfades in over a short window instead of
+  // popping in on a hard frame cut, and BalconyIllustration turns this
+  // continuous 0-4 value into a per-element fade.
+  const loadStage = interpolate(
+    frame,
+    [15, 25, 50, 60, 85, 95, 155, 165],
+    [0, 1, 1, 2, 2, 3, 3, 4],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: easeInOut }
+  );
 
   return (
     <AbsoluteFill>
