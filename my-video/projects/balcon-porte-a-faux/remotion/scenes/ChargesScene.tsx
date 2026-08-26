@@ -48,13 +48,13 @@ export const ChargesScene: React.FC = () => {
 
       <SentenceBeat
         text="Sur toute sa longueur, le balcon porte du poids : dalle, meubles, personnes."
-        start={4}
-        end={92}
+        start={5}
+        end={124}
       />
       <SentenceBeat
         text="Et là, un poteau ajoute son propre poids, à un endroit précis."
-        start={96}
-        end={180}
+        start={129}
+        end={242}
       />
 
       <div

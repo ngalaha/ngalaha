@@ -44,7 +44,7 @@ const BigLine: React.FC<{ text: string; start: number; end: number; color?: stri
 export const HookScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const zoom = interpolate(frame, [0, 120], [1, 1.08], { extrapolateRight: "clamp" });
+  const zoom = interpolate(frame, [0, 161], [1, 1.08], { extrapolateRight: "clamp" });
   const illustrationP = spring({ frame, fps, config: { damping: 200 } });
 
   return (
@@ -65,8 +65,8 @@ export const HookScene: React.FC = () => {
       >
         <BalconyIllustration />
       </div>
-      <BigLine text="Ce balcon n'a AUCUN poteau dessous." start={4} end={62} color={colors.white} />
-      <BigLine text="Alors... pourquoi ne tombe-t-il pas ?" start={64} end={120} color={colors.amber} />
+      <BigLine text="Ce balcon n'a AUCUN poteau dessous." start={5} end={83} color={colors.white} />
+      <BigLine text="Alors... pourquoi ne tombe-t-il pas ?" start={86} end={161} color={colors.amber} />
     </AbsoluteFill>
   );
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, Audio, staticFile } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 
@@ -13,16 +13,21 @@ import { MechClip2Scene } from "./scenes/MechClip2Scene";
 import { RetourScene } from "./scenes/RetourScene";
 import { CTAScene } from "./scenes/CTAScene";
 
-// Exact rendered durations of the two Manim clips (ffprobe-measured, see
-// project.json) drive these two — everything else is a Remotion-authored
-// duration chosen to land the whole video in the 65-70s target.
+// Every scene's duration is stretched from its original (silent-cut) value
+// by the same factor so the whole timeline matches the voiceover
+// (public/audio/voiceover.mp3, ffprobe-measured 92.9175s). The two Manim
+// clips keep their original pixel content — they are played back slower
+// (see playbackRate in MechClip1Scene/MechClip2Scene) rather than
+// re-rendered, so their internal animation stays proportionally in sync.
+// Original (silent) values, kept for reference: hook 120, charges 180,
+// clip1 762, clip2 696, retour 210, cta 150 (stretch factor ~1.3447).
 export const DURATIONS = {
-  hook: 120, // 4.0s
-  charges: 180, // 6.0s
-  clip1: 762, // 25.4s (measured)
-  clip2: 696, // 23.2s (measured)
-  retour: 210, // 7.0s
-  cta: 150, // 5.0s
+  hook: 161, // 5.367s
+  charges: 242, // 8.067s
+  clip1: 1025, // 34.167s (762 source frames played at rate 762/1025)
+  clip2: 936, // 31.2s (696 source frames played at rate 696/936)
+  retour: 282, // 9.4s
+  cta: 202, // 6.733s
 };
 
 const TRANSITION_FRAMES = 12; // 0.4s fade between every scene
@@ -42,6 +47,7 @@ export const BalconPorteAFaux: React.FC = () => {
   return (
     <FormatProvider format="vertical">
       <AbsoluteFill style={{ backgroundColor: colors.navyDark }}>
+        <Audio src={staticFile("audio/voiceover.mp3")} />
         <TransitionSeries>
           <TransitionSeries.Sequence durationInFrames={DURATIONS.hook}>
             <HookScene />
