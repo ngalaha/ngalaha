@@ -75,3 +75,18 @@ politique réseau élargie :
   dans ce conteneur ;
 - demander l'ajout de `huggingface.co` (et `cdn-lfs.huggingface.co`) à la
   liste blanche du proxy.
+
+### ⚠️ `<Video>` dans Remotion : n'utiliser que du WebM/VP9 dans ce sandbox
+
+Le `headless_shell` de Chromium utilisé pour le rendu (`remotion.media` étant
+bloqué, voir plus haut) échoue à lire du **H.264/MP4** dans un `<Video>` :
+`MediaPlaybackError ... DEMUXER_ERROR_NO_SUPPORTED_STREAMS`. Le ré-encodage en
+MP4 avec `+faststart` ne change rien — ce n'est pas un problème de conteneur,
+son pipeline média interne ne supporte tout simplement pas ce codec. Un clip
+ré-encodé en **VP9/WebM** (`ffmpeg -c:v libvpx-vp9 -b:v 0 -crf 30 ...`) se lit
+sans problème. Confirmé avec `projects/beam-reactions-vertical` (asset Manim
+converti de `.mp4` en `.webm`).
+
+Conséquence pratique : tout clip vidéo importé dans une composition Remotion
+(rendu Manim, clip stock, etc.) doit être livré en `.webm` (VP9) dans
+`public/`, pas en `.mp4`, tant que ce rendu passe par `headless_shell`.

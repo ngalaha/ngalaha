@@ -1,0 +1,29 @@
+{
+  "slug": "beam-reactions-vertical",
+  "title": "Comprendre les réactions d'appui d'une poutre",
+  "format": "vertical",
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "title",
+      "text": "Comment une poutre reste en équilibre ? Une poutre, deux appuis, une charge : voyons comment les forces se répondent.",
+      "durationInFrames": 105,
+      "voiceover": { "source": "none", "file": null },
+      "manim": null
+    },
+    {
+      "id": "beam-demo",
+      "text": "Regardez comment les appuis A et B réagissent à la charge P. Les réactions R_A et R_B équilibrent la charge P.",
+      "durationInFrames": 267,
+      "voiceover": { "source": "none", "file": null },
+      "manim": "public/manim-render/beam_reactions.webm"
+    },
+    {
+      "id": "conclusion",
+      "text": "Chaque force a sa réaction. C'est ce principe simple qui permet à toute structure de tenir debout.",
+      "durationInFrames": 108,
+      "voiceover": { "source": "none", "file": null },
+      "manim": null
+    }
+  ]
+}

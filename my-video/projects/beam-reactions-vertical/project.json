@@ -1,0 +1,18 @@
+{
+  "slug": "beam-reactions-vertical",
+  "title": "Comprendre les réactions d'appui d'une poutre",
+  "format": "vertical",
+  "status": "produced",
+  "createdFrom": "_template",
+  "note": "Projet de test du moteur engine/. Réutilise l'animation Manim de projects/beam-reactions-demo (copiée dans public/manim-render, ré-encodée en VP9/WebM — voir remotion/BeamReactionsVertical.tsx pour pourquoi). Pas de voix off ni de transcription pour ce test.",
+  "entry": {
+    "remotionRoot": "../../src/Root.tsx",
+    "compositionId": "BeamReactionsVertical",
+    "compositionFile": "remotion/BeamReactionsVertical.tsx"
+  },
+  "durationSeconds": 15,
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "render": "render/final.mp4"
+}
