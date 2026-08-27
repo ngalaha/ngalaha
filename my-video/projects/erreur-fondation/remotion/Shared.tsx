@@ -176,4 +176,68 @@ export const SceneFade: React.FC<{ duration: number; children: React.ReactNode }
   return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };
 
+/** SVG <defs> for a geotechnical clay-soil fill (short horizontal lens
+ * dashes, the real French convention for "argile" — NOT generic diagonal
+ * hatching) plus a generic backfill hatch, so every scene's soil cross-
+ * section reads as the same technical drawing, not a sketch. */
+export const SoilDefs: React.FC<{ clayId: string; fillId: string }> = ({ clayId, fillId }) => (
+  <defs>
+    <pattern id={clayId} width={26} height={18} patternUnits="userSpaceOnUse">
+      <rect width={26} height={18} fill={`${colors.orange}12`} />
+      <ellipse cx={6} cy={5} rx={6} ry={1.6} fill="none" stroke={colors.orange} strokeWidth={1.4} />
+      <ellipse cx={19} cy={13} rx={6} ry={1.6} fill="none" stroke={colors.orange} strokeWidth={1.4} />
+    </pattern>
+    <pattern id={fillId} width={16} height={16} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1={0} y1={0} x2={0} y2={16} stroke={colors.gray} strokeWidth={1.4} />
+    </pattern>
+  </defs>
+);
+
+/** A ticked technical dimension line (vertical), matching the Manim plan's
+ * `build_dim_v` convention: thin line, small perpendicular end-ticks, a
+ * monospace label to one side. */
+export const DimV: React.FC<{
+  x: number; y1: number; y2: number; label: string; color?: string; side?: "left" | "right"; size?: number;
+}> = ({ x, y1, y2, label, color = colors.ink, side = "right", size = 22 }) => {
+  const tick = 9;
+  const labelX = side === "right" ? x + 16 : x - 16;
+  return (
+    <g>
+      <line x1={x} y1={y1} x2={x} y2={y2} stroke={color} strokeWidth={2} />
+      <line x1={x - tick} y1={y1} x2={x + tick} y2={y1} stroke={color} strokeWidth={2} />
+      <line x1={x - tick} y1={y2} x2={x + tick} y2={y2} stroke={color} strokeWidth={2} />
+      <text
+        x={labelX}
+        y={(y1 + y2) / 2}
+        fontSize={size}
+        fontFamily={monoFont}
+        fontWeight={700}
+        fill={color}
+        textAnchor={side === "right" ? "start" : "end"}
+        dominantBaseline="middle"
+      >
+        {label}
+      </text>
+    </g>
+  );
+};
+
+/** Same convention, horizontal. */
+export const DimH: React.FC<{
+  xL: number; xR: number; y: number; label: string; color?: string; side?: "up" | "down"; size?: number;
+}> = ({ xL, xR, y, label, color = colors.ink, side = "down", size = 20 }) => {
+  const tick = 9;
+  const labelY = side === "down" ? y + 26 : y - 16;
+  return (
+    <g>
+      <line x1={xL} y1={y} x2={xR} y2={y} stroke={color} strokeWidth={2} />
+      <line x1={xL} y1={y - tick} x2={xL} y2={y + tick} stroke={color} strokeWidth={2} />
+      <line x1={xR} y1={y - tick} x2={xR} y2={y + tick} stroke={color} strokeWidth={2} />
+      <text x={(xL + xR) / 2} y={labelY} fontSize={size} fontFamily={monoFont} fontWeight={700} fill={color} textAnchor="middle">
+        {label}
+      </text>
+    </g>
+  );
+};
+
 export { colors, bodyFont, headingFont, monoFont };
