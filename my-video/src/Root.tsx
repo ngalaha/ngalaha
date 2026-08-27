@@ -3,7 +3,7 @@ import { MyComposition } from "./Composition";
 import { BeamReactionsVerticalComposition } from "./BeamReactionsVerticalComposition";
 import { BalconPorteAFauxComposition } from "./BalconPorteAFauxComposition";
 import { BalconPorteAFauxThumbnail } from "./BalconPorteAFauxThumbnail";
-import { StyleDemoComposition } from "./StyleDemoComposition";
+import { ErreurFondationComposition } from "./ErreurFondationComposition";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -12,7 +12,7 @@ export const RemotionRoot: React.FC = () => {
       <BeamReactionsVerticalComposition />
       <BalconPorteAFauxComposition />
       <BalconPorteAFauxThumbnail />
-      <StyleDemoComposition />
+      <ErreurFondationComposition />
     </>
   );
 };
