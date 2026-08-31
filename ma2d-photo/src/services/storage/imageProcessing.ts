@@ -1,7 +1,7 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 
+import { fileNameExists } from '@/database/photosRepository';
 import { formatBaseFileName, formatDateFolder } from '@/utils/dateUtils';
-import { listExistingFileNames } from './fileStorage';
 
 const MAX_DIMENSION = 2048; // preserves cracks/rebar/formwork detail while capping file size
 const JPEG_QUALITY = 0.78;
@@ -24,17 +24,22 @@ export async function compressPhoto(uri: string): Promise<{ uri: string; width: 
 /**
  * Builds the YYYY-MM-DD_HHmmss[_NN].jpg file name, avoiding collisions
  * when two photos are taken within the same second (spec section 10).
+ *
+ * Checked against the local database (every photo ever captured), not the
+ * local file system: an already-uploaded photo's local file is deleted
+ * once confirmed in OneDrive (spec section 26), so checking the file
+ * system alone would miss it and let a later photo silently reuse — and
+ * overwrite — its name.
  */
-export async function generateUniqueFileName(captureDate: Date = new Date()): Promise<string> {
+export function generateUniqueFileName(captureDate: Date = new Date()): string {
   const base = formatBaseFileName(captureDate);
-  const existing = await listExistingFileNames();
 
   const plain = `${base}.jpg`;
-  if (!existing.has(plain)) return plain;
+  if (!fileNameExists(plain)) return plain;
 
   for (let suffix = 1; suffix < 100; suffix++) {
     const candidate = `${base}_${suffix.toString().padStart(2, '0')}.jpg`;
-    if (!existing.has(candidate)) return candidate;
+    if (!fileNameExists(candidate)) return candidate;
   }
   // Extremely unlikely fallback: fall back to a millisecond-based suffix.
   return `${base}_${Date.now() % 1000}.jpg`;

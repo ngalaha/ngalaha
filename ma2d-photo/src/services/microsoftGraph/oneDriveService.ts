@@ -56,7 +56,14 @@ export async function resolveShareLink(shareUrl: string): Promise<OneDriveFolder
       lastError: null,
     };
   } catch (e) {
-    const message = e instanceof AppError ? e.userMessage : USER_MESSAGES.INVALID_SHARE_LINK;
+    // A 404 here means the /shares lookup itself failed (bad/expired link),
+    // not that a resolved OneDrive folder went missing — report it as such.
+    const message =
+      e instanceof AppError
+        ? e.userMessage === USER_MESSAGES.FOLDER_NOT_FOUND
+          ? USER_MESSAGES.INVALID_SHARE_LINK
+          : e.userMessage
+        : USER_MESSAGES.INVALID_SHARE_LINK;
     logger.error('Échec de résolution du lien OneDrive', { shareUrl: trimmed, error: String(e) });
     return {
       shareUrl: trimmed,

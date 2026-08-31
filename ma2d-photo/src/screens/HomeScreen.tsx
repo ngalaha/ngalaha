@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
@@ -37,9 +38,19 @@ export default function HomeScreen({ navigation }: Props) {
     selectedBuilding,
     selectProject,
     selectBuilding,
+    refreshBuildings,
   } = useProjects();
   const { recentPhotos, pendingCount, syncing, retryPhoto } = usePhotoQueue();
   const [processing, setProcessing] = useState<'idle' | 'preparing' | 'saving'>('idle');
+
+  // Home stays mounted underneath Administration in the stack, so its
+  // building list (OneDrive folder status, names) would otherwise go stale
+  // after an edit made there — refresh it every time Home regains focus.
+  useFocusEffect(
+    useCallback(() => {
+      refreshBuildings();
+    }, [refreshBuildings])
+  );
 
   const captureFrom = useCallback(
     async (source: 'camera' | 'gallery') => {

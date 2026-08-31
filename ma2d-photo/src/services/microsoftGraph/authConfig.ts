@@ -23,8 +23,14 @@ export const discovery: AuthSession.DiscoveryDocument = {
 /**
  * Redirect URI registered in Entra ID as a "Mobile and desktop
  * applications" platform entry: ma2dphoto://auth
- * In Expo Go during development this resolves to an exp:// URI instead —
- * see docs/ENTRA_ID_SETUP.md for adding both.
+ *
+ * This resolves correctly to `ma2dphoto://auth` in a development build or
+ * any EAS/standalone build (verified against expo-linking's createURL).
+ * In Expo Go it instead resolves to an unstable `exp://<host>:<port>/--/auth`
+ * loopback URL that cannot be pre-registered in Entra ID — Microsoft
+ * sign-in therefore does NOT work inside Expo Go. Use a development build
+ * (`npx expo run:android` / `eas build --profile development`) or a real
+ * build to test authentication — see docs/ENTRA_ID_SETUP.md.
  */
 export function getRedirectUri(): string {
   return AuthSession.makeRedirectUri({ scheme: ENV.REDIRECT_SCHEME, path: 'auth' });

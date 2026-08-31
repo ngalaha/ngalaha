@@ -22,7 +22,7 @@
         "NSCameraUsageDescription": "MA2D Construction a besoin de l'appareil photo pour prendre des photos de chantier.",
         "NSPhotoLibraryUsageDescription": "MA2D Construction a besoin d'accéder à vos photos pour permettre l'envoi de photos existantes vers OneDrive.",
         "NSPhotoLibraryAddUsageDescription": "MA2D Construction peut enregistrer une copie des photos de chantier dans votre galerie.",
-        "UIBackgroundModes": ["fetch", "processing"]
+        "UIBackgroundModes": ["fetch"]
       }
     },
     "android": {
@@ -53,7 +53,8 @@
         "expo-image-picker",
         {
           "photosPermission": "MA2D Construction a besoin d'accéder à vos photos pour envoyer des photos existantes vers OneDrive.",
-          "cameraPermission": "MA2D Construction a besoin de l'appareil photo pour prendre des photos de chantier."
+          "cameraPermission": "MA2D Construction a besoin de l'appareil photo pour prendre des photos de chantier.",
+          "microphonePermission": false
         }
       ],
       [
@@ -63,7 +64,8 @@
           "color": "#0F2A43"
         }
       ],
-      "expo-task-manager"
+      "expo-task-manager",
+      "expo-background-fetch"
     ],
     "extra": {
       "eas": {

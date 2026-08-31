@@ -29,11 +29,11 @@ export const SEED_BUILDINGS: Building[] = BUILDING_LETTERS.map((letter) => ({
   id: `${CHAMPFLEURY_PROJECT_ID}-batiment-${letter.toLowerCase()}`,
   projectId: CHAMPFLEURY_PROJECT_ID,
   name: `Bâtiment ${letter}`,
-  photoFolder: {
-    ...emptyOneDriveFolderRef(),
-    // Placeholder — must be filled in via Administration > Bâtiment > Modifier.
-    shareUrl: 'À_RENSEIGNER',
-  },
+  // Left empty (not a literal "À_RENSEIGNER" string) so the Administration
+  // screen shows a real empty field and the "Dossier non configuré"
+  // warning, rather than a placeholder that looks like a saved value —
+  // must be filled in via Administration > Bâtiment > Modifier.
+  photoFolder: emptyOneDriveFolderRef(),
   createdAt: new Date(0).toISOString(),
   updatedAt: new Date(0).toISOString(),
 }));

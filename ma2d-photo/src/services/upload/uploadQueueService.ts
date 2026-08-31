@@ -28,9 +28,9 @@ function notify(): void {
   listeners.forEach((l) => l());
 }
 
-async function uploadOne(photoId: string): Promise<void> {
+async function uploadOne(photoId: string): Promise<boolean> {
   const photo = getPhoto(photoId);
-  if (!photo) return;
+  if (!photo) return false;
 
   updatePhotoStatus(photo.id, 'UPLOADING');
   notify();
@@ -40,7 +40,7 @@ async function uploadOne(photoId: string): Promise<void> {
     updatePhotoStatus(photo.id, 'FAILED', { lastError: USER_MESSAGES.FOLDER_NOT_CONFIGURED });
     logger.error('Bâtiment sans dossier OneDrive configuré', { buildingId: photo.buildingId });
     notify();
-    return;
+    return false;
   }
 
   try {
@@ -60,6 +60,7 @@ async function uploadOne(photoId: string): Promise<void> {
     });
     await deleteLocalPhoto(photo.localUri);
     logger.info('Photo envoyée avec succès', { fileName: photo.fileName, itemId });
+    return true;
   } catch (e) {
     const attempts = incrementAttempts(photo.id);
     const message = e instanceof AppError ? e.userMessage : USER_MESSAGES.GENERIC_UPLOAD_FAILURE;
@@ -69,6 +70,7 @@ async function uploadOne(photoId: string): Promise<void> {
     if (e instanceof AppError && e.userMessage === USER_MESSAGES.SESSION_EXPIRED) {
       throw e; // stop the whole batch — re-login is required
     }
+    return false;
   } finally {
     notify();
   }
@@ -80,16 +82,22 @@ async function uploadOne(photoId: string): Promise<void> {
  * ensure date folder -> upload -> confirm -> delete local copy.
  * Safe to call repeatedly (e.g. on reconnect, on app foreground, from a
  * background task) — re-entrant calls are ignored while one is running.
+ * Returns the number of photos successfully uploaded during this pass, so
+ * callers (e.g. the background task) can decide whether to notify the user.
  */
-export async function runSync(): Promise<void> {
-  if (syncing) return;
-  if (!(await isConnected())) {
-    logger.info('Synchronisation ignorée : pas de connexion Internet');
-    return;
-  }
-
+export async function runSync(): Promise<number> {
+  // Claim the lock synchronously (before any `await`) so two near-simultaneous
+  // callers (e.g. app-start effect + reconnect listener) can't both pass this
+  // check and run overlapping upload passes for the same photos.
+  if (syncing) return 0;
   syncing = true;
+  let uploadedCount = 0;
   try {
+    if (!(await isConnected())) {
+      logger.info('Synchronisation ignorée : pas de connexion Internet');
+      return 0;
+    }
+
     const pending = listPendingPhotos();
     logger.info('Démarrage de la synchronisation', { count: pending.length });
 
@@ -99,13 +107,14 @@ export async function runSync(): Promise<void> {
       }
       if (!(await isConnected())) break;
       try {
-        await uploadOne(photo.id);
+        if (await uploadOne(photo.id)) uploadedCount += 1;
       } catch (e) {
         if (e instanceof AppError && e.userMessage === USER_MESSAGES.SESSION_EXPIRED) {
           break; // wait for the user to sign in again
         }
       }
     }
+    return uploadedCount;
   } finally {
     syncing = false;
     notify();

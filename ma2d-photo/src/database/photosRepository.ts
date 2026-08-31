@@ -88,3 +88,18 @@ export function getPhoto(id: string): PhotoRecord | null {
   const db = getDb();
   return db.getFirstSync<PhotoRecord>('SELECT * FROM photos WHERE id = ?', id);
 }
+
+/**
+ * Whether a file name has ever been used, including for photos already
+ * uploaded (and therefore no longer present in local storage) — the
+ * collision check in imageProcessing.ts must survive a photo's local copy
+ * being deleted right after a successful upload (spec section 26/10).
+ */
+export function fileNameExists(fileName: string): boolean {
+  const db = getDb();
+  const row = db.getFirstSync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM photos WHERE fileName = ?',
+    fileName
+  );
+  return (row?.count ?? 0) > 0;
+}

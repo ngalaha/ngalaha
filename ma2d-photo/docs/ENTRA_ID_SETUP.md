@@ -33,11 +33,16 @@ Microsoft Entra ID (anciennement Azure AD) pour obtenir un **Client ID**.
 1. Dans le menu de gauche de l'application : **Authentification**.
 2. Cliquer **Ajouter une plateforme** > **Applications mobiles et de
    bureau**.
-3. Cocher/ajouter les URI de redirection suivantes :
-   - `ma2dphoto://auth` (utilisée par les vraies builds Android/iOS)
-   - `https://auth.expo.io/@VOTRE_COMPTE_EXPO/ma2d-photo` (utile pour les
-     tests via l'application **Expo Go** en développement — remplacez
-     `VOTRE_COMPTE_EXPO` par votre nom d'utilisateur Expo)
+3. Ajouter l'URI de redirection suivante :
+   - `ma2dphoto://auth`
+   ⚠️ N'ajoutez PAS d'URI `https://auth.expo.io/...` : ce service proxy
+   Expo est obsolète et n'est plus utilisé par la version d'Expo Auth
+   Session de ce projet. **La connexion Microsoft ne fonctionne pas dans
+   l'application Expo Go** (elle génère une URI de redirection `exp://`
+   locale, instable, qui ne peut pas être enregistrée ici). Pour tester
+   l'authentification, utilisez toujours une **development build**
+   (`npx expo run:android` / `eas build --profile development`) ou une
+   vraie build — voir `docs/WINDOWS_SETUP.md` section 6.
 4. Descendre jusqu'à **Paramètres avancés** et activer :
    **"Autoriser les flux clients publics"** (*Allow public client flows*)
    → **Oui**. C'est indispensable : sans secret, l'app doit être déclarée

@@ -2,6 +2,7 @@ import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 
 import { logger } from '@/services/logging/logger';
+import { notifyUploadsCompleted } from '@/services/notifications/notificationService';
 
 import { runSync } from './uploadQueueService';
 
@@ -10,8 +11,13 @@ export const BACKGROUND_SYNC_TASK = 'MA2D_BACKGROUND_SYNC';
 TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
   try {
     logger.info('Tâche de synchronisation en arrière-plan déclenchée');
-    await runSync();
-    return BackgroundFetch.BackgroundFetchResult.NewData;
+    const uploadedCount = await runSync();
+    // Notify only from the background path: in the foreground the user
+    // already sees the status badges update live (spec section 1/18).
+    await notifyUploadsCompleted(uploadedCount);
+    return uploadedCount > 0
+      ? BackgroundFetch.BackgroundFetchResult.NewData
+      : BackgroundFetch.BackgroundFetchResult.NoData;
   } catch (e) {
     logger.error('Échec de la tâche de synchronisation en arrière-plan', { error: String(e) });
     return BackgroundFetch.BackgroundFetchResult.Failed;

@@ -1,10 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import PrimaryButton from '@/components/PrimaryButton';
-import { listBuildings } from '@/database/projectsRepository';
+import { deleteBuilding, listBuildings } from '@/database/projectsRepository';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
 import { colors } from '@/theme/colors';
@@ -49,7 +49,7 @@ function BuildingRow({
 }
 
 export default function AdminScreen({ navigation }: Props) {
-  const { projects, removeProject, removeBuilding } = useProjects();
+  const { projects, renameProject, removeProject } = useProjects();
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
@@ -64,15 +64,10 @@ export default function AdminScreen({ navigation }: Props) {
           key={project.id}
           projectId={project.id}
           projectName={project.name}
+          onRenameProject={(name) => renameProject(project.id, name)}
           onAddBuilding={() => navigation.navigate('AdminNewBuilding', { projectId: project.id })}
           onEditBuilding={(buildingId) =>
             navigation.navigate('AdminBuildingEdit', { buildingId, projectId: project.id })
-          }
-          onDeleteBuilding={(buildingId, name) =>
-            Alert.alert('Supprimer', `Supprimer ${name} ?`, [
-              { text: 'Annuler', style: 'cancel' },
-              { text: 'Supprimer', style: 'destructive', onPress: () => removeBuilding(buildingId) },
-            ])
           }
           onDeleteProject={() =>
             Alert.alert('Supprimer le projet', `Supprimer "${project.name}" et tous ses bâtiments ?`, [
@@ -93,27 +88,80 @@ export default function AdminScreen({ navigation }: Props) {
 function ProjectSection({
   projectId,
   projectName,
+  onRenameProject,
   onAddBuilding,
   onEditBuilding,
-  onDeleteBuilding,
   onDeleteProject,
 }: {
   projectId: string;
   projectName: string;
+  onRenameProject: (name: string) => void;
   onAddBuilding: () => void;
   onEditBuilding: (buildingId: string) => void;
-  onDeleteBuilding: (buildingId: string, name: string) => void;
   onDeleteProject: () => void;
 }) {
-  const { buildings } = useProjectBuildings(projectId);
+  const { buildings, refresh } = useProjectBuildings(projectId);
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState(projectName);
+
+  const onDeleteBuilding = (buildingId: string, name: string) => {
+    Alert.alert('Supprimer', `Supprimer ${name} ?`, [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: () => {
+          // Deletes and refreshes this section's own list directly — this
+          // screen renders every project's buildings, not just the one
+          // "selected" project useProjects() tracks for the Home screen,
+          // so it must not depend on that hook's (differently-scoped) state.
+          deleteBuilding(buildingId);
+          refresh();
+        },
+      },
+    ]);
+  };
+
+  const saveRename = () => {
+    const trimmed = nameDraft.trim();
+    if (trimmed && trimmed !== projectName) onRenameProject(trimmed);
+    setRenaming(false);
+  };
 
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={typography.h2}>{projectName.toUpperCase()}</Text>
-        <Text onPress={onDeleteProject} style={[styles.link, { color: colors.danger }]}>
-          Supprimer le projet
-        </Text>
+        {renaming ? (
+          <TextInput
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            autoFocus
+            style={styles.renameInput}
+            onSubmitEditing={saveRename}
+          />
+        ) : (
+          <Text style={typography.h2}>{projectName.toUpperCase()}</Text>
+        )}
+        <View style={{ flexDirection: 'row', gap: 16 }}>
+          {renaming ? (
+            <Text onPress={saveRename} style={styles.link}>
+              Enregistrer
+            </Text>
+          ) : (
+            <Text
+              onPress={() => {
+                setNameDraft(projectName);
+                setRenaming(true);
+              }}
+              style={styles.link}
+            >
+              Renommer
+            </Text>
+          )}
+          <Text onPress={onDeleteProject} style={[styles.link, { color: colors.danger }]}>
+            Supprimer
+          </Text>
+        </View>
       </View>
       {buildings.map((b) => (
         <BuildingRow
@@ -134,12 +182,11 @@ function ProjectSection({
 // while useProjects() only tracks a single "selected" project's buildings).
 function useProjectBuildings(projectId: string) {
   const [buildings, setBuildings] = useState<Building[]>([]);
-  useFocusEffect(
-    useCallback(() => {
-      setBuildings(listBuildings(projectId));
-    }, [projectId])
-  );
-  return { buildings };
+  const refresh = useCallback(() => {
+    setBuildings(listBuildings(projectId));
+  }, [projectId]);
+  useFocusEffect(refresh);
+  return { buildings, refresh };
 }
 
 const styles = StyleSheet.create({
@@ -153,6 +200,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  renameInput: {
+    flex: 1,
+    ...typography.h2,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+    paddingVertical: 2,
+    marginRight: 12,
+  },
   buildingRow: {
     flexDirection: 'row',
     alignItems: 'center',

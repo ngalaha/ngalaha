@@ -36,8 +36,3 @@ export async function deleteLocalPhoto(uri: string): Promise<void> {
   }
 }
 
-export async function listExistingFileNames(): Promise<Set<string>> {
-  await ensurePhotosDirectory();
-  const names = await FileSystem.readDirectoryAsync(PHOTOS_DIR);
-  return new Set(names);
-}

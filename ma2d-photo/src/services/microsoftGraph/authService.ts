@@ -5,6 +5,7 @@ import { ENV, isMicrosoftAuthConfigured } from '@/config/env';
 import { AppError, USER_MESSAGES } from '@/utils/errorMessages';
 import { logger } from '@/services/logging/logger';
 import { clearTokenCache, loadTokenCache, saveTokenCache } from '@/services/storage/secureStore';
+import { base64Decode, utf8DecodeBytes } from '@/utils/base64';
 import { MicrosoftAccount } from '@/types';
 
 import { GRAPH_SCOPES, discovery, getRedirectUri } from './authConfig';
@@ -24,13 +25,11 @@ const REFRESH_SAFETY_MARGIN_MS = 5 * 60 * 1000;
 function decodeIdTokenClaims(idToken: string): { username: string; name: string | null; oid: string } {
   try {
     const payload = idToken.split('.')[1];
+    // JWT segments are base64url — normalize to standard base64 before
+    // decoding. Deliberately avoids `atob`: Hermes (RN's JS engine) does
+    // not guarantee it exists, so we decode via our own byte-level helpers.
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const json = decodeURIComponent(
-      atob(normalized)
-        .split('')
-        .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('')
-    );
+    const json = utf8DecodeBytes(base64Decode(normalized));
     const claims = JSON.parse(json);
     return {
       username: claims.preferred_username ?? claims.email ?? 'utilisateur',
@@ -45,19 +44,15 @@ function decodeIdTokenClaims(idToken: string): { username: string; name: string 
 
 async function persist(tokenSet: TokenSet): Promise<void> {
   cachedTokenSet = tokenSet;
-  await saveTokenCache(JSON.stringify(tokenSet));
+  await saveTokenCache(tokenSet);
 }
 
 async function restore(): Promise<TokenSet | null> {
   if (cachedTokenSet) return cachedTokenSet;
-  const raw = await loadTokenCache();
-  if (!raw) return null;
-  try {
-    cachedTokenSet = JSON.parse(raw) as TokenSet;
-    return cachedTokenSet;
-  } catch {
-    return null;
-  }
+  const stored = await loadTokenCache();
+  if (!stored) return null;
+  cachedTokenSet = stored;
+  return cachedTokenSet;
 }
 
 /**
@@ -95,6 +90,7 @@ export async function signIn(): Promise<MicrosoftAccount> {
       clientId: ENV.MICROSOFT_CLIENT_ID,
       code: result.params.code,
       redirectUri,
+      scopes: GRAPH_SCOPES,
       extraParams: {
         code_verifier: request.codeVerifier ?? '',
       },
@@ -144,6 +140,7 @@ export async function getAccessToken(): Promise<string> {
       {
         clientId: ENV.MICROSOFT_CLIENT_ID,
         refreshToken: tokenSet.refreshToken,
+        scopes: GRAPH_SCOPES,
       },
       discovery
     );

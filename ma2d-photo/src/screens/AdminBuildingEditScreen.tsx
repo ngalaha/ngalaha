@@ -8,7 +8,7 @@ import { RootStackParamList } from '@/navigation/types';
 import { resolveShareLink } from '@/services/microsoftGraph/oneDriveService';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { Building } from '@/types';
+import { Building, emptyOneDriveFolderRef } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminBuildingEdit'>;
 
@@ -34,14 +34,21 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
       if (name.trim() && name.trim() !== building.name) {
         updateBuildingName(buildingId, name.trim());
       }
-      if (link.trim() !== (building.photoFolder.shareUrl ?? '')) {
-        const resolved = await resolveShareLink(link.trim());
-        updateBuildingFolder(buildingId, resolved);
-        if (resolved.lastError) {
-          Alert.alert('Lien non vérifié', resolved.lastError);
-          return;
+      const trimmedLink = link.trim();
+      if (trimmedLink !== (building.photoFolder.shareUrl ?? '')) {
+        if (!trimmedLink) {
+          // Field cleared on purpose: unlink the folder rather than asking
+          // Graph to resolve an empty string.
+          updateBuildingFolder(buildingId, emptyOneDriveFolderRef());
+        } else {
+          const resolved = await resolveShareLink(trimmedLink);
+          updateBuildingFolder(buildingId, resolved);
+          if (resolved.lastError) {
+            Alert.alert('Lien non vérifié', resolved.lastError);
+            return;
+          }
+          Alert.alert('Dossier connecté', `Dossier OneDrive vérifié : "${resolved.itemName}".`);
         }
-        Alert.alert('Dossier connecté', `Dossier OneDrive vérifié : "${resolved.itemName}".`);
       }
       navigation.navigate('Admin');
     } finally {

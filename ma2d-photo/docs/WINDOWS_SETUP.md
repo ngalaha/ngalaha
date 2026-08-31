@@ -63,13 +63,18 @@ npx expo start
 
 - Installez l'application **Expo Go** sur votre téléphone Android/iPhone
   (Play Store / App Store) pour scanner le QR code affiché et tester
-  rapidement l'interface.
-- ⚠️ L'authentification Microsoft et l'upload OneDrive nécessitent une
-  **vraie build** (APK ou build de développement EAS) une fois le Client ID
-  Microsoft configuré — voir `docs/ENTRA_ID_SETUP.md` et
-  `docs/ANDROID_BUILD.md`. Expo Go peut suffire pour naviguer dans
-  l'interface, mais le schéma de redirection `ma2dphoto://` n'est actif
-  que dans une vraie build.
+  rapidement la navigation entre écrans.
+- ⚠️ **La connexion Microsoft ne fonctionne jamais dans Expo Go** (le
+  schéma de redirection `ma2dphoto://auth` n'existe que dans une vraie
+  build — Expo Go utilise une URI `exp://` temporaire qui ne peut pas être
+  enregistrée dans Entra ID). Pour tester l'authentification et l'upload
+  OneDrive, générez une **development build** une fois par appareil :
+  ```powershell
+  npx expo run:android
+  ```
+  (ou `eas build --profile development` sans PC/câble nécessaire), puis
+  relancez `npx expo start` et ouvrez cette build à la place d'Expo Go —
+  voir aussi `docs/ENTRA_ID_SETUP.md` et `docs/ANDROID_BUILD.md`.
 
 ## 7. (Optionnel) Android Studio pour un émulateur local
 
