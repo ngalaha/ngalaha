@@ -1,0 +1,21 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+.DS_Store
+
+# EAS / native build artifacts
+*.apk
+*.aab
+*.ipa
+ios/
+android/
+
+# Env & secrets — never commit real Microsoft Client IDs or tokens
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "MA2D Construction",
+    "slug": "ma2d-photo",
+    "scheme": "ma2dphoto",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F2A43"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ma2dconstruction.photo",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "MA2D Construction a besoin de l'appareil photo pour prendre des photos de chantier.",
+        "NSPhotoLibraryUsageDescription": "MA2D Construction a besoin d'accéder à vos photos pour permettre l'envoi de photos existantes vers OneDrive.",
+        "NSPhotoLibraryAddUsageDescription": "MA2D Construction peut enregistrer une copie des photos de chantier dans votre galerie.",
+        "UIBackgroundModes": ["fetch", "processing"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F2A43"
+      },
+      "package": "com.ma2dconstruction.photo",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "ma2dphoto" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MA2D Construction a besoin d'accéder à vos photos pour envoyer des photos existantes vers OneDrive.",
+          "cameraPermission": "MA2D Construction a besoin de l'appareil photo pour prendre des photos de chantier."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#0F2A43"
+        }
+      ],
+      "expo-task-manager"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "À_RENSEIGNER_APRES_EAS_INIT"
+      },
+      "microsoftClientId": "À_RENSEIGNER",
+      "microsoftTenantId": "common"
+    },
+    "owner": "À_RENSEIGNER"
+  }
+}
