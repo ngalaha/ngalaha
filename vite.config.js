@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: 'MA2D Photos Chantier',
         short_name: 'MA2D Photos',
-        description: "Gestion des photos de chantier MA2D Construction avec envoi automatique vers Google Drive.",
+        description: "Gestion des photos de chantier MA2D Construction avec envoi automatique vers Microsoft OneDrive.",
         theme_color: '#112233',
         background_color: '#112233',
         display: 'standalone',
@@ -30,11 +30,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-        // Never cache Google APIs: uploads must always hit the network live.
-        navigateFallbackDenylist: [/^\/oauth2/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/www\.googleapis\.com\//,
+            // Never cache Microsoft Graph or the identity endpoints: auth and uploads must always hit the network live.
+            urlPattern: /^https:\/\/(graph\.microsoft\.com|login\.microsoftonline\.com)\//,
             handler: 'NetworkOnly',
           },
         ],

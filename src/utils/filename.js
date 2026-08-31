@@ -2,7 +2,7 @@ function pad(value, length = 2) {
   return String(value).padStart(length, '0')
 }
 
-/** Formats a Date as YYYY-MM-DD, used both for filenames and Drive folder names. */
+/** Formats a Date as YYYY-MM-DD, used both for filenames and dated OneDrive folder names. */
 export function formatDateFolder(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }

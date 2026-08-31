@@ -119,7 +119,7 @@ export default function QueuePanel({ open, onClose }) {
             )}
             {isOnline && !isSignedIn && pending.length > 0 && (
               <p className="mb-3 rounded-xl bg-ma2d-amber/15 text-ma2d-amber text-xs font-medium px-3 py-2">
-                Connectez-vous à Google pour envoyer les photos en attente.
+                Connectez-vous à Microsoft pour envoyer les photos en attente.
               </p>
             )}
 

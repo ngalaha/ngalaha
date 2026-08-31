@@ -1,13 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import {
-  requestAccessToken,
-  getStoredAccessToken,
-  getStoredAccount,
-  signOut as googleSignOut,
-  isConfigured,
-} from '../services/googleAuth'
-import { extractFolderId, verifyFolder, getOrCreateDailyPhotoFolder, uploadFile } from '../services/googleDrive'
+import { signIn as msSignIn, signOut as msSignOut, getStoredAccount, isConfigured } from '../services/msAuth'
+import { resolveShareLink, getOrCreateDateFolder, uploadFile } from '../services/oneDrive'
 import { addQueueItem, updateQueueItem, listQueueItems, removeQueueItem } from '../services/uploadQueue'
 import { formatDateFolder } from '../utils/filename'
 
@@ -19,31 +13,64 @@ function newId() {
   return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
+const DEFAULT_PROJECT_ID = 'projet-champfleury'
+
 export const useAppStore = create(
   persist(
     (set, get) => ({
-      // ---- Buildings -----------------------------------------------------
+      // ---- Projects (e.g. "Champfleury") ----------------------------------
+      projects: [{ id: DEFAULT_PROJECT_ID, name: 'Champfleury' }],
+      selectedProjectId: DEFAULT_PROJECT_ID,
+
+      addProject: (name) => {
+        const trimmed = name.trim()
+        if (!trimmed) throw new Error('Le nom du projet est requis.')
+        const project = { id: newId(), name: trimmed }
+        set((state) => ({ projects: [...state.projects, project], selectedProjectId: project.id }))
+        return project
+      },
+
+      removeProject: (id) =>
+        set((state) => {
+          const projects = state.projects.filter((p) => p.id !== id)
+          const buildings = state.buildings.filter((b) => b.projectId !== id)
+          const selectedProjectId = state.selectedProjectId === id ? (projects[0]?.id ?? null) : state.selectedProjectId
+          const selectedBuildingId = buildings.some((b) => b.id === state.selectedBuildingId)
+            ? state.selectedBuildingId
+            : (buildings.find((b) => b.projectId === selectedProjectId)?.id ?? null)
+          return { projects, buildings, selectedProjectId, selectedBuildingId }
+        }),
+
+      selectProject: (id) =>
+        set((state) => {
+          const firstBuilding = state.buildings.find((b) => b.projectId === id)
+          return { selectedProjectId: id, selectedBuildingId: firstBuilding?.id ?? null }
+        }),
+
+      // ---- Buildings (scoped to a project) --------------------------------
       buildings: [],
       selectedBuildingId: null,
 
       selectBuilding: (id) => set({ selectedBuildingId: id }),
 
-      addBuilding: async (name, folderInput) => {
+      addBuilding: async (name, shareLink, projectId) => {
         const trimmedName = name.trim()
-        const folderId = extractFolderId(folderInput)
+        const trimmedLink = shareLink.trim()
         if (!trimmedName) throw new Error('Le nom du bâtiment est requis.')
-        if (!folderId) throw new Error("L'identifiant ou l'URL du dossier Google Drive est requis.")
-
-        if (getStoredAccessToken()) {
-          await verifyFolder(folderId, { interactive: false }).catch(() => {
-            throw new Error("Dossier introuvable ou inaccessible avec ce compte Google. Vérifiez l'URL et les droits d'accès.")
-          })
+        if (!trimmedLink) throw new Error('Le lien du dossier "Photo" OneDrive est requis.')
+        if (!projectId) throw new Error('Sélectionnez un projet.')
+        if (!get().isSignedIn) {
+          throw new Error("Connectez-vous à Microsoft avant d'ajouter un bâtiment (nécessaire pour vérifier l'accès au dossier).")
         }
 
-        const building = { id: newId(), name: trimmedName, folderId }
+        const { driveId, itemId } = await resolveShareLink(trimmedLink, { interactive: true }).catch((err) => {
+          throw new Error(err.message || "Dossier introuvable ou inaccessible avec ce compte Microsoft. Vérifiez le lien et les droits d'accès.")
+        })
+
+        const building = { id: newId(), projectId, name: trimmedName, driveId, photoFolderId: itemId, photoFolderUrl: trimmedLink }
         set((state) => ({
           buildings: [...state.buildings, building],
-          selectedBuildingId: state.selectedBuildingId ?? building.id,
+          selectedBuildingId: state.selectedProjectId === projectId ? building.id : state.selectedBuildingId,
         }))
         return building
       },
@@ -54,29 +81,25 @@ export const useAppStore = create(
           selectedBuildingId: state.selectedBuildingId === id ? null : state.selectedBuildingId,
         })),
 
-      // ---- Auth ------------------------------------------------------------
-      account: getStoredAccount(),
-      isSignedIn: Boolean(getStoredAccessToken()),
+      // ---- Auth (Microsoft / OneDrive) ------------------------------------
+      account: null,
+      isSignedIn: false,
       authConfigured: isConfigured(),
 
+      restoreSession: async () => {
+        const account = await getStoredAccount().catch(() => null)
+        if (account) set({ account, isSignedIn: true })
+      },
+
       signIn: async () => {
-        const token = await requestAccessToken({ interactive: true })
-        let account = null
-        try {
-          const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          if (res.ok) account = await res.json()
-        } catch {
-          // Non-fatal: we still have a usable token even without profile info.
-        }
+        const account = await msSignIn()
         set({ isSignedIn: true, account })
         get().processQueue()
         return account
       },
 
-      signOut: () => {
-        googleSignOut()
+      signOut: async () => {
+        await msSignOut()
         set({ isSignedIn: false, account: null })
       },
 
@@ -109,7 +132,8 @@ export const useAppStore = create(
           id: newId(),
           buildingId: building.id,
           buildingName: building.name,
-          folderId: building.folderId,
+          driveId: building.driveId,
+          photoFolderId: building.photoFolderId,
           filename,
           blob,
           mimeType: blob.type || 'image/jpeg',
@@ -141,13 +165,7 @@ export const useAppStore = create(
         if (!get().isOnline) return
         const pending = get().queue.filter((i) => i.status === 'pending' || i.status === 'uploading')
         if (pending.length === 0) return
-
-        if (!getStoredAccessToken()) {
-          if (!get().isSignedIn) return
-          set({ isSignedIn: false })
-          get().pushNotification('error', 'Session Google expirée. Reconnectez-vous pour envoyer les photos en attente.')
-          return
-        }
+        if (!get().isSignedIn) return
 
         processing = true
         try {
@@ -160,11 +178,10 @@ export const useAppStore = create(
 
             try {
               const dateFolder = formatDateFolder(new Date(item.createdAt))
-              const dailyFolderId = await getOrCreateDailyPhotoFolder(item.folderId, dateFolder, { interactive: false })
-              await uploadFile(item.blob, item.filename, dailyFolderId, {
+              const dateFolderId = await getOrCreateDateFolder(item.driveId, item.photoFolderId, dateFolder, { interactive: false })
+              await uploadFile(item.blob, item.filename, item.driveId, dateFolderId, {
                 interactive: false,
                 onProgress: (fraction) => {
-                  // Lightweight progress updates directly in state (skip IDB writes per tick).
                   set((state) => ({
                     queue: state.queue.map((q) => (q.id === item.id ? { ...q, progress: fraction } : q)),
                   }))
@@ -198,6 +215,8 @@ export const useAppStore = create(
     {
       name: 'ma2d-app-store',
       partialize: (state) => ({
+        projects: state.projects,
+        selectedProjectId: state.selectedProjectId,
         buildings: state.buildings,
         selectedBuildingId: state.selectedBuildingId,
       }),

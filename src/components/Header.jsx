@@ -13,12 +13,12 @@ export default function Header({ onOpenQueue }) {
   const handleAuthClick = async () => {
     try {
       if (isSignedIn) {
-        signOut()
+        await signOut()
       } else {
         await signIn()
       }
     } catch (err) {
-      pushNotification('error', err.message || 'Connexion Google impossible.')
+      pushNotification('error', err.message || 'Connexion Microsoft impossible.')
     }
   }
 
@@ -73,16 +73,19 @@ export default function Header({ onOpenQueue }) {
             {isSignedIn ? (
               <>
                 <span className="h-6 w-6 rounded-full bg-ma2d-green/80 flex items-center justify-center text-[10px] font-bold uppercase">
-                  {account?.given_name?.[0] ?? account?.email?.[0] ?? 'G'}
+                  {account?.initial ?? 'M'}
                 </span>
                 <span className="hidden sm:inline">Déconnexion</span>
               </>
             ) : (
               <>
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10c0-.67-.07-1.33-.2-2H12v4h5.5c-.85 2.5-3.1 4-5.5 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.53 0 2.92.58 3.98 1.53l2.83-2.83C16.98 3.09 14.62 2 12 2z" />
+                <svg viewBox="0 0 23 23" className="h-4 w-4" fill="none">
+                  <path fill="#F25022" d="M1 1h10v10H1z" />
+                  <path fill="#7FBA00" d="M12 1h10v10H12z" />
+                  <path fill="#00A4EF" d="M1 12h10v10H1z" />
+                  <path fill="#FFB900" d="M12 12h10v10H12z" />
                 </svg>
-                Connexion Google
+                Connexion Microsoft
               </>
             )}
           </button>

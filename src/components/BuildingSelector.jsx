@@ -10,9 +10,11 @@ function colorFor(id) {
 }
 
 export default function BuildingSelector({ onAddBuilding }) {
-  const buildings = useAppStore((s) => s.buildings)
+  const allBuildings = useAppStore((s) => s.buildings)
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId)
   const selectedBuildingId = useAppStore((s) => s.selectedBuildingId)
   const selectBuilding = useAppStore((s) => s.selectBuilding)
+  const buildings = allBuildings.filter((b) => b.projectId === selectedProjectId)
 
   return (
     <div className="px-4 pt-4">
