@@ -6,4 +6,5 @@ export type RootStackParamList = {
   AdminBuildingEdit: { buildingId: string; projectId: string };
   AdminNewBuilding: { projectId: string };
   Diagnostics: undefined;
+  About: undefined;
 };

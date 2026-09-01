@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
+import AboutScreen from '@/screens/AboutScreen';
 import AdminBuildingEditScreen from '@/screens/AdminBuildingEditScreen';
 import AdminNewBuildingScreen from '@/screens/AdminNewBuildingScreen';
 import AdminNewProjectScreen from '@/screens/AdminNewProjectScreen';
@@ -52,6 +53,7 @@ export default function RootNavigator() {
               options={{ title: 'Dossier OneDrive' }}
             />
             <Stack.Screen name="Diagnostics" component={DiagnosticsScreen} options={{ title: 'Diagnostic' }} />
+            <Stack.Screen name="About" component={AboutScreen} options={{ title: 'À propos' }} />
           </>
         )}
       </Stack.Navigator>

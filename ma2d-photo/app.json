@@ -68,7 +68,7 @@
     ],
     "extra": {
       "microsoftClientId": "9e577145-aa13-4864-970b-8b612feb30d0",
-      "microsoftTenantId": "30d8ec42-1c40-42ce-aa27-cb3e1849f3e8"
+      "microsoftTenantId": "common"
     }
   }
 }

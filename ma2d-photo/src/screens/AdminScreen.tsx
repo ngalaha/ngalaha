@@ -85,7 +85,9 @@ export default function AdminScreen({ navigation }: Props) {
         <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> Diagnostic technique
       </Text>
 
-      <Text style={styles.credit}>MA2D Construction — Application développée par Pierre NGALAHA</Text>
+      <Text onPress={() => navigation.navigate('About')} style={styles.credit}>
+        MA2D Construction — Application développée par Pierre NGALAHA
+      </Text>
     </ScrollView>
   );
 }
