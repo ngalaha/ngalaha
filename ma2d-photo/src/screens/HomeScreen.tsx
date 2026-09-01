@@ -169,7 +169,13 @@ export default function HomeScreen({ navigation }: Props) {
             />
 
             <View style={styles.cameraArea}>
-              <BigCameraButton onPress={() => captureFrom('camera')} disabled={processing !== 'idle'} />
+              <BigCameraButton
+                onPress={() => {
+                  logger.info('DEBUG: onPress caméra reçu par le composant');
+                  captureFrom('camera');
+                }}
+                disabled={processing !== 'idle'}
+              />
               {processing !== 'idle' && (
                 <Text style={styles.processingText}>
                   {processing === 'opening'
@@ -183,7 +189,10 @@ export default function HomeScreen({ navigation }: Props) {
                 label="Choisir dans la galerie"
                 icon="folder-open-outline"
                 variant="secondary"
-                onPress={() => captureFrom('gallery')}
+                onPress={() => {
+                  logger.info('DEBUG: onPress galerie reçu par le composant');
+                  captureFrom('gallery');
+                }}
                 disabled={processing !== 'idle'}
                 style={styles.galleryButton}
               />
