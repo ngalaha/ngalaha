@@ -160,7 +160,8 @@ async function simpleUpload(
 
   if (result.status < 200 || result.status >= 300) {
     logger.error('Échec upload simple OneDrive', { status: result.status, body: result.body });
-    throw new AppError(USER_MESSAGES.ONEDRIVE_ACCESS_ERROR, `Upload failed: ${result.status}`);
+    const message = result.status === 403 ? USER_MESSAGES.AUTHORIZATION_PENDING : USER_MESSAGES.ONEDRIVE_ACCESS_ERROR;
+    throw new AppError(message, `Upload failed: ${result.status}`);
   }
   return JSON.parse(result.body) as GraphDriveItem;
 }
@@ -201,7 +202,9 @@ async function sessionUpload(
     if (!response.ok && response.status !== 202) {
       const text = await response.text().catch(() => '');
       logger.error('Échec upload par session OneDrive', { status: response.status, body: text });
-      throw new AppError(USER_MESSAGES.ONEDRIVE_ACCESS_ERROR, `Session upload failed: ${response.status}`);
+      const message =
+        response.status === 403 ? USER_MESSAGES.AUTHORIZATION_PENDING : USER_MESSAGES.ONEDRIVE_ACCESS_ERROR;
+      throw new AppError(message, `Session upload failed: ${response.status}`);
     }
     if (response.status !== 202) {
       lastItem = (await response.json()) as GraphDriveItem;

@@ -40,6 +40,11 @@ export async function graphRequest<T>(options: GraphRequestOptions): Promise<T> 
     throw new AppError(USER_MESSAGES.FOLDER_NOT_FOUND, `404 on ${url}`);
   }
 
+  if (response.status === 403) {
+    logger.warn('Graph 403 — consentement administrateur requis', { url });
+    throw new AppError(USER_MESSAGES.AUTHORIZATION_PENDING, `403 on ${url}`);
+  }
+
   if (!response.ok) {
     const text = await response.text().catch(() => '');
     logger.error('Erreur Graph API', { url, status: response.status, body: text });

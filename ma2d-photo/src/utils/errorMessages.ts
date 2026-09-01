@@ -7,6 +7,8 @@ export const USER_MESSAGES = {
     'Connexion Internet indisponible. La photo a été sauvegardée et sera envoyée automatiquement.',
   UPLOAD_SUCCESS: '✅ Photo enregistrée dans OneDrive.',
   ONEDRIVE_ACCESS_ERROR: "⚠️ Impossible d'accéder au dossier OneDrive.",
+  AUTHORIZATION_PENDING:
+    "🔒 Autorisation en attente : demandez à un administrateur MA2D d'approuver l'application dans Microsoft Entra ID (Administration > Diagnostic pour les détails). La photo reste en file d'attente et sera envoyée automatiquement dès que l'accès sera approuvé.",
   SESSION_EXPIRED: '🔐 Votre session Microsoft doit être renouvelée.',
   FOLDER_NOT_FOUND: '⚠️ Le dossier Photo du bâtiment est introuvable.',
   FOLDER_NOT_CONFIGURED: "⚠️ Ce bâtiment n'a pas encore de dossier OneDrive configuré.",
