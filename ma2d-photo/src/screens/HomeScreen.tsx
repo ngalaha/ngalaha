@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useCallback, useState } from 'react';
-import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, InteractionManager, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import BigCameraButton from '@/components/BigCameraButton';
 import BuildingGrid from '@/components/BuildingGrid';
@@ -29,6 +29,15 @@ import { PhotoRecord } from '@/types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+// On some Android devices, launching the camera/gallery Intent immediately after
+// a permission dialog is dismissed (or right on the heels of the press-animation)
+// can silently fail to bring the native Activity to the foreground — the app looks
+// unresponsive until it's force-closed and reopened. Giving Android one frame to
+// finish the current transition before starting the next Activity avoids that.
+function waitForInteractions(): Promise<void> {
+  return new Promise((resolve) => InteractionManager.runAfterInteractions(() => resolve()));
+}
 
 export default function HomeScreen({ navigation }: Props) {
   const { signOut } = useAuth();
@@ -65,8 +74,15 @@ export default function HomeScreen({ navigation }: Props) {
       logger.info('Photo capture requested', { source, buildingId: selectedBuilding.id });
 
       try {
-        const permission =
+        // Check first — only call request*PermissionsAsync (which can pop a system
+        // dialog and briefly steal window focus) when we don't already have access.
+        const existing =
           source === 'camera'
+            ? await ImagePicker.getCameraPermissionsAsync()
+            : await ImagePicker.getMediaLibraryPermissionsAsync();
+        const permission = existing.granted
+          ? existing
+          : source === 'camera'
             ? await ImagePicker.requestCameraPermissionsAsync()
             : await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!permission.granted) {
@@ -74,6 +90,11 @@ export default function HomeScreen({ navigation }: Props) {
           Alert.alert('Permission refusée', "L'accès à l'appareil photo / à la galerie est nécessaire.");
           return;
         }
+
+        // Let Android finish settling the current Activity/window (the press
+        // animation, and any permission dialog that was just dismissed) before
+        // starting the camera/gallery Activity — see waitForInteractions() above.
+        await waitForInteractions();
 
         const result =
           source === 'camera'
