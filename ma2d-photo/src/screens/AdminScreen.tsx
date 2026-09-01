@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
@@ -24,14 +25,16 @@ function BuildingRow({
 }) {
   const configured = !!building.photoFolder.itemId;
   const hasError = !!building.photoFolder.lastError;
+  const ok = configured && !hasError;
   return (
     <View style={styles.buildingRow}>
       <View style={{ flex: 1 }}>
-        <Text style={typography.bodyBold}>
-          {configured && !hasError ? '✓' : '⚠'} {building.name}
-        </Text>
-        <Text style={[styles.status, { color: configured && !hasError ? colors.success : colors.warning }]}>
-          {configured && !hasError
+        <View style={styles.buildingNameRow}>
+          <Ionicons name={ok ? 'checkmark-circle' : 'alert-circle'} size={16} color={ok ? colors.success : colors.warning} />
+          <Text style={typography.bodyBold}>{building.name}</Text>
+        </View>
+        <Text style={[styles.status, { color: ok ? colors.success : colors.warning }]}>
+          {ok
             ? 'OneDrive connecté'
             : hasError
               ? building.photoFolder.lastError
@@ -79,8 +82,10 @@ export default function AdminScreen({ navigation }: Props) {
       ))}
 
       <Text onPress={() => navigation.navigate('Diagnostics')} style={styles.diagnosticsLink}>
-        🛠 Diagnostic technique
+        <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> Diagnostic technique
       </Text>
+
+      <Text style={styles.credit}>MA2D Construction — Application développée par Pierre NGALAHA</Text>
     </ScrollView>
   );
 }
@@ -216,8 +221,10 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     gap: 12,
   },
+  buildingNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   status: { fontSize: 13, marginTop: 2 },
   link: { color: colors.primary, fontWeight: '700' },
   addBuilding: { color: colors.primary, fontWeight: '700', marginTop: 12 },
-  diagnosticsLink: { textAlign: 'center', color: colors.textSecondary, marginTop: 12, marginBottom: 40 },
+  credit: { textAlign: 'center', color: colors.textSecondary, opacity: 0.6, fontSize: 12, marginBottom: 24 },
+  diagnosticsLink: { textAlign: 'center', color: colors.textSecondary, marginTop: 12, marginBottom: 12 },
 });

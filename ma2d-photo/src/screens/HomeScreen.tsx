@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useCallback, useState } from 'react';
@@ -144,7 +145,8 @@ export default function HomeScreen({ navigation }: Props) {
                 </Text>
               )}
               <PrimaryButton
-                label="📁 Choisir dans la galerie"
+                label="Choisir dans la galerie"
+                icon="folder-open-outline"
                 variant="secondary"
                 onPress={() => captureFrom('gallery')}
                 disabled={processing !== 'idle'}
@@ -157,7 +159,7 @@ export default function HomeScreen({ navigation }: Props) {
             <View style={styles.recentHeader}>
               <Text style={typography.h2}>Photos récentes</Text>
               <Text onPress={() => navigation.navigate('Admin')} style={styles.adminLink}>
-                ⚙️ Administration
+                <Ionicons name="settings-outline" size={15} color={colors.primary} /> Administration
               </Text>
             </View>
           </View>

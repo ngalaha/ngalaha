@@ -1,5 +1,6 @@
-import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -14,8 +15,18 @@ interface Props {
 }
 
 export default function RecentPhotoItem({ photo, onRetry }: Props) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(8)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 260, useNativeDriver: true }),
+      Animated.timing(translateY, { toValue: 0, duration: 260, useNativeDriver: true }),
+    ]).start();
+  }, [opacity, translateY]);
+
   return (
-    <View style={styles.row}>
+    <Animated.View style={[styles.row, { opacity, transform: [{ translateY }] }]}>
       <Image source={{ uri: photo.localUri }} style={styles.thumb} />
       <View style={styles.info}>
         <Text style={typography.bodyBold}>{formatShortTime(photo.capturedAt)}</Text>
@@ -24,10 +35,11 @@ export default function RecentPhotoItem({ photo, onRetry }: Props) {
       </View>
       {photo.status === 'FAILED' && onRetry && (
         <Pressable onPress={() => onRetry(photo.id)} style={styles.retryButton}>
+          <Ionicons name="refresh" size={14} color={colors.danger} />
           <Text style={styles.retryText}>Réessayer</Text>
         </Pressable>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -44,6 +56,9 @@ const styles = StyleSheet.create({
   info: { flex: 1, gap: 2 },
   building: { color: colors.textSecondary, fontSize: 14 },
   retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     borderWidth: 1.5,
     borderColor: colors.danger,
     borderRadius: 8,

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -21,7 +22,7 @@ export default function ProjectPicker({ projects, selectedProject, onSelect }: P
         <Text style={styles.triggerText}>
           {selectedProject ? selectedProject.name.toUpperCase() : 'Sélectionner un projet'}
         </Text>
-        <Text style={styles.chevron}>▾</Text>
+        <Ionicons name="chevron-down" size={18} color={colors.primary} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -40,7 +41,9 @@ export default function ProjectPicker({ projects, selectedProject, onSelect }: P
                   }}
                 >
                   <Text style={typography.bodyBold}>{item.name}</Text>
-                  {selectedProject?.id === item.id && <Text style={styles.check}>✓</Text>}
+                  {selectedProject?.id === item.id && (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                  )}
                 </Pressable>
               )}
             />
@@ -65,7 +68,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   triggerText: { ...typography.bodyBold, color: colors.primary },
-  chevron: { fontSize: 18, color: colors.primary },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '60%' },
   sheetTitle: { marginBottom: 12 },
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  check: { color: colors.success, fontWeight: '800' },
 });
