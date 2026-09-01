@@ -16,6 +16,7 @@ import { useConnectivity } from '@/hooks/useConnectivity';
 import { usePhotoQueue } from '@/hooks/usePhotoQueue';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
+import { logger } from '@/services/logging/logger';
 import { persistLocalPhoto } from '@/services/storage/fileStorage';
 import { compressPhoto, dateFolderFor, generateUniqueFileName } from '@/services/storage/imageProcessing';
 import { runSync } from '@/services/upload/uploadQueueService';
@@ -42,7 +43,7 @@ export default function HomeScreen({ navigation }: Props) {
     refreshBuildings,
   } = useProjects();
   const { recentPhotos, pendingCount, syncing, retryPhoto } = usePhotoQueue();
-  const [processing, setProcessing] = useState<'idle' | 'preparing' | 'saving'>('idle');
+  const [processing, setProcessing] = useState<'idle' | 'opening' | 'preparing' | 'saving'>('idle');
 
   // Home stays mounted underneath Administration in the stack, so its
   // building list (OneDrive folder status, names) would otherwise go stale
@@ -60,26 +61,33 @@ export default function HomeScreen({ navigation }: Props) {
         return;
       }
 
-      const permission =
-        source === 'camera'
-          ? await ImagePicker.requestCameraPermissionsAsync()
-          : await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Permission refusée', "L'accès à l'appareil photo / à la galerie est nécessaire.");
-        return;
-      }
-
-      const result =
-        source === 'camera'
-          ? await ImagePicker.launchCameraAsync({ quality: 1 })
-          : await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              quality: 1,
-            });
-
-      if (result.canceled || !result.assets?.[0]) return;
+      setProcessing('opening');
+      logger.info('Photo capture requested', { source, buildingId: selectedBuilding.id });
 
       try {
+        const permission =
+          source === 'camera'
+            ? await ImagePicker.requestCameraPermissionsAsync()
+            : await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+          logger.warn('Permission refusée pour la capture', { source, permission });
+          Alert.alert('Permission refusée', "L'accès à l'appareil photo / à la galerie est nécessaire.");
+          return;
+        }
+
+        const result =
+          source === 'camera'
+            ? await ImagePicker.launchCameraAsync({ quality: 1 })
+            : await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 1,
+              });
+
+        if (result.canceled || !result.assets?.[0]) {
+          logger.info('Capture annulée par l’utilisateur', { source });
+          return;
+        }
+
         setProcessing('preparing');
         const captureDate = new Date();
         const compressed = await compressPhoto(result.assets[0].uri);
@@ -106,6 +114,7 @@ export default function HomeScreen({ navigation }: Props) {
           fileSizeBytes: sizeBytes,
         };
         insertPhoto(photo);
+        logger.info('Photo captured', { fileName, buildingId: selectedBuilding.id });
 
         if (!selectedBuilding.photoFolder.itemId) {
           Alert.alert('Photo enregistrée', USER_MESSAGES.FOLDER_NOT_CONFIGURED);
@@ -115,6 +124,7 @@ export default function HomeScreen({ navigation }: Props) {
 
         runSync();
       } catch (e) {
+        logger.error('Échec de la capture/préparation de la photo', { source, error: String(e) });
         Alert.alert('Erreur', "La photo n'a pas pu être préparée. Réessayez.");
       } finally {
         setProcessing('idle');
@@ -141,7 +151,11 @@ export default function HomeScreen({ navigation }: Props) {
               <BigCameraButton onPress={() => captureFrom('camera')} disabled={processing !== 'idle'} />
               {processing !== 'idle' && (
                 <Text style={styles.processingText}>
-                  {processing === 'preparing' ? 'Préparation...' : 'Enregistrement...'}
+                  {processing === 'opening'
+                    ? 'Ouverture...'
+                    : processing === 'preparing'
+                      ? 'Préparation...'
+                      : 'Enregistrement...'}
                 </Text>
               )}
               <PrimaryButton
