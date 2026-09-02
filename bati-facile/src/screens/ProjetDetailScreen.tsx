@@ -15,7 +15,9 @@ import { sumWallsBlocks } from '../calculationEngine/blocks';
 import { buildQuantityResult } from '../calculationEngine/quantity';
 import { computePoseMortar, computePoseMortarForBlockCount, type MortarResult } from '../calculationEngine/mortar';
 import { computeBourrage } from '../calculationEngine/bourrage';
+import { computeTruckOrder, sandVolumeToTonnes } from '../calculationEngine/logistics';
 import { formatM3, formatNumber } from '../calculationEngine/format';
+import { getTruckType, TRUCK_CATALOG, TRUCK_ORDER_THRESHOLD_TONNES } from '../materials/trucks';
 import { generateOrderPdf } from '../export/pdf';
 import { shareFile } from '../export/share';
 
@@ -27,6 +29,7 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
   const [project, setProject] = useState<Project | undefined>();
   const [walls, setWalls] = useState<Wall[]>([]);
   const [marginPercent, setMarginPercent] = useState<number>(5);
+  const [truckId, setTruckId] = useState<string>(TRUCK_CATALOG[0].id);
   const [exporting, setExporting] = useState(false);
 
   const [clientName, setClientName] = useState('');
@@ -108,13 +111,26 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
   const totalPoseCimentSacs = poseGroups.reduce((sum, g) => sum + g.mortar.cimentKg / 50, 0);
   const totalBourrageCimentSacs = bourrageGroups.reduce((sum, g) => sum + g.bourrage.cimentKg / 50, 0);
 
+  const totalSandM3 =
+    poseGroups.reduce((sum, g) => sum + g.mortar.sableM3, 0) +
+    bourrageGroups.reduce((sum, g) => sum + g.bourrage.sableM3, 0);
+  const totalSandTonnes = sandVolumeToTonnes(totalSandM3);
+  const selectedTruck = getTruckType(truckId) ?? TRUCK_CATALOG[0];
+  const truckOrder = computeTruckOrder(totalSandTonnes, selectedTruck);
+  const needsTruckOrder = totalSandTonnes >= TRUCK_ORDER_THRESHOLD_TONNES;
+
   async function exporterPdf() {
     if (!project) return;
     setExporting(true);
     try {
       await saveProjectInfo();
       const latest = (await getProject(projectId)) ?? project;
-      const uri = await generateOrderPdf(latest, blockOrders, poseGroups, bourrageGroups, marginPercent);
+      const uri = await generateOrderPdf(latest, blockOrders, poseGroups, bourrageGroups, marginPercent, {
+        totalSandM3,
+        totalSandTonnes,
+        needsTruckOrder,
+        truckOrder,
+      });
       await shareFile(uri, 'application/pdf', 'Partager le devis (PDF)');
     } finally {
       setExporting(false);
@@ -236,6 +252,34 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
                 </View>
               ))}
             </>
+          )}
+
+          {totalSandM3 > 0 && (
+            <View style={[styles.resultBox, cardShadow, { backgroundColor: colors.card }]}>
+              <Text style={{ color: colors.textMuted }}>Sable total (pose + bourrage)</Text>
+              <Text style={{ color: colors.primary, fontSize: typography.sizes.xl, fontWeight: '700' }}>
+                {formatM3(totalSandM3)} (~{formatNumber(totalSandTonnes, 1)} t)
+              </Text>
+              {needsTruckOrder ? (
+                <>
+                  <Text style={{ color: colors.textMuted, marginTop: spacing.xs }}>
+                    Seuil de 20 t atteint — commande en camion :
+                  </Text>
+                  <View style={styles.pillRow}>
+                    {TRUCK_CATALOG.map((t) => (
+                      <Pill key={t.id} label={t.label} active={truckId === t.id} onPress={() => setTruckId(t.id)} />
+                    ))}
+                  </View>
+                  <Text style={{ color: colors.secondary, fontWeight: '700', fontSize: typography.sizes.lg }}>
+                    🚚 {truckOrder.recommendedCount} × {selectedTruck.label}
+                  </Text>
+                </>
+              ) : (
+                <Text style={{ color: colors.textMuted, fontSize: typography.sizes.xs }}>
+                  Sous le seuil de {TRUCK_ORDER_THRESHOLD_TONNES} t — voir le détail par sac/brouette ci-dessus.
+                </Text>
+              )}
+            </View>
           )}
 
           <View style={[styles.resultBox, cardShadow, { backgroundColor: colors.card }]}>

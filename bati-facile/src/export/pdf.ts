@@ -4,7 +4,15 @@ import type { BlockFormat } from '../materials/blocks';
 import type { QuantityResult } from '../calculationEngine/types';
 import type { MortarResult } from '../calculationEngine/mortar';
 import type { BourrageResult } from '../calculationEngine/bourrage';
+import type { TruckOrder } from '../calculationEngine/logistics';
 import { formatM3, formatNumber } from '../calculationEngine/format';
+
+export interface SandLogistics {
+  totalSandM3: number;
+  totalSandTonnes: number;
+  needsTruckOrder: boolean;
+  truckOrder: TruckOrder;
+}
 
 export interface BlockOrderLine {
   block: BlockFormat;
@@ -35,7 +43,8 @@ function devisToHtml(
   blockOrders: BlockOrderLine[],
   poseGroups: PoseLine[],
   bourrageGroups: BourrageLine[],
-  marginPercent: number
+  marginPercent: number,
+  sandLogistics?: SandLogistics
 ): string {
   const blockRows = blockOrders
     .map(
@@ -143,6 +152,28 @@ function devisToHtml(
           : ''
       }
 
+      ${
+        sandLogistics && sandLogistics.totalSandM3 > 0
+          ? `<h2>Sable — total et logistique</h2>
+      <table>
+        <tbody>
+          <tr><th>Volume total</th><td>${formatM3(sandLogistics.totalSandM3)}</td></tr>
+          <tr><th>Masse estimée</th><td>${formatNumber(sandLogistics.totalSandTonnes, 1)} t (densité 1,6 t/m³)</td></tr>
+          ${
+            sandLogistics.needsTruckOrder
+              ? `<tr><th>Camions à commander</th><td class="strong">${sandLogistics.truckOrder.recommendedCount} × ${escapeHtml(sandLogistics.truckOrder.truck.label)}</td></tr>`
+              : ''
+          }
+        </tbody>
+      </table>
+      ${
+        sandLogistics.needsTruckOrder
+          ? '<div class="note">Seuil de 20 t atteint ou dépassé — commande recommandée en camion plutôt qu\'au sac/à la brouette.</div>'
+          : ''
+      }`
+          : ''
+      }
+
       <div class="footer">Bâti Facile — document généré hors ligne</div>
     </body>
   </html>`;
@@ -154,9 +185,10 @@ export async function generateOrderPdf(
   blockOrders: BlockOrderLine[],
   poseGroups: PoseLine[],
   bourrageGroups: BourrageLine[],
-  marginPercent: number
+  marginPercent: number,
+  sandLogistics?: SandLogistics
 ): Promise<string> {
-  const html = devisToHtml(project, blockOrders, poseGroups, bourrageGroups, marginPercent);
+  const html = devisToHtml(project, blockOrders, poseGroups, bourrageGroups, marginPercent, sandLogistics);
   const { uri } = await Print.printToFileAsync({ html, base64: false });
   return uri;
 }

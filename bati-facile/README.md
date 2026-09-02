@@ -57,16 +57,22 @@ tests/                 38 tests automatisés (Jest) sur le moteur de calcul
    pour obtenir ciment/sable/gravier.
 8. **Enduit** calculé à partir de la surface et d'une épaisseur choisie, dosage
    ciment/sable standard.
+9. **Logistique sable → camions** (`calculationEngine/logistics.ts`) : le sable total
+   (pose + bourrage) est converti en tonnes (densité 1,6 t/m³) et, à partir de 20 t
+   (seuil configurable), l'appli propose une commande en camion plutôt qu'au
+   sac/à la brouette — camion 10 roues (~20 t) ou semi-remorque (~30 t), au choix.
 
 Toutes les valeurs intermédiaires restent exactes (précision double) ; seul
 l'affichage/la commande finale arrondit.
 
 ### Hypothèses à valider sur le terrain
 
-Deux ratios sont **confirmés terrain** (140 blocs/sac de ciment, 3 brouettes de
-sable/sac) et font foi. Tout le reste (taux de vide du bourrage 55 %, dosages
-béton/mortier, volume de brouette 65 L) est une estimation standard documentée dans
-le code — à corriger dès que des chiffres terrain plus précis sont disponibles.
+Trois ratios sont **confirmés terrain ou sourcés** (140 blocs/sac de ciment,
+3 brouettes de sable/sac, densité du sable 1,6 t/m³, camion 10 roues 20 t,
+semi-remorque 30 t) et font foi. Tout le reste (taux de vide du bourrage 55 %,
+dosages béton/mortier, volume de brouette 65 L) est une estimation standard
+documentée dans le code — à corriger dès que des chiffres terrain plus précis sont
+disponibles.
 
 ## Fonctionnalités livrées
 
