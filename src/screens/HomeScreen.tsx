@@ -30,6 +30,10 @@ export function HomeScreen({ navigation }: Props) {
         <Card icon="🧾" title="Commandes" subtitle="Préparer une commande" onPress={() => navigation.navigate('Commandes', undefined)} />
         <Card icon="📁" title="Projets" subtitle="Sauvegarder vos calculs" onPress={() => navigation.navigate('Projets')} />
       </View>
+
+      <Text style={[styles.footer, { color: colors.textMuted, fontSize: typography.sizes.xs }]}>
+        Développé par Pierre NGALAHA
+      </Text>
     </Screen>
   );
 }
@@ -41,5 +45,9 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  footer: {
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

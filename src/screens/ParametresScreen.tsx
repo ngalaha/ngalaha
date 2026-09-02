@@ -37,6 +37,12 @@ export function ParametresScreen() {
         Calcul Chantier fonctionne entièrement hors ligne. Toutes les données sont sauvegardées localement sur
         l'appareil.
       </Text>
+
+      <View style={{ alignItems: 'center', marginTop: spacing.lg, gap: 4 }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>Calcul Chantier</Text>
+        <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>Version 1.0.0</Text>
+        <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>Développé par Pierre NGALAHA</Text>
+      </View>
     </Screen>
   );
 }
