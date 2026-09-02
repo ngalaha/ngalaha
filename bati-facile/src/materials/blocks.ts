@@ -22,10 +22,13 @@ export interface BlockFormat {
    * Ratio terrain confirmé : nombre de parpaings montés (pose simple, joints
    * NON bourrés) par sac de ciment de 50 kg. `undefined` = ratio non confirmé
    * pour ce format, le moteur retombe alors sur une estimation volumétrique.
+   *
+   * Ce ratio concerne uniquement le jointoiement (pose). Le bourrage
+   * (remplissage des alvéoles au béton) est une décision indépendante du
+   * format — un 15×20×40 comme un 20×20×40 peuvent tous deux être posés
+   * bourrés en fondation. Voir `Wall.bourre` et `calculationEngine/bourrage.ts`.
    */
   blocksPerCementBagPose?: number;
-  /** true = ce format est habituellement posé "bourré" (alvéoles remplies de béton), typiquement en soubassement. */
-  bourrageTypique: boolean;
 }
 
 export const BLOCK_CATALOG: BlockFormat[] = [
@@ -36,7 +39,6 @@ export const BLOCK_CATALOG: BlockFormat[] = [
     hauteur: 0.2,
     longueur: 0.4,
     usageRecommande: ['cloison'],
-    bourrageTypique: false,
   },
   {
     id: '15x20x40',
@@ -44,9 +46,8 @@ export const BLOCK_CATALOG: BlockFormat[] = [
     epaisseur: 0.15,
     hauteur: 0.2,
     longueur: 0.4,
-    usageRecommande: ['elevation'],
+    usageRecommande: ['elevation', 'soubassement'],
     blocksPerCementBagPose: 140, // confirmé terrain : 1 sac de ciment monte 140 parpaings de 15 cm non bourrés
-    bourrageTypique: false,
   },
   {
     id: '20x20x40',
@@ -55,7 +56,6 @@ export const BLOCK_CATALOG: BlockFormat[] = [
     hauteur: 0.2,
     longueur: 0.4,
     usageRecommande: ['soubassement', 'elevation'],
-    bourrageTypique: true, // en soubassement, les alvéoles sont bourrées de béton — voir bourrage.ts
   },
 ];
 

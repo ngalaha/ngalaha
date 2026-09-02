@@ -1,4 +1,5 @@
 import {
+  BROUETTE_VOLUME_M3_ESTIME,
   CEMENT_BAG_KG,
   cementBagsExact,
   computeEnduitMortar,
@@ -9,6 +10,7 @@ import {
   MORTAR_DOSAGE_ENDUIT,
   MORTAR_DOSAGE_POSE,
   poseCementBagsFromBlockCount,
+  SABLE_BROUETTES_PAR_SAC_POSE,
 } from '../src/calculationEngine/mortar';
 import { getBlockFormat } from '../src/materials/blocks';
 
@@ -47,7 +49,17 @@ describe('Mortier de pose — ratio terrain confirmé (blocs par sac)', () => {
     }
   });
 
-  it("retourne undefined pour un format sans ratio terrain confirmé (ex: 20x20x40, typiquement bourré)", () => {
+  it('applique le ratio terrain confirmé : 3 brouettes de sable par sac de ciment', () => {
+    const result = computePoseMortarForBlockCount(280, block15); // 2 sacs
+    expect(SABLE_BROUETTES_PAR_SAC_POSE).toBe(3);
+    expect(result).toBeDefined();
+    if (result) {
+      expect(result.sableBrouettes).toBeCloseTo(2 * 3, 8);
+      expect(result.sableM3).toBeCloseTo(2 * 3 * BROUETTE_VOLUME_M3_ESTIME, 8);
+    }
+  });
+
+  it("retourne undefined pour un format sans ratio terrain confirmé (ex: 20x20x40)", () => {
     expect(block20.blocksPerCementBagPose).toBeUndefined();
     expect(computePoseMortarForBlockCount(200, block20)).toBeUndefined();
   });

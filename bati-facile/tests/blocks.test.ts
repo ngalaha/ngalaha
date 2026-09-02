@@ -24,6 +24,7 @@ function makeWall(overrides: Partial<Wall> = {}): Wall {
     blockId: block15.id,
     jointEpaisseur: JOINT,
     openings: [],
+    bourre: false,
     ...overrides,
   };
 }

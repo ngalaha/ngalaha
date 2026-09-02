@@ -17,4 +17,11 @@ export interface Wall {
   blockId: string; // référence vers BLOCK_CATALOG
   jointEpaisseur: number; // m, exact (défaut 0.015)
   openings: Opening[];
+  /**
+   * true = les alvéoles des blocs de ce mur sont bourrées au béton (pratique
+   * courante en soubassement/fondation, quel que soit le format de bloc
+   * utilisé — 15×20×40 ou 20×20×40). Indépendant du format du bloc : c'est
+   * une décision de mise en œuvre, pas une propriété du bloc lui-même.
+   */
+  bourre: boolean;
 }

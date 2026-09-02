@@ -3,12 +3,24 @@
  *
  * Pour la pose en élévation NON bourrée, la méthode de référence est un ratio
  * terrain confirmé (`BlockFormat.blocksPerCementBagPose`, ex: 140 parpaings de
- * 15 cm par sac de ciment) — bien plus fiable qu'une estimation volumétrique.
- * Cette dernière (`computePoseMortar`) ne sert que de repli lorsque le ratio
- * terrain n'est pas encore confirmé pour un format de bloc donné.
+ * 15 cm par sac de ciment ⇒ 3 brouettes de sable par sac) — bien plus fiable
+ * qu'une estimation volumétrique. Cette dernière (`computePoseMortar`) ne sert
+ * que de repli lorsque le ratio terrain n'est pas encore confirmé pour un
+ * format de bloc donné.
  */
 
 import type { BlockFormat } from '../materials/blocks';
+
+/** Ratio terrain confirmé : brouettes de sable par sac de ciment de 50 kg, pour la pose en élévation non bourrée. */
+export const SABLE_BROUETTES_PAR_SAC_POSE = 3;
+
+/**
+ * Volume estimé d'une brouette de chantier standard — approximation usuelle,
+ * PAS un ratio terrain confirmé. Sert uniquement à donner un équivalent m³
+ * indicatif ; la quantité de référence pour l'achat reste le nombre de
+ * brouettes.
+ */
+export const BROUETTE_VOLUME_M3_ESTIME = 0.065;
 
 export interface MortarDosage {
   /** Dosage en kg de ciment par m³ de mortier. */
@@ -32,9 +44,11 @@ export const DEFAULT_MORTAR_VOLUME_PER_M2_POSE = 0.025;
 export const DEFAULT_ENDUIT_THICKNESS_M = 0.015;
 
 export interface MortarResult {
-  volumeMortier: number; // m³, exact
+  volumeMortier: number; // m³, exact (estimation quand dérivé d'un ratio terrain)
   cimentKg: number; // exact
-  sableM3: number; // exact
+  sableM3: number; // exact ou estimé, voir sableBrouettes
+  /** Présent uniquement quand le sable est dérivé d'un ratio terrain confirmé (brouettes/sac). */
+  sableBrouettes?: number;
 }
 
 export function computeMortarFromVolume(volumeMortier: number, dosage: MortarDosage): MortarResult {
@@ -70,12 +84,14 @@ export function poseCementBagsFromBlockCount(totalBlocks: number, blocksPerBag: 
  */
 export function computePoseMortarForBlockCount(totalBlocks: number, block: BlockFormat): MortarResult | undefined {
   if (block.blocksPerCementBagPose === undefined) return undefined;
-  const cimentKg = poseCementBagsFromBlockCount(totalBlocks, block.blocksPerCementBagPose) * CEMENT_BAG_KG;
-  const volumeMortier = cimentKg / MORTAR_DOSAGE_POSE.cementKgPerM3;
+  const sacs = poseCementBagsFromBlockCount(totalBlocks, block.blocksPerCementBagPose);
+  const cimentKg = sacs * CEMENT_BAG_KG;
+  const sableBrouettes = sacs * SABLE_BROUETTES_PAR_SAC_POSE;
   return {
-    volumeMortier,
+    volumeMortier: cimentKg / MORTAR_DOSAGE_POSE.cementKgPerM3,
     cimentKg,
-    sableM3: volumeMortier * MORTAR_DOSAGE_POSE.sandVolumeRatioPerM3,
+    sableBrouettes,
+    sableM3: sableBrouettes * BROUETTE_VOLUME_M3_ESTIME,
   };
 }
 
