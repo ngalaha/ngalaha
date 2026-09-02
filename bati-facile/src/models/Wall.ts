@@ -10,6 +10,7 @@ export interface Opening {
 
 export interface Wall {
   id: string;
+  projectId: string;
   label: string;
   longueur: number; // m, exact
   hauteur: number; // m, exact
@@ -24,4 +25,6 @@ export interface Wall {
    * une décision de mise en œuvre, pas une propriété du bloc lui-même.
    */
   bourre: boolean;
+  createdAt: string; // ISO 8601
+  updatedAt: string;
 }

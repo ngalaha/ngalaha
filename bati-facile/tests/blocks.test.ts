@@ -17,6 +17,7 @@ const JOINT = 0.015;
 function makeWall(overrides: Partial<Wall> = {}): Wall {
   return {
     id: 'w1',
+    projectId: 'p1',
     label: 'Mur test',
     longueur: 5,
     hauteur: 2.5,
@@ -25,6 +26,8 @@ function makeWall(overrides: Partial<Wall> = {}): Wall {
     jointEpaisseur: JOINT,
     openings: [],
     bourre: false,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   };
 }
