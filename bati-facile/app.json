@@ -28,7 +28,15 @@
     },
     "plugins": [
       "expo-sharing",
-      "expo-file-system"
+      "expo-file-system",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Bâti Facile a besoin d'accéder à vos photos pour téléverser un plan.",
+          "cameraPermission": "Bâti Facile a besoin de la caméra pour photographier un plan.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

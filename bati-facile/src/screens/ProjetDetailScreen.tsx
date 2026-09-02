@@ -164,7 +164,10 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
         />
       </View>
 
-      <Button label="🧱 Ajouter / gérer les murs" onPress={() => navigation.navigate('Murs', { projectId })} />
+      <View style={styles.pillRow}>
+        <Button label="🧱 Ajouter / gérer les murs" onPress={() => navigation.navigate('Murs', { projectId })} />
+        <Button label="📐 Relevé sur plan" variant="secondary" onPress={() => navigation.navigate('Plan', { projectId })} />
+      </View>
 
       {!sumResult.ok && walls.length > 0 ? (
         <Text style={{ color: colors.danger }}>

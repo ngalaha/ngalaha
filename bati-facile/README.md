@@ -68,12 +68,32 @@ sable/sac) et font foi. Tout le reste (taux de vide du bourrage 55 %, dosages
 béton/mortier, volume de brouette 65 L) est une estimation standard documentée dans
 le code — à corriger dès que des chiffres terrain plus précis sont disponibles.
 
+## Fonctionnalités livrées
+
+- **Phase 1** — Moteur de calcul (blocs, mortier de pose, bourrage, enduit).
+- **Phase 2** — Écrans : Accueil, Projets, Murs, Devis (export PDF avec infos
+  client/chantier), Paramètres. Stockage 100 % hors ligne.
+- **Phase 3** — Relevé assisté sur plan (`src/screens/PlanScreen.tsx`) :
+  1. Téléverser une photo du plan (galerie ou appareil photo, `expo-image-picker`).
+  2. Calibrer l'échelle en touchant deux points d'une cote connue et en indiquant sa
+     distance réelle.
+  3. Tracer chaque mur au doigt — sa longueur réelle est calculée automatiquement
+     (ratio pixels ↔ mètres de l'étape de calibrage, indépendant de la résolution de
+     la photo).
+  4. Réglages communs (niveau, format de bloc, hauteur, joint, bourrage) appliqués à
+     tous les murs tracés, puis création en un clic.
+
+  Limites connues de cette V1 : uniquement des photos (pas de PDF), murs tracés en
+  ligne droite (pas d'angles complexes en un seul tracé), pas d'ouvertures ajoutées
+  depuis cet écran (à ajouter ensuite via "Murs" si besoin — l'édition d'un mur
+  existant n'est pas encore possible, il faut le supprimer et le recréer).
+
 ## Prochaines étapes
 
-- **Phase 2** : écrans (saisie des murs, projets, export PDF de devis quantitatif) —
-  réutilise les patterns déjà validés dans *Calcul Chantier*.
-- **Phase 3** : relevé assisté sur plan de distribution téléversé.
 - **Phase 4** : système d'activation payant via Mobile Money, publication Play Store.
+- Édition d'un mur existant (actuellement : suppression + recréation uniquement).
+- Reconnaissance automatique assistée par IA du tracé (pré-détection des murs à
+  valider par l'utilisateur), en complément du tracé manuel.
 
 ## Développement local
 

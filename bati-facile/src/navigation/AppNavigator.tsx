@@ -8,6 +8,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { ProjetsScreen } from '../screens/ProjetsScreen';
 import { ProjetDetailScreen } from '../screens/ProjetDetailScreen';
 import { MursScreen } from '../screens/MursScreen';
+import { PlanScreen } from '../screens/PlanScreen';
 import { ParametresScreen } from '../screens/ParametresScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -50,6 +51,7 @@ export function AppNavigator() {
         <Stack.Screen name="Projets" component={ProjetsScreen} options={{ title: 'Projets' }} />
         <Stack.Screen name="ProjetDetail" component={ProjetDetailScreen} options={{ title: 'Devis' }} />
         <Stack.Screen name="Murs" component={MursScreen} options={{ title: 'Murs' }} />
+        <Stack.Screen name="Plan" component={PlanScreen} options={{ title: 'Relevé sur plan' }} />
         <Stack.Screen name="Parametres" component={ParametresScreen} options={{ title: 'Paramètres' }} />
       </Stack.Navigator>
     </NavigationContainer>
