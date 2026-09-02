@@ -74,19 +74,23 @@ le code — à corriger dès que des chiffres terrain plus précis sont disponib
 - **Phase 2** — Écrans : Accueil, Projets, Murs, Devis (export PDF avec infos
   client/chantier), Paramètres. Stockage 100 % hors ligne.
 - **Phase 3** — Relevé assisté sur plan (`src/screens/PlanScreen.tsx`) :
-  1. Téléverser une photo du plan (galerie ou appareil photo, `expo-image-picker`).
-  2. Calibrer l'échelle en touchant deux points d'une cote connue et en indiquant sa
-     distance réelle.
-  3. Tracer chaque mur au doigt — sa longueur réelle est calculée automatiquement
-     (ratio pixels ↔ mètres de l'étape de calibrage, indépendant de la résolution de
-     la photo).
-  4. Réglages communs (niveau, format de bloc, hauteur, joint, bourrage) appliqués à
+  1. Téléverser une photo (galerie ou appareil photo, `expo-image-picker`) **ou un
+     PDF** (`expo-document-picker` + `@dariyd/react-native-pdf-page-image`, rendu de
+     la page choisie en image — sélecteur de page pour les PDF multi-pages).
+  2. Calibrer l'échelle en glissant le doigt le long d'une cote connue et en indiquant
+     sa distance réelle.
+  3. Tracer chaque mur en glissant le doigt d'un point à l'autre (comme un outil de
+     dessin de ligne) — sa longueur réelle est calculée automatiquement (ratio pixels
+     ↔ mètres de l'étape de calibrage, indépendant de la résolution/du zoom utilisés).
+  4. Zoom (100 à 300 %) avec un mode Déplacer/Dessiner dédié pour naviguer sur
+     l'image sans déclencher de tracé par erreur, utile pour les plans très détaillés.
+  5. Réglages communs (niveau, format de bloc, hauteur, joint, bourrage) appliqués à
      tous les murs tracés, puis création en un clic.
 
-  Limites connues de cette V1 : uniquement des photos (pas de PDF), murs tracés en
-  ligne droite (pas d'angles complexes en un seul tracé), pas d'ouvertures ajoutées
-  depuis cet écran (à ajouter ensuite via "Murs" si besoin — l'édition d'un mur
-  existant n'est pas encore possible, il faut le supprimer et le recréer).
+  Limites connues de cette V1 : murs tracés en ligne droite (pas d'angles complexes
+  en un seul tracé), pas d'ouvertures ajoutées depuis cet écran (à ajouter ensuite
+  via "Murs" si besoin — l'édition d'un mur existant n'est pas encore possible, il
+  faut le supprimer et le recréer).
 
 ## Prochaines étapes
 

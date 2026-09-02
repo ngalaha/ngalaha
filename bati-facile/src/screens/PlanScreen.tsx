@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import PdfPageImage from '@dariyd/react-native-pdf-page-image';
 import Svg, { Circle, Line, Text as SvgText } from 'react-native-svg';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -55,6 +57,10 @@ export function PlanScreen({ route, navigation }: Props) {
   const [zoom, setZoom] = useState(1);
   const [panMode, setPanMode] = useState(false);
 
+  const [pdfInfo, setPdfInfo] = useState<{ uri: string; pageCount: number } | null>(null);
+  const [pdfPageIndex, setPdfPageIndex] = useState(0);
+  const [loadingPdf, setLoadingPdf] = useState(false);
+
   const [mode, setMode] = useState<Mode>('calibrer');
   const [dragStart, setDragStart] = useState<Point | null>(null);
   const [dragCurrent, setDragCurrent] = useState<Point | null>(null);
@@ -79,8 +85,8 @@ export function PlanScreen({ route, navigation }: Props) {
     setBourre(n === 'soubassement');
   }
 
-  function resetPlan() {
-    setImageUri(null);
+  /** Réinitialise le calibrage/tracé, sans toucher à l'image affichée. */
+  function resetTraceState() {
     setCalibration(null);
     setCalibrationDraft(null);
     setSegments([]);
@@ -91,6 +97,12 @@ export function PlanScreen({ route, navigation }: Props) {
     setPanMode(false);
     setError(null);
     setCreatedCount(0);
+    setPdfInfo(null);
+  }
+
+  function resetPlan() {
+    resetTraceState();
+    setImageUri(null);
   }
 
   async function choisirPhoto(source: 'library' | 'camera') {
@@ -111,9 +123,46 @@ export function PlanScreen({ route, navigation }: Props) {
 
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
-    resetPlan();
+    resetTraceState();
     setImageUri(asset.uri);
     setImageAspect(asset.width && asset.height ? asset.width / asset.height : 1);
+  }
+
+  async function choisirPdf() {
+    setError(null);
+    const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
+    if (result.canceled || !result.assets?.[0]) return;
+
+    setLoadingPdf(true);
+    try {
+      const uri = result.assets[0].uri;
+      const info = await PdfPageImage.open(uri);
+      if (info.pageCount <= 1) {
+        await chargerPagePdf(uri, 0);
+      } else {
+        setPdfInfo({ uri, pageCount: info.pageCount });
+        setPdfPageIndex(0);
+      }
+    } catch {
+      setError("Impossible d'ouvrir ce PDF. Vérifiez qu'il s'agit bien d'un fichier PDF valide.");
+    } finally {
+      setLoadingPdf(false);
+    }
+  }
+
+  async function chargerPagePdf(uri: string, pageIndex: number) {
+    setLoadingPdf(true);
+    setError(null);
+    try {
+      const page = await PdfPageImage.generate(uri, pageIndex, 3, { format: 'png', maxDimension: 2000 });
+      resetTraceState();
+      setImageUri(page.uri);
+      setImageAspect(page.width / page.height);
+    } catch {
+      setError("Impossible de générer l'image de cette page du PDF.");
+    } finally {
+      setLoadingPdf(false);
+    }
   }
 
   // Tous les points sont mémorisés en coordonnées "de base" (zoom = 1), pour
@@ -218,15 +267,38 @@ export function PlanScreen({ route, navigation }: Props) {
     <Screen>
       <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>📐 Relevé sur plan</Text>
       <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
-        Téléversez une photo du plan, calibrez l'échelle avec une cote connue, puis tracez les murs en glissant le
-        doigt d'un point à l'autre — leur longueur réelle est calculée automatiquement.
+        Téléversez une photo ou un PDF du plan, calibrez l'échelle avec une cote connue, puis tracez les murs en
+        glissant le doigt d'un point à l'autre — leur longueur réelle est calculée automatiquement.
       </Text>
 
       {!imageUri ? (
-        <View style={styles.pillRow}>
-          <Button label="🖼️ Choisir une photo" onPress={() => choisirPhoto('library')} />
-          <Button label="📷 Prendre une photo" variant="secondary" onPress={() => choisirPhoto('camera')} />
-        </View>
+        <>
+          <View style={styles.pillRow}>
+            <Button label="🖼️ Choisir une photo" onPress={() => choisirPhoto('library')} />
+            <Button label="📷 Prendre une photo" variant="secondary" onPress={() => choisirPhoto('camera')} />
+            <Button label="📄 Choisir un PDF" variant="secondary" onPress={choisirPdf} loading={loadingPdf} />
+          </View>
+
+          {pdfInfo && (
+            <>
+              <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
+                Ce PDF contient {pdfInfo.pageCount} pages. Choisissez la page du plan à utiliser :
+              </Text>
+              <View style={styles.pillRow}>
+                {Array.from({ length: pdfInfo.pageCount }).map((_, i) => (
+                  <Pill key={i} label={`Page ${i + 1}`} active={pdfPageIndex === i} onPress={() => setPdfPageIndex(i)} />
+                ))}
+              </View>
+              <Button
+                label="📄 Charger cette page"
+                onPress={() => chargerPagePdf(pdfInfo.uri, pdfPageIndex)}
+                loading={loadingPdf}
+              />
+            </>
+          )}
+
+          {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+        </>
       ) : (
         <>
           <View style={styles.pillRow}>
@@ -236,7 +308,7 @@ export function PlanScreen({ route, navigation }: Props) {
               active={mode === 'tracer'}
               onPress={() => calibration && setMode('tracer')}
             />
-            <Pill label="🔄 Nouvelle photo" active={false} onPress={resetPlan} />
+            <Pill label="🔄 Recommencer" active={false} onPress={resetPlan} />
           </View>
 
           <View style={styles.pillRow}>

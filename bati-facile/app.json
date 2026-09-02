@@ -36,7 +36,8 @@
           "cameraPermission": "Bâti Facile a besoin de la caméra pour photographier un plan.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-document-picker"
     ]
   }
 }
