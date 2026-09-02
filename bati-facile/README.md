@@ -18,36 +18,55 @@ courantes en Afrique centrale/de l'Ouest.
 src/
 ├── calculationEngine/
 │   ├── blocks.ts     Calcul des blocs par mur (surface nette, blocs/m², agrégation multi-murs)
-│   ├── mortar.ts     Mortier de pose + enduit (crépi) : ciment, sable
+│   ├── mortar.ts     Mortier de pose (ciment/sable) + enduit (crépi)
+│   ├── bourrage.ts   Béton de remplissage des alvéoles (murs bourrés, ciment/sable/gravier)
 │   ├── quantity.ts   Marge de casse + arrondi de commande (exact / avec marge / recommandé)
 │   ├── units.ts       Conversions métriques exactes (m, cm, mm)
 │   └── format.ts     Arrondi et formatage — uniquement à l'affichage
 ├── materials/
 │   └── blocks.ts     Catalogue des formats de blocs (10x20x40, 15x20x40, 20x20x40)
 └── models/
-    └── Wall.ts        Modèle Mur + Ouverture (porte/fenêtre)
+    └── Wall.ts        Modèle Mur (dont `bourre: boolean`) + Ouverture (porte/fenêtre)
 
-tests/                 25 tests automatisés (Jest) sur le moteur de calcul
+tests/                 38 tests automatisés (Jest) sur le moteur de calcul
 ```
 
 ### Principe du moteur Parpaings
 
-1. **Un bloc par niveau, suggéré mais modifiable** : 20×20×40 pour le soubassement/
-   fondation (portance, étanchéité), 15×20×40 pour l'élévation (murs porteurs),
-   10×20×40 pour les cloisons légères.
+1. **Un bloc par niveau, suggéré mais modifiable** : 20×20×40 ou 15×20×40 pour le
+   soubassement/fondation, 15×20×40 pour l'élévation, 10×20×40 pour les cloisons
+   légères. Le **bourrage** (remplissage des alvéoles au béton) est une propriété du
+   **mur** (`Wall.bourre`), pas du format de bloc — un même format peut être posé
+   bourré ou non selon l'usage.
 2. **Surface nette** = surface brute du mur (longueur × hauteur) − surface des
    ouvertures (portes, fenêtres, avec quantités).
 3. **Blocs par m²** dérivé du format du bloc + épaisseur de joint (défaut 1,5 cm,
    ajustable).
-4. **Agrégation multi-murs**, groupée par format de bloc utilisé (ex: total blocs
-   20×20×40 pour tout le soubassement + total blocs 15×20×40 pour toute l'élévation).
+4. **Agrégation multi-murs**, groupée par format de bloc utilisé.
 5. **Marge de casse et arrondi de commande** appliqués une seule fois, au niveau de
    l'agrégat — jamais mur par mur — pour ne pas accumuler d'arrondis.
-6. **Mortier de pose et enduit** calculés à partir de la surface nette et de ratios de
-   dosage standards (ciment/sable), ajustables.
+6. **Mortier de pose (élévation, non bourré)** : ratio **terrain confirmé** — 1 sac
+   de ciment (50 kg) monte 140 parpaings de 15×20×40, avec 3 brouettes de sable par
+   sac. C'est la méthode de référence pour ce format ; les autres formats sans ratio
+   confirmé retombent sur une estimation volumétrique (clairement signalée comme
+   telle).
+7. **Bourrage (soubassement/fondation)** : volume de béton = volume brut du bloc ×
+   taux de vide (55 % par défaut, plage 50-60 % selon NF EN 771-3 — estimation à
+   confirmer sur le terrain, pas un ratio validé comme celui du ciment de pose),
+   puis dosage béton "350" (350 kg/m³ ciment, 0,5 m³/m³ sable, 0,7 m³/m³ gravier)
+   pour obtenir ciment/sable/gravier.
+8. **Enduit** calculé à partir de la surface et d'une épaisseur choisie, dosage
+   ciment/sable standard.
 
 Toutes les valeurs intermédiaires restent exactes (précision double) ; seul
 l'affichage/la commande finale arrondit.
+
+### Hypothèses à valider sur le terrain
+
+Deux ratios sont **confirmés terrain** (140 blocs/sac de ciment, 3 brouettes de
+sable/sac) et font foi. Tout le reste (taux de vide du bourrage 55 %, dosages
+béton/mortier, volume de brouette 65 L) est une estimation standard documentée dans
+le code — à corriger dès que des chiffres terrain plus précis sont disponibles.
 
 ## Prochaines étapes
 
