@@ -1,11 +1,14 @@
 /**
  * Mortier de pose (jointoiement des blocs) et enduit (crépi).
  *
- * Les ratios de dosage sont des valeurs standards couramment utilisées dans
- * les devis quantitatifs de maçonnerie en Afrique centrale/de l'Ouest —
- * exposées comme constantes ajustables, pas comme vérités figées, car elles
- * varient selon les habitudes locales et le type de mortier souhaité.
+ * Pour la pose en élévation NON bourrée, la méthode de référence est un ratio
+ * terrain confirmé (`BlockFormat.blocksPerCementBagPose`, ex: 140 parpaings de
+ * 15 cm par sac de ciment) — bien plus fiable qu'une estimation volumétrique.
+ * Cette dernière (`computePoseMortar`) ne sert que de repli lorsque le ratio
+ * terrain n'est pas encore confirmé pour un format de bloc donné.
  */
+
+import type { BlockFormat } from '../materials/blocks';
 
 export interface MortarDosage {
   /** Dosage en kg de ciment par m³ de mortier. */
@@ -42,12 +45,38 @@ export function computeMortarFromVolume(volumeMortier: number, dosage: MortarDos
   };
 }
 
-/** Mortier de pose nécessaire pour jointoyer une surface nette totale de murs en blocs. */
+/**
+ * Mortier de pose nécessaire pour jointoyer une surface nette totale de murs
+ * en blocs — méthode volumétrique de repli, utilisée uniquement quand aucun
+ * ratio terrain n'est confirmé pour le format de bloc (voir `computePoseMortarForBlockCount`).
+ */
 export function computePoseMortar(
   netSurfaceTotal: number,
   volumePerM2: number = DEFAULT_MORTAR_VOLUME_PER_M2_POSE
 ): MortarResult {
   return computeMortarFromVolume(netSurfaceTotal * volumePerM2, MORTAR_DOSAGE_POSE);
+}
+
+/** Nombre exact de sacs de ciment à partir d'un ratio terrain "blocs par sac". */
+export function poseCementBagsFromBlockCount(totalBlocks: number, blocksPerBag: number): number {
+  return totalBlocks / blocksPerBag;
+}
+
+/**
+ * Mortier de pose pour un total de blocs d'un format donné, en priorité via le
+ * ratio terrain confirmé (`block.blocksPerCementBagPose`). Retourne `undefined`
+ * si aucun ratio n'est confirmé pour ce format — dans ce cas, utiliser
+ * `computePoseMortar` (surface nette) comme estimation de repli.
+ */
+export function computePoseMortarForBlockCount(totalBlocks: number, block: BlockFormat): MortarResult | undefined {
+  if (block.blocksPerCementBagPose === undefined) return undefined;
+  const cimentKg = poseCementBagsFromBlockCount(totalBlocks, block.blocksPerCementBagPose) * CEMENT_BAG_KG;
+  const volumeMortier = cimentKg / MORTAR_DOSAGE_POSE.cementKgPerM3;
+  return {
+    volumeMortier,
+    cimentKg,
+    sableM3: volumeMortier * MORTAR_DOSAGE_POSE.sandVolumeRatioPerM3,
+  };
 }
 
 /** Mortier d'enduit pour une surface donnée (intérieure, extérieure, ou les deux additionnées) et une épaisseur choisie. */

@@ -3,11 +3,14 @@ import {
   cementBagsExact,
   computeEnduitMortar,
   computePoseMortar,
+  computePoseMortarForBlockCount,
   DEFAULT_ENDUIT_THICKNESS_M,
   DEFAULT_MORTAR_VOLUME_PER_M2_POSE,
   MORTAR_DOSAGE_ENDUIT,
   MORTAR_DOSAGE_POSE,
+  poseCementBagsFromBlockCount,
 } from '../src/calculationEngine/mortar';
+import { getBlockFormat } from '../src/materials/blocks';
 
 describe('Mortier de pose', () => {
   it('calcule le volume de mortier à partir de la surface nette totale', () => {
@@ -23,6 +26,30 @@ describe('Mortier de pose', () => {
   it('accepte un volume de mortier par m² personnalisé', () => {
     const result = computePoseMortar(10, 0.03);
     expect(result.volumeMortier).toBeCloseTo(0.3, 10);
+  });
+});
+
+describe('Mortier de pose — ratio terrain confirmé (blocs par sac)', () => {
+  const block15 = getBlockFormat('15x20x40')!;
+  const block20 = getBlockFormat('20x20x40')!;
+
+  it('1 sac de ciment monte 140 parpaings de 15 cm non bourrés (ratio terrain confirmé)', () => {
+    expect(block15.blocksPerCementBagPose).toBe(140);
+    expect(poseCementBagsFromBlockCount(140, 140)).toBeCloseTo(1, 10);
+    expect(poseCementBagsFromBlockCount(700, 140)).toBeCloseTo(5, 10);
+  });
+
+  it('calcule le ciment/sable de pose à partir du nombre total de blocs 15x20x40', () => {
+    const result = computePoseMortarForBlockCount(280, block15);
+    expect(result).toBeDefined();
+    if (result) {
+      expect(result.cimentKg).toBeCloseTo(2 * CEMENT_BAG_KG, 8); // 280 blocs = 2 sacs
+    }
+  });
+
+  it("retourne undefined pour un format sans ratio terrain confirmé (ex: 20x20x40, typiquement bourré)", () => {
+    expect(block20.blocksPerCementBagPose).toBeUndefined();
+    expect(computePoseMortarForBlockCount(200, block20)).toBeUndefined();
   });
 });
 
