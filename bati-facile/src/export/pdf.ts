@@ -93,6 +93,8 @@ function devisToHtml(
         .strong { font-weight: 700; color: #B5501C; }
         .note { color: #C77F16; font-size: 11px; margin-top: 8px; }
         .footer { margin-top: 24px; color: #7A6857; font-size: 11px; }
+        .client { max-width: 360px; }
+        .client th { width: 110px; }
       </style>
     </head>
     <body>
@@ -101,6 +103,18 @@ function devisToHtml(
         Devis quantitatif — Marge de casse : ${marginPercent}% —
         Généré le ${new Date().toLocaleDateString('fr-FR')}
       </div>
+
+      ${
+        project.clientName || project.clientPhone || project.siteAddress
+          ? `<table class="client">
+        <tbody>
+          ${project.clientName ? `<tr><th>Client</th><td>${escapeHtml(project.clientName)}</td></tr>` : ''}
+          ${project.clientPhone ? `<tr><th>Téléphone</th><td>${escapeHtml(project.clientPhone)}</td></tr>` : ''}
+          ${project.siteAddress ? `<tr><th>Chantier</th><td>${escapeHtml(project.siteAddress)}</td></tr>` : ''}
+        </tbody>
+      </table>`
+          : ''
+      }
 
       <h2>Blocs (parpaings) à commander</h2>
       <table>

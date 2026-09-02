@@ -25,6 +25,19 @@ const NIVEAUX: { key: WallLevel; label: string }[] = [
   { key: 'cloison', label: 'Cloison' },
 ];
 
+/**
+ * Version "brouillon" d'une ouverture : les dimensions restent en texte brut
+ * pendant la saisie (comme les champs du mur) pour ne pas perdre la virgule
+ * décimale en cours de frappe. La conversion en nombres n'a lieu qu'à
+ * l'ajout du mur.
+ */
+interface OpeningDraft {
+  id: string;
+  largeur: string;
+  hauteur: string;
+  quantite: string;
+}
+
 export function MursScreen({ route }: Props) {
   const { projectId } = route.params;
   const { colors, spacing, typography, radius } = useTheme();
@@ -37,7 +50,7 @@ export function MursScreen({ route }: Props) {
   const [hauteur, setHauteur] = useState('');
   const [jointCm, setJointCm] = useState(String(mToCm(DEFAULT_JOINT_EPAISSEUR_M)));
   const [bourre, setBourre] = useState(false);
-  const [openings, setOpenings] = useState<Opening[]>([]);
+  const [openingDrafts, setOpeningDrafts] = useState<OpeningDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
@@ -53,21 +66,36 @@ export function MursScreen({ route }: Props) {
   }
 
   function addOpening() {
-    setOpenings((prev) => [...prev, { id: generateId(), largeur: 0, hauteur: 0, quantite: 1 }]);
+    setOpeningDrafts((prev) => [...prev, { id: generateId(), largeur: '', hauteur: '', quantite: '1' }]);
   }
 
-  function updateOpening(id: string, field: keyof Opening, raw: string) {
-    setOpenings((prev) =>
-      prev.map((o) => {
-        if (o.id !== id) return o;
-        if (field === 'quantite') return { ...o, quantite: parseInt(raw, 10) || 1 };
-        return { ...o, [field]: parseDecimal(raw) ?? 0 };
-      })
-    );
+  function updateOpeningDraft(id: string, field: keyof OpeningDraft, raw: string) {
+    setOpeningDrafts((prev) => prev.map((o) => (o.id === id ? { ...o, [field]: raw } : o)));
   }
 
-  function removeOpening(id: string) {
-    setOpenings((prev) => prev.filter((o) => o.id !== id));
+  function removeOpeningDraft(id: string) {
+    setOpeningDrafts((prev) => prev.filter((o) => o.id !== id));
+  }
+
+  /** Convertit les brouillons texte en `Opening[]` numériques, ou retourne un message d'erreur. */
+  function resolveOpenings(): { ok: true; openings: Opening[] } | { ok: false; error: string } {
+    const openings: Opening[] = [];
+    for (const [index, draft] of openingDrafts.entries()) {
+      const largeur = parseDecimal(draft.largeur);
+      const hauteur = parseDecimal(draft.hauteur);
+      const quantite = parseInt(draft.quantite.trim() || '1', 10);
+      if (largeur === undefined || largeur <= 0) {
+        return { ok: false, error: `Ouverture ${index + 1} : largeur invalide` };
+      }
+      if (hauteur === undefined || hauteur <= 0) {
+        return { ok: false, error: `Ouverture ${index + 1} : hauteur invalide` };
+      }
+      if (!Number.isFinite(quantite) || quantite < 1) {
+        return { ok: false, error: `Ouverture ${index + 1} : quantité invalide` };
+      }
+      openings.push({ id: draft.id, largeur, hauteur, quantite });
+    }
+    return { ok: true, openings };
   }
 
   async function ajouterMur() {
@@ -79,6 +107,9 @@ export function MursScreen({ route }: Props) {
     if (h === undefined || h <= 0) return setError('Hauteur du mur invalide');
     if (jointCmValue === undefined || jointCmValue < 0) return setError('Épaisseur de joint invalide');
 
+    const openingsResult = resolveOpenings();
+    if (!openingsResult.ok) return setError(openingsResult.error);
+
     const block = getBlockFormat(blockId);
     const wallDraft = {
       projectId,
@@ -88,7 +119,7 @@ export function MursScreen({ route }: Props) {
       niveau,
       blockId,
       jointEpaisseur: cmToM(jointCmValue),
-      openings,
+      openings: openingsResult.openings,
       bourre,
     };
     const check = computeWallBlocks(wallDraft as Wall, block);
@@ -98,7 +129,7 @@ export function MursScreen({ route }: Props) {
     setLabel('');
     setLongueur('');
     setHauteur('');
-    setOpenings([]);
+    setOpeningDrafts([]);
     refresh();
   }
 
@@ -109,7 +140,7 @@ export function MursScreen({ route }: Props) {
 
   return (
     <Screen>
-      <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>Ajouter un mur</Text>
+      <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>🧱 Ajouter un mur</Text>
 
       <TextInput
         value={label}
@@ -133,8 +164,8 @@ export function MursScreen({ route }: Props) {
         ))}
       </View>
 
-      <NumberField label="Longueur du mur" value={longueur} onChangeValue={setLongueur} suffix="m" placeholder="ex: 5.20" />
-      <NumberField label="Hauteur du mur" value={hauteur} onChangeValue={setHauteur} suffix="m" placeholder="ex: 2.80" />
+      <NumberField label="Longueur du mur" value={longueur} onChangeValue={setLongueur} suffix="m" placeholder="ex: 5,20" />
+      <NumberField label="Hauteur du mur" value={hauteur} onChangeValue={setHauteur} suffix="m" placeholder="ex: 2,80" />
       <NumberField label="Épaisseur du joint" value={jointCm} onChangeValue={setJointCm} suffix="cm" />
 
       <Text style={{ color: colors.textMuted }}>Bourrage (alvéoles remplies de béton)</Text>
@@ -143,34 +174,55 @@ export function MursScreen({ route }: Props) {
         <Pill label="Bourré" active={bourre} onPress={() => setBourre(true)} />
       </View>
 
-      <Text style={{ color: colors.text, fontWeight: '700' }}>Ouvertures (portes, fenêtres)</Text>
-      {openings.map((o) => (
-        <View key={o.id} style={[styles.openingRow, { borderColor: colors.border }]}>
-          <TextInput
-            value={String(o.largeur || '')}
-            onChangeText={(v) => updateOpening(o.id, 'largeur', v)}
-            placeholder="Largeur (m)"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="decimal-pad"
-            style={[styles.openingInput, { color: colors.text, borderColor: colors.border }]}
-          />
-          <TextInput
-            value={String(o.hauteur || '')}
-            onChangeText={(v) => updateOpening(o.id, 'hauteur', v)}
-            placeholder="Hauteur (m)"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="decimal-pad"
-            style={[styles.openingInput, { color: colors.text, borderColor: colors.border }]}
-          />
-          <TextInput
-            value={String(o.quantite || '')}
-            onChangeText={(v) => updateOpening(o.id, 'quantite', v)}
-            placeholder="Qté"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="number-pad"
-            style={[styles.openingInputSmall, { color: colors.text, borderColor: colors.border }]}
-          />
-          <Text onPress={() => removeOpening(o.id)} style={{ color: colors.danger }}>✕</Text>
+      <Text style={{ color: colors.text, fontWeight: '700', marginTop: spacing.sm }}>🚪 Ouvertures (portes, fenêtres)</Text>
+      {openingDrafts.map((o, index) => (
+        <View
+          key={o.id}
+          style={[styles.openingCard, { backgroundColor: colors.surfaceAlt, borderRadius: radius.md, gap: spacing.sm }]}
+        >
+          <View style={styles.openingCardHeader}>
+            <Text style={{ color: colors.text, fontWeight: '600', fontSize: typography.sizes.sm }}>
+              Ouverture {index + 1}
+            </Text>
+            <Text onPress={() => removeOpeningDraft(o.id)} style={{ color: colors.danger, fontSize: typography.sizes.md }}>
+              ✕
+            </Text>
+          </View>
+          <View style={styles.openingRow}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ color: colors.textMuted, fontSize: typography.sizes.xs }}>Largeur (m)</Text>
+              <TextInput
+                value={o.largeur}
+                onChangeText={(v) => updateOpeningDraft(o.id, 'largeur', v)}
+                placeholder="ex: 0,90"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="decimal-pad"
+                style={[styles.openingInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+              />
+            </View>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ color: colors.textMuted, fontSize: typography.sizes.xs }}>Hauteur (m)</Text>
+              <TextInput
+                value={o.hauteur}
+                onChangeText={(v) => updateOpeningDraft(o.id, 'hauteur', v)}
+                placeholder="ex: 2,10"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="decimal-pad"
+                style={[styles.openingInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+              />
+            </View>
+            <View style={{ width: 64, gap: 4 }}>
+              <Text style={{ color: colors.textMuted, fontSize: typography.sizes.xs }}>Qté</Text>
+              <TextInput
+                value={o.quantite}
+                onChangeText={(v) => updateOpeningDraft(o.id, 'quantite', v)}
+                placeholder="1"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="number-pad"
+                style={[styles.openingInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+              />
+            </View>
+          </View>
         </View>
       ))}
       <Button label="+ Ajouter une ouverture" variant="secondary" onPress={addOpening} />
@@ -180,7 +232,7 @@ export function MursScreen({ route }: Props) {
       <Button label="+ Ajouter ce mur" onPress={ajouterMur} big />
 
       <Text style={{ color: colors.text, fontWeight: '700', marginTop: spacing.md }}>
-        Murs du projet ({walls.length})
+        📋 Murs du projet ({walls.length})
       </Text>
       {walls.length === 0 ? (
         <Text style={{ color: colors.textMuted }}>Aucun mur ajouté.</Text>
@@ -189,18 +241,24 @@ export function MursScreen({ route }: Props) {
           const block = getBlockFormat(w.blockId);
           const result = computeWallBlocks(w, block);
           return (
-            <View key={w.id} style={[styles.wallCard, { backgroundColor: colors.surfaceAlt, borderRadius: radius.md }]}>
+            <View
+              key={w.id}
+              style={[styles.wallCard, { backgroundColor: colors.card, borderRadius: radius.md, shadowColor: colors.cardShadow }]}
+            >
               <View>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>{w.label}</Text>
                 <Text style={{ color: colors.textMuted, fontSize: typography.sizes.xs }}>
                   {block?.label} • {NIVEAUX.find((n) => n.key === w.niveau)?.label}
                   {w.bourre ? ' • bourré' : ''}
+                  {w.openings.length > 0 ? ` • ${w.openings.length} ouverture(s)` : ''}
                 </Text>
               </View>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>
                 {result.ok ? `${formatNumber(result.value.exactBlocks, 1)} blocs` : '—'}
               </Text>
-              <Text onPress={() => retirer(w.id)} style={{ color: colors.danger }}>✕</Text>
+              <Text onPress={() => retirer(w.id)} style={{ color: colors.danger, fontSize: typography.sizes.md }}>
+                ✕
+              </Text>
             </View>
           );
         })
@@ -220,31 +278,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  openingCard: {
+    padding: 12,
+  },
+  openingCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   openingRow: {
     flexDirection: 'row',
     gap: 8,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    paddingBottom: 8,
   },
   openingInput: {
-    flex: 1,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  openingInputSmall: {
-    width: 50,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
   wallCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    padding: 14,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 2,
   },
 });

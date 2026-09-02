@@ -16,7 +16,7 @@ export function ParametresScreen() {
 
   return (
     <Screen>
-      <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>Paramètres</Text>
+      <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>⚙️ Paramètres</Text>
 
       <Text style={{ color: colors.textMuted }}>Apparence</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

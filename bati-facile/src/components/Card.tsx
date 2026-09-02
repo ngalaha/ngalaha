@@ -24,6 +24,7 @@ export function Card({ icon, title, subtitle, onPress }: CardProps) {
           padding: spacing.md,
           opacity: pressed ? 0.85 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
+          shadowColor: colors.cardShadow,
         },
       ]}
     >
@@ -43,12 +44,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexBasis: '47%',
     flexGrow: 1,
-    minHeight: 120,
+    minHeight: 130,
     justifyContent: 'center',
     gap: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   icon: {
-    fontSize: 28,
+    fontSize: 30,
   },
   title: {
     fontWeight: '700',

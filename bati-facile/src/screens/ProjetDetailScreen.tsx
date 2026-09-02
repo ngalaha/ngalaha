@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -7,7 +7,7 @@ import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Pill } from '../components/Pill';
 import { useTheme } from '../styles/ThemeContext';
-import { getProject, listWalls } from '../storage/projects';
+import { getProject, listWalls, updateProject } from '../storage/projects';
 import type { Project } from '../models/Project';
 import type { Wall } from '../models/Wall';
 import { getBlockFormat, WASTE_MARGIN_PRESETS, type BlockFormat } from '../materials/blocks';
@@ -29,12 +29,33 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
   const [marginPercent, setMarginPercent] = useState<number>(5);
   const [exporting, setExporting] = useState(false);
 
+  const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [siteAddress, setSiteAddress] = useState('');
+
   const refresh = useCallback(() => {
     getProject(projectId).then(setProject);
     listWalls(projectId).then(setWalls);
   }, [projectId]);
 
   useFocusEffect(refresh);
+
+  useEffect(() => {
+    if (project) {
+      setClientName(project.clientName ?? '');
+      setClientPhone(project.clientPhone ?? '');
+      setSiteAddress(project.siteAddress ?? '');
+    }
+  }, [project?.id]);
+
+  async function saveProjectInfo() {
+    const updated = await updateProject(projectId, {
+      clientName: clientName.trim() || undefined,
+      clientPhone: clientPhone.trim() || undefined,
+      siteAddress: siteAddress.trim() || undefined,
+    });
+    if (updated) setProject(updated);
+  }
 
   const entries = useMemo(() => walls.map((wall) => ({ wall, block: getBlockFormat(wall.blockId) })), [walls]);
 
@@ -91,12 +112,22 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
     if (!project) return;
     setExporting(true);
     try {
-      const uri = await generateOrderPdf(project, blockOrders, poseGroups, bourrageGroups, marginPercent);
+      await saveProjectInfo();
+      const latest = (await getProject(projectId)) ?? project;
+      const uri = await generateOrderPdf(latest, blockOrders, poseGroups, bourrageGroups, marginPercent);
       await shareFile(uri, 'application/pdf', 'Partager le devis (PDF)');
     } finally {
       setExporting(false);
     }
   }
+
+  const cardShadow = {
+    shadowColor: colors.cardShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 2,
+  };
 
   return (
     <Screen>
@@ -104,7 +135,36 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
         {project?.name ?? 'Projet'}
       </Text>
 
-      <Button label="+ Ajouter / gérer les murs" onPress={() => navigation.navigate('Murs', { projectId })} />
+      <View style={[styles.infoCard, cardShadow, { backgroundColor: colors.card, borderRadius: radius.lg }]}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>📇 Informations pour le devis</Text>
+        <TextInput
+          value={clientName}
+          onChangeText={setClientName}
+          onBlur={saveProjectInfo}
+          placeholder="Nom du client"
+          placeholderTextColor={colors.textMuted}
+          style={[styles.infoInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.surface, borderRadius: radius.md }]}
+        />
+        <TextInput
+          value={clientPhone}
+          onChangeText={setClientPhone}
+          onBlur={saveProjectInfo}
+          placeholder="Téléphone du client"
+          placeholderTextColor={colors.textMuted}
+          keyboardType="phone-pad"
+          style={[styles.infoInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.surface, borderRadius: radius.md }]}
+        />
+        <TextInput
+          value={siteAddress}
+          onChangeText={setSiteAddress}
+          onBlur={saveProjectInfo}
+          placeholder="Adresse du chantier"
+          placeholderTextColor={colors.textMuted}
+          style={[styles.infoInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.surface, borderRadius: radius.md }]}
+        />
+      </View>
+
+      <Button label="🧱 Ajouter / gérer les murs" onPress={() => navigation.navigate('Murs', { projectId })} />
 
       {!sumResult.ok && walls.length > 0 ? (
         <Text style={{ color: colors.danger }}>
@@ -123,9 +183,9 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
             ))}
           </View>
 
-          <Text style={{ color: colors.text, fontWeight: '700', marginTop: spacing.sm }}>Blocs à commander</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', marginTop: spacing.sm }}>🧱 Blocs à commander</Text>
           {blockOrders.map((o) => (
-            <View key={o.block.id} style={[styles.row, { backgroundColor: colors.surfaceAlt, borderRadius: radius.md }]}>
+            <View key={o.block.id} style={[styles.row, cardShadow, { backgroundColor: colors.card, borderRadius: radius.md }]}>
               <Text style={{ color: colors.text }}>{o.block.label} ({o.wallCount} mur{o.wallCount > 1 ? 's' : ''})</Text>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>{o.quantity.recommended} blocs</Text>
             </View>
@@ -134,10 +194,10 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
           {poseGroups.length > 0 && (
             <>
               <Text style={{ color: colors.text, fontWeight: '700', marginTop: spacing.sm }}>
-                Mortier de pose (murs non bourrés)
+                🪣 Mortier de pose (murs non bourrés)
               </Text>
               {poseGroups.map((g) => (
-                <View key={g.block.id} style={[styles.mortarCard, { backgroundColor: colors.surfaceAlt, borderRadius: radius.md }]}>
+                <View key={g.block.id} style={[styles.mortarCard, cardShadow, { backgroundColor: colors.card, borderRadius: radius.md }]}>
                   <Text style={{ color: colors.text, fontWeight: '600' }}>{g.block.label}</Text>
                   <Text style={{ color: colors.text }}>
                     Ciment : {formatNumber(g.mortar.cimentKg / 50, 1)} sac(s) de 50 kg
@@ -158,10 +218,10 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
           {bourrageGroups.length > 0 && (
             <>
               <Text style={{ color: colors.text, fontWeight: '700', marginTop: spacing.sm }}>
-                Béton de bourrage (soubassement bourré)
+                🧊 Béton de bourrage (soubassement bourré)
               </Text>
               {bourrageGroups.map((g) => (
-                <View key={g.block.id} style={[styles.mortarCard, { backgroundColor: colors.surfaceAlt, borderRadius: radius.md }]}>
+                <View key={g.block.id} style={[styles.mortarCard, cardShadow, { backgroundColor: colors.card, borderRadius: radius.md }]}>
                   <Text style={{ color: colors.text, fontWeight: '600' }}>{g.block.label}</Text>
                   <Text style={{ color: colors.text }}>Volume : {formatM3(g.bourrage.volumeBeton)}</Text>
                   <Text style={{ color: colors.text }}>Ciment : {formatNumber(g.bourrage.cimentKg / 50, 1)} sac(s)</Text>
@@ -175,14 +235,14 @@ export function ProjetDetailScreen({ route, navigation }: Props) {
             </>
           )}
 
-          <View style={[styles.resultBox, { backgroundColor: colors.surfaceAlt }]}>
+          <View style={[styles.resultBox, cardShadow, { backgroundColor: colors.card }]}>
             <Text style={{ color: colors.textMuted }}>Total ciment (pose + bourrage)</Text>
             <Text style={{ color: colors.primary, fontSize: typography.sizes.xl, fontWeight: '700' }}>
               {Math.ceil(totalPoseCimentSacs + totalBourrageCimentSacs)} sacs
             </Text>
           </View>
 
-          <Button label="Exporter le devis (PDF)" onPress={exporterPdf} loading={exporting} big />
+          <Button label="📄 Exporter le devis (PDF)" onPress={exporterPdf} loading={exporting} big />
         </>
       )}
     </Screen>
@@ -195,18 +255,27 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
+  infoCard: {
+    padding: 16,
+    gap: 10,
+  },
+  infoInput: {
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    padding: 14,
   },
   mortarCard: {
-    padding: 12,
+    padding: 14,
     gap: 4,
   },
   resultBox: {
-    padding: 16,
+    padding: 18,
     borderRadius: 12,
     alignItems: 'center',
     gap: 4,

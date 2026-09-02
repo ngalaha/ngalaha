@@ -26,7 +26,7 @@ export async function createProject(name: string, description?: string): Promise
 
 export async function updateProject(
   id: string,
-  updates: Partial<Pick<Project, 'name' | 'description'>>
+  updates: Partial<Pick<Project, 'name' | 'description' | 'clientName' | 'clientPhone' | 'siteAddress'>>
 ): Promise<Project | undefined> {
   const project = await projectsDb.getById(id);
   if (!project) return undefined;

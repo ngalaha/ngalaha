@@ -32,7 +32,7 @@ export function ProjetsScreen({ navigation }: Props) {
 
   return (
     <Screen>
-      <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>Mes projets</Text>
+      <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>📁 Mes projets</Text>
 
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         <TextInput
@@ -52,24 +52,35 @@ export function ProjetsScreen({ navigation }: Props) {
         <Text style={{ color: colors.textMuted }}>Aucun projet pour l'instant. Créez-en un ci-dessus.</Text>
       ) : (
         projects.map((project) => (
-          <View key={project.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
+          <View
+            key={project.id}
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: radius.lg,
+                shadowColor: colors.cardShadow,
+              },
+            ]}
+          >
             <Text
               onPress={() => navigation.navigate('ProjetDetail', { projectId: project.id })}
               style={{ color: colors.text, fontWeight: '700', fontSize: typography.sizes.md }}
             >
-              {project.name}
+              🏗️ {project.name}
             </Text>
             <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
               {project.wallCount} mur(s) • {project.totalBlocks} bloc(s) à commander
             </Text>
-            <View style={styles.row}>
-              <Text onPress={() => navigation.navigate('ProjetDetail', { projectId: project.id })} style={{ color: colors.primary }}>
+            <View style={[styles.row, { borderTopColor: colors.border }]}>
+              <Text onPress={() => navigation.navigate('ProjetDetail', { projectId: project.id })} style={{ color: colors.primary, fontWeight: '600' }}>
                 Ouvrir
               </Text>
-              <Text onPress={async () => { await duplicateProject(project.id); refresh(); }} style={{ color: colors.secondary }}>
+              <Text onPress={async () => { await duplicateProject(project.id); refresh(); }} style={{ color: colors.secondary, fontWeight: '600' }}>
                 Dupliquer
               </Text>
-              <Text onPress={async () => { await deleteProject(project.id); refresh(); }} style={{ color: colors.danger }}>
+              <Text onPress={async () => { await deleteProject(project.id); refresh(); }} style={{ color: colors.danger, fontWeight: '600' }}>
                 Supprimer
               </Text>
             </View>
@@ -90,9 +101,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     gap: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   row: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 20,
+    borderTopWidth: 1,
+    paddingTop: 10,
+    marginTop: 2,
   },
 });
