@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Calcul Chantier",
+    "slug": "calcul-chantier",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "calculchantier",
+    "backgroundColor": "#F4F6F5",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pierrengalaha.calculchantier"
+    },
+    "android": {
+      "package": "com.pierrengalaha.calculchantier",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#1B5E3A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sharing",
+      "expo-file-system"
+    ]
+  }
+}
