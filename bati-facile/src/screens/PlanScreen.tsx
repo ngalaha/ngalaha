@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TextInput, View, type GestureResponderEvent } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Line, Text as SvgText } from 'react-native-svg';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -25,6 +25,9 @@ const NIVEAUX: { key: WallLevel; label: string }[] = [
   { key: 'cloison', label: 'Cloison' },
 ];
 
+const ZOOM_LEVELS = [1, 1.5, 2, 3];
+const VIEWPORT_HEIGHT = 420;
+
 interface Calibration {
   p1: Point;
   p2: Point;
@@ -49,9 +52,12 @@ export function PlanScreen({ route, navigation }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageAspect, setImageAspect] = useState(1);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const [panMode, setPanMode] = useState(false);
 
   const [mode, setMode] = useState<Mode>('calibrer');
-  const [pendingPoint, setPendingPoint] = useState<Point | null>(null);
+  const [dragStart, setDragStart] = useState<Point | null>(null);
+  const [dragCurrent, setDragCurrent] = useState<Point | null>(null);
   const [calibrationDraft, setCalibrationDraft] = useState<{ p1: Point; p2: Point; pixelDistance: number } | null>(null);
   const [calibDistanceInput, setCalibDistanceInput] = useState('');
   const [calibration, setCalibration] = useState<Calibration | null>(null);
@@ -78,8 +84,11 @@ export function PlanScreen({ route, navigation }: Props) {
     setCalibration(null);
     setCalibrationDraft(null);
     setSegments([]);
-    setPendingPoint(null);
+    setDragStart(null);
+    setDragCurrent(null);
     setMode('calibrer');
+    setZoom(1);
+    setPanMode(false);
     setError(null);
     setCreatedCount(0);
   }
@@ -107,25 +116,40 @@ export function PlanScreen({ route, navigation }: Props) {
     setImageAspect(asset.width && asset.height ? asset.width / asset.height : 1);
   }
 
-  function handleCanvasTap(e: GestureResponderEvent) {
-    const point: Point = { x: e.nativeEvent.locationX, y: e.nativeEvent.locationY };
+  // Tous les points sont mémorisés en coordonnées "de base" (zoom = 1), pour
+  // rester cohérents quel que soit le niveau de zoom utilisé au moment du tracé.
+  function toBase(raw: Point): Point {
+    return { x: raw.x / zoom, y: raw.y / zoom };
+  }
+  function toScreen(base: Point): Point {
+    return { x: base.x * zoom, y: base.y * zoom };
+  }
 
-    if (!pendingPoint) {
-      setPendingPoint(point);
-      return;
-    }
+  function handleGrant(e: GestureResponderEvent) {
+    const base = toBase({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY });
+    setDragStart(base);
+    setDragCurrent(base);
+  }
 
-    const p1 = pendingPoint;
-    const pixelDistance = distance(p1, point);
-    setPendingPoint(null);
+  function handleMove(e: GestureResponderEvent) {
+    setDragCurrent(toBase({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY }));
+  }
 
-    if (pixelDistance < 4) return; // évite un double-tap accidentel au même endroit
+  function handleRelease(e: GestureResponderEvent) {
+    if (!dragStart) return;
+    const end = toBase({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY });
+    const start = dragStart;
+    const pixelDistance = distance(start, end);
+    setDragStart(null);
+    setDragCurrent(null);
+
+    if (pixelDistance < 4) return; // évite un tap accidentel sans réel glissé
 
     if (mode === 'calibrer') {
-      setCalibrationDraft({ p1, p2: point, pixelDistance });
+      setCalibrationDraft({ p1: start, p2: end, pixelDistance });
     } else if (calibration) {
       const lengthMeters = pixelDistance * calibration.scaleMPerPx;
-      setSegments((prev) => [...prev, { id: generateId(), p1, p2: point, lengthMeters }]);
+      setSegments((prev) => [...prev, { id: generateId(), p1: start, p2: end, lengthMeters }]);
     }
   }
 
@@ -145,7 +169,8 @@ export function PlanScreen({ route, navigation }: Props) {
   function recalibrer() {
     setCalibration(null);
     setCalibrationDraft(null);
-    setPendingPoint(null);
+    setDragStart(null);
+    setDragCurrent(null);
     setSegments([]);
     setMode('calibrer');
   }
@@ -158,7 +183,7 @@ export function PlanScreen({ route, navigation }: Props) {
     setError(null);
     const h = parseDecimal(hauteur);
     const jointCmValue = parseDecimal(jointCm);
-    if (h === undefined || h <= 0) return setError('Hauteur du mur invalide');
+    if (h === undefined || h <= 0) return setError('⚠️ Entrez la hauteur des murs ci-dessus avant de créer.');
     if (jointCmValue === undefined || jointCmValue < 0) return setError('Épaisseur de joint invalide');
     if (segments.length === 0) return setError('Aucun mur tracé');
 
@@ -184,14 +209,17 @@ export function PlanScreen({ route, navigation }: Props) {
     }
   }
 
-  const displayHeight = containerWidth > 0 ? containerWidth / imageAspect : 0;
+  const baseHeight = containerWidth > 0 ? containerWidth / imageAspect : 0;
+  const contentWidth = containerWidth * zoom;
+  const contentHeight = baseHeight * zoom;
+  const drawColor = mode === 'calibrer' ? colors.warning : colors.primary;
 
   return (
     <Screen>
       <Text style={{ color: colors.text, fontSize: typography.sizes.lg, fontWeight: '700' }}>📐 Relevé sur plan</Text>
       <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
-        Téléversez une photo du plan, calibrez l'échelle avec une cote connue, puis tracez les murs — leur longueur
-        réelle est calculée automatiquement.
+        Téléversez une photo du plan, calibrez l'échelle avec une cote connue, puis tracez les murs en glissant le
+        doigt d'un point à l'autre — leur longueur réelle est calculée automatiquement.
       </Text>
 
       {!imageUri ? (
@@ -211,69 +239,89 @@ export function PlanScreen({ route, navigation }: Props) {
             <Pill label="🔄 Nouvelle photo" active={false} onPress={resetPlan} />
           </View>
 
-          {!calibration ? (
+          <View style={styles.pillRow}>
+            <Pill label="🖐 Déplacer / zoomer" active={panMode} onPress={() => setPanMode(true)} />
+            <Pill label="✏️ Dessiner" active={!panMode} onPress={() => setPanMode(false)} />
+            {ZOOM_LEVELS.map((z) => (
+              <Pill key={z} label={`${z * 100}%`} active={zoom === z} onPress={() => setZoom(z)} />
+            ))}
+          </View>
+
+          {panMode ? (
+            <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
+              Faites glisser l'image pour naviguer, puis repassez en mode "✏️ Dessiner" pour tracer.
+            </Text>
+          ) : !calibration ? (
             <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
               {calibrationDraft
-                ? "Entrez la distance réelle de la ligne tracée (ex: une cote indiquée sur le plan)."
-                : pendingPoint
-                  ? 'Touchez le second point de la cote connue.'
-                  : 'Touchez le premier point d\'une cote connue sur le plan (ex: une longueur de mur indiquée).'}
+                ? 'Entrez la distance réelle de la ligne tracée (ex: une cote indiquée sur le plan).'
+                : "Faites glisser le doigt d'un point à l'autre d'une cote connue sur le plan."}
             </Text>
           ) : (
             <Text style={{ color: colors.textMuted, fontSize: typography.sizes.sm }}>
-              Échelle : {formatNumber(calibration.realMeters, 2)} m sur {formatNumber(calibration.pixelDistance, 0)} px.{' '}
-              {pendingPoint ? 'Touchez le second point du mur.' : 'Touchez le début d\'un mur.'}
+              Échelle : {formatNumber(calibration.realMeters, 2)} m sur {formatNumber(calibration.pixelDistance, 0)} px
+              — glissez le doigt le long de chaque mur.
             </Text>
           )}
 
           <View onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
             {containerWidth > 0 && (
-              <View
-                style={{ width: containerWidth, height: displayHeight, borderRadius: radius.md, overflow: 'hidden' }}
-                onStartShouldSetResponder={() => true}
-                onResponderRelease={handleCanvasTap}
-              >
-                <Image source={{ uri: imageUri }} style={{ width: containerWidth, height: displayHeight }} resizeMode="stretch" />
-                <Svg width={containerWidth} height={displayHeight} style={StyleSheet.absoluteFill} pointerEvents="none">
-                  {calibration && (
-                    <>
-                      <Line
-                        x1={calibration.p1.x} y1={calibration.p1.y} x2={calibration.p2.x} y2={calibration.p2.y}
-                        stroke={colors.secondary} strokeWidth={3}
-                      />
-                      <Circle cx={calibration.p1.x} cy={calibration.p1.y} r={5} fill={colors.secondary} />
-                      <Circle cx={calibration.p2.x} cy={calibration.p2.y} r={5} fill={colors.secondary} />
-                    </>
-                  )}
-                  {calibrationDraft && (
-                    <>
-                      <Line
-                        x1={calibrationDraft.p1.x} y1={calibrationDraft.p1.y} x2={calibrationDraft.p2.x} y2={calibrationDraft.p2.y}
-                        stroke={colors.warning} strokeWidth={3}
-                      />
-                      <Circle cx={calibrationDraft.p1.x} cy={calibrationDraft.p1.y} r={5} fill={colors.warning} />
-                      <Circle cx={calibrationDraft.p2.x} cy={calibrationDraft.p2.y} r={5} fill={colors.warning} />
-                    </>
-                  )}
-                  {segments.map((s) => (
-                    <React.Fragment key={s.id}>
-                      <Line x1={s.p1.x} y1={s.p1.y} x2={s.p2.x} y2={s.p2.y} stroke={colors.primary} strokeWidth={3} />
-                      <Circle cx={s.p1.x} cy={s.p1.y} r={4} fill={colors.primary} />
-                      <Circle cx={s.p2.x} cy={s.p2.y} r={4} fill={colors.primary} />
-                      <SvgText
-                        x={(s.p1.x + s.p2.x) / 2}
-                        y={(s.p1.y + s.p2.y) / 2 - 8}
-                        fill={colors.primary}
-                        fontSize={13}
-                        fontWeight="bold"
-                        textAnchor="middle"
-                      >
-                        {formatNumber(s.lengthMeters, 2)} m
-                      </SvgText>
-                    </React.Fragment>
-                  ))}
-                  {pendingPoint && <Circle cx={pendingPoint.x} cy={pendingPoint.y} r={6} fill={colors.danger} />}
-                </Svg>
+              <View style={{ height: Math.min(VIEWPORT_HEIGHT, contentHeight || VIEWPORT_HEIGHT), borderRadius: radius.md, overflow: 'hidden' }}>
+                <ScrollView scrollEnabled={panMode} nestedScrollEnabled>
+                  <ScrollView horizontal scrollEnabled={panMode} nestedScrollEnabled>
+                    <View
+                      style={{ width: contentWidth, height: contentHeight }}
+                      onStartShouldSetResponder={() => !panMode}
+                      onMoveShouldSetResponder={() => !panMode}
+                      onResponderGrant={handleGrant}
+                      onResponderMove={handleMove}
+                      onResponderRelease={handleRelease}
+                    >
+                      <Image source={{ uri: imageUri }} style={{ width: contentWidth, height: contentHeight }} resizeMode="stretch" />
+                      <Svg width={contentWidth} height={contentHeight} style={StyleSheet.absoluteFill} pointerEvents="none">
+                        {calibration && (
+                          <>
+                            <Line
+                              x1={toScreen(calibration.p1).x} y1={toScreen(calibration.p1).y}
+                              x2={toScreen(calibration.p2).x} y2={toScreen(calibration.p2).y}
+                              stroke={colors.secondary} strokeWidth={3}
+                            />
+                            <Circle cx={toScreen(calibration.p1).x} cy={toScreen(calibration.p1).y} r={5} fill={colors.secondary} />
+                            <Circle cx={toScreen(calibration.p2).x} cy={toScreen(calibration.p2).y} r={5} fill={colors.secondary} />
+                          </>
+                        )}
+                        {segments.map((s) => {
+                          const a = toScreen(s.p1);
+                          const b = toScreen(s.p2);
+                          return (
+                            <React.Fragment key={s.id}>
+                              <Line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={colors.primary} strokeWidth={3} />
+                              <Circle cx={a.x} cy={a.y} r={4} fill={colors.primary} />
+                              <Circle cx={b.x} cy={b.y} r={4} fill={colors.primary} />
+                              <SvgText
+                                x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 8}
+                                fill={colors.primary} fontSize={13} fontWeight="bold" textAnchor="middle"
+                              >
+                                {formatNumber(s.lengthMeters, 2)} m
+                              </SvgText>
+                            </React.Fragment>
+                          );
+                        })}
+                        {dragStart && dragCurrent && (
+                          <>
+                            <Line
+                              x1={toScreen(dragStart).x} y1={toScreen(dragStart).y}
+                              x2={toScreen(dragCurrent).x} y2={toScreen(dragCurrent).y}
+                              stroke={drawColor} strokeWidth={3} strokeDasharray="6,4"
+                            />
+                            <Circle cx={toScreen(dragStart).x} cy={toScreen(dragStart).y} r={5} fill={drawColor} />
+                            <Circle cx={toScreen(dragCurrent).x} cy={toScreen(dragCurrent).y} r={5} fill={drawColor} />
+                          </>
+                        )}
+                      </Svg>
+                    </View>
+                  </ScrollView>
+                </ScrollView>
               </View>
             )}
           </View>
@@ -333,6 +381,10 @@ export function PlanScreen({ route, navigation }: Props) {
                 <Pill label="Bourré" active={bourre} onPress={() => setBourre(true)} />
               </View>
 
+              {error ? (
+                <Text style={{ color: colors.danger, fontWeight: '600' }}>{error}</Text>
+              ) : null}
+
               <Button
                 label={`✅ Créer les ${segments.length} mur(s) tracé(s)`}
                 onPress={creerLesMurs}
@@ -351,7 +403,7 @@ export function PlanScreen({ route, navigation }: Props) {
             </View>
           ) : null}
 
-          {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+          {error && segments.length === 0 ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
         </>
       )}
     </Screen>
