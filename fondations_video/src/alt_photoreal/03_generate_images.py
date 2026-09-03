@@ -18,7 +18,7 @@ import urllib.parse
 
 import requests
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(ROOT, "output")
 IMAGES_DIR = os.path.join(OUTPUT_DIR, "images")
 

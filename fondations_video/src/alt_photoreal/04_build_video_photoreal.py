@@ -1,17 +1,16 @@
 """
 Etape 4 : Montage & assemblage (FFmpeg).
 
-Applique un léger zoom (effet Ken Burns discret, centré : le texte et les
-cotes techniques du diagramme restent toujours visibles près des bords)
-sur chaque image de scène, assemble tous les clips sur la piste audio
-d'origine. Les légendes sont déjà incrustées dans les images par
-03_render_frames.py, il n'y a donc pas de sous-titres à ajouter ici.
+Pour chaque scène : applique un effet Ken Burns (zoom + léger panoramique)
+sur l'image, assemble tous les clips sur la piste audio d'origine, puis
+incruste les sous-titres .srt.
 
 Usage:
     python3 src/04_build_video.py [--output erreur_fatale_fondations.mp4]
 
 Entrées:
-    output/scenes.json  (avec le champ "image" rempli par 03_render_frames.py)
+    output/scenes.json  (avec le champ "image" rempli par 03_generate_images.py)
+    output/subtitles.srt
     input/audio.mp3
 Sortie:
     erreur_fatale_fondations.mp4 (à la racine du projet)
@@ -23,15 +22,15 @@ import shutil
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(ROOT, "output")
 CLIPS_DIR = os.path.join(OUTPUT_DIR, "clips")
 AUDIO_PATH = os.path.join(ROOT, "input", "audio.mp3")
 
 FPS = 30
-WIDTH, HEIGHT = 1080, 1920
-UPSCALE_W, UPSCALE_H = 2160, 3840  # zoompan sur une image plus grande = zoom plus fluide
-MAX_ZOOM = 1.05  # discret : le texte/les cotes près des bords restent visibles
+WIDTH, HEIGHT = 1920, 1080
+UPSCALE_W, UPSCALE_H = 3840, 2160  # zoompan sur une image plus grande = zoom plus fluide
+MAX_ZOOM = 1.18
 
 
 def run(cmd):
@@ -53,13 +52,23 @@ def ffprobe_duration(path):
     return float(result.stdout.strip())
 
 
-def build_ken_burns_clip(image_path, duration, out_path):
+def build_ken_burns_clip(image_path, duration, variant, out_path):
     frames = max(1, round(duration * FPS))
+    d_total = max(frames - 1, 1)
     increment = (MAX_ZOOM - 1) / frames
 
+    directions = {
+        0: (0, 0),   # zoom pur, centré
+        1: (1, 0),   # zoom + pan vers la droite
+        2: (-1, 0),  # zoom + pan vers la gauche
+        3: (0, 1),   # zoom + pan vers le bas
+        4: (0, -1),  # zoom + pan vers le haut
+    }
+    dx, dy = directions[variant % len(directions)]
+
     zoom_expr = f"min(zoom+{increment:.8f},{MAX_ZOOM})"
-    x_expr = "(iw-iw/zoom)/2"
-    y_expr = "(ih-ih/zoom)/2"
+    x_expr = f"(iw-iw/zoom)/2+({dx})*(iw-iw/zoom)/2*(on/{d_total})"
+    y_expr = f"(ih-ih/zoom)/2+({dy})*(ih-ih/zoom)/2*(on/{d_total})"
 
     vf = (
         f"scale={UPSCALE_W}:{UPSCALE_H}:force_original_aspect_ratio=increase,"
@@ -83,6 +92,7 @@ def build_ken_burns_clip(image_path, duration, out_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default=os.path.join(ROOT, "erreur_fatale_fondations.mp4"))
+    parser.add_argument("--no-subtitles", action="store_true")
     args = parser.parse_args()
 
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
@@ -94,7 +104,7 @@ def main():
 
     missing = [s for s in scenes if "image" not in s or not os.path.isfile(os.path.join(OUTPUT_DIR, s["image"]))]
     if missing:
-        print(f"{len(missing)} image(s) manquante(s). Lancez d'abord 03_render_frames.py.")
+        print(f"{len(missing)} image(s) manquante(s). Lancez d'abord 03_generate_images.py.")
         sys.exit(1)
 
     if not os.path.isfile(AUDIO_PATH):
@@ -103,12 +113,13 @@ def main():
 
     audio_duration = ffprobe_duration(AUDIO_PATH)
     scenes_end = scenes[-1]["end"]
+    # Ajuste la dernière scène pour couvrir toute la durée de l'audio
     if audio_duration > scenes_end:
         scenes[-1]["duration"] = round(scenes[-1]["duration"] + (audio_duration - scenes_end), 3)
 
     os.makedirs(CLIPS_DIR, exist_ok=True)
 
-    print(f"Génération de {len(scenes)} clips ({WIDTH}x{HEIGHT} @ {FPS}fps)...")
+    print(f"Génération de {len(scenes)} clips Ken Burns ({WIDTH}x{HEIGHT} @ {FPS}fps)...")
     clip_paths = []
     for i, scene in enumerate(scenes):
         image_path = os.path.join(OUTPUT_DIR, scene["image"])
@@ -119,7 +130,7 @@ def main():
             continue
         print(f"  [{i+1}/{len(scenes)}] {os.path.basename(clip_path)} "
               f"(durée={scene['duration']:.2f}s)")
-        build_ken_burns_clip(image_path, max(scene["duration"], 0.5), clip_path)
+        build_ken_burns_clip(image_path, max(scene["duration"], 0.5), i, clip_path)
 
     concat_list_path = os.path.join(OUTPUT_DIR, "concat_list.txt")
     with open(concat_list_path, "w", encoding="utf-8") as f:
@@ -134,7 +145,7 @@ def main():
         "-c", "copy", silent_video_path,
     ])
 
-    final_output = args.output
+    video_with_audio_path = os.path.join(OUTPUT_DIR, "video_with_audio.mp4")
     print("Ajout de la piste audio d'origine...")
     run([
         "ffmpeg", "-y", "-loglevel", "error",
@@ -142,8 +153,29 @@ def main():
         "-map", "0:v:0", "-map", "1:a:0",
         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
         "-shortest",
-        final_output,
+        video_with_audio_path,
     ])
+
+    final_output = args.output
+    if args.no_subtitles:
+        shutil.copyfile(video_with_audio_path, final_output)
+    else:
+        srt_path = os.path.join(OUTPUT_DIR, "subtitles.srt")
+        print("Incrustation des sous-titres...")
+        escaped_srt = srt_path.replace("\\", "\\\\").replace(":", "\\:")
+        style = (
+            "FontName=DejaVu Sans,FontSize=20,PrimaryColour=&H00FFFFFF,"
+            "OutlineColour=&H00000000,BorderStyle=3,Outline=1,Shadow=0,"
+            "Alignment=2,MarginV=40"
+        )
+        run([
+            "ffmpeg", "-y", "-loglevel", "error",
+            "-i", video_with_audio_path,
+            "-vf", f"subtitles='{escaped_srt}':force_style='{style}'",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+            "-c:a", "copy",
+            final_output,
+        ])
 
     print(f"\nVidéo finale générée: {final_output}")
 

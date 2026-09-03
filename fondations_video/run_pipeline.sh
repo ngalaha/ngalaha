@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Pipeline complet : audio -> vidéo (transcription, prompts, images IA
-# gratuites, montage Ken Burns, sous-titres).
+# Pipeline complet : audio -> vidéo (transcription, diagrammes techniques
+# style plan d'architecte, montage vertical 9:16).
 #
 # Usage:
 #   ./run_pipeline.sh [chemin_vers_audio.mp3] [modele_whisper]
@@ -50,15 +50,15 @@ echo "=== Etape 1/4 : Transcription (Whisper, modèle '$WHISPER_MODEL') ==="
 python3 src/01_transcribe.py input/audio.mp3 --model "$WHISPER_MODEL"
 
 echo ""
-echo "=== Etape 2/4 : Découpage en scènes + prompts visuels ==="
-python3 src/02_scene_prompts.py
+echo "=== Etape 2/4 : Découpage en scènes + catégorisation ==="
+python3 src/02_scene_diagrams.py
 
 echo ""
-echo "=== Etape 3/4 : Génération des images (Pollinations.ai, gratuit) ==="
-python3 src/03_generate_images.py
+echo "=== Etape 3/4 : Rendu des diagrammes techniques (100% local) ==="
+python3 src/03_render_frames.py
 
 echo ""
-echo "=== Etape 4/4 : Montage vidéo (Ken Burns + sous-titres) ==="
+echo "=== Etape 4/4 : Montage vidéo (zoom discret + audio) ==="
 python3 src/04_build_video.py
 
 echo ""
