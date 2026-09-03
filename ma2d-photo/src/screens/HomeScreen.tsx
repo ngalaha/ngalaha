@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, InteractionManager, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import ApartmentPicker from '@/components/ApartmentPicker';
 import BigCameraButton from '@/components/BigCameraButton';
@@ -33,13 +33,28 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-// On some Android devices, launching the camera/gallery Intent immediately after
-// a permission dialog is dismissed (or right on the heels of the press-animation)
-// can silently fail to bring the native Activity to the foreground — the app looks
-// unresponsive until it's force-closed and reopened. Giving Android one frame to
-// finish the current transition before starting the next Activity avoids that.
-function waitForInteractions(): Promise<void> {
-  return new Promise((resolve) => InteractionManager.runAfterInteractions(() => resolve()));
+const CAMERA_TIMEOUT_MS = 20000;
+
+/**
+ * Races a promise against a timeout so a native call that never resolves
+ * (seen on some devices/permission states with expo-image-picker) fails
+ * loudly instead of leaving the capture flow stuck on "Ouverture..." forever
+ * with no way to recover short of force-closing the app.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
 }
 
 export default function HomeScreen({ navigation }: Props) {
@@ -95,27 +110,29 @@ export default function HomeScreen({ navigation }: Props) {
             : await ImagePicker.getMediaLibraryPermissionsAsync();
         const permission = existing.granted
           ? existing
-          : source === 'camera'
-            ? await ImagePicker.requestCameraPermissionsAsync()
-            : await ImagePicker.requestMediaLibraryPermissionsAsync();
+          : await withTimeout(
+              source === 'camera'
+                ? ImagePicker.requestCameraPermissionsAsync()
+                : ImagePicker.requestMediaLibraryPermissionsAsync(),
+              CAMERA_TIMEOUT_MS,
+              'Délai dépassé en attendant la réponse de permission'
+            );
         if (!permission.granted) {
           logger.warn('Permission refusée pour la capture', { source, permission });
           Alert.alert('Permission refusée', "L'accès à l'appareil photo / à la galerie est nécessaire.");
           return;
         }
 
-        // Let Android finish settling the current Activity/window (the press
-        // animation, and any permission dialog that was just dismissed) before
-        // starting the camera/gallery Activity — see waitForInteractions() above.
-        await waitForInteractions();
-
-        const result =
+        const result = await withTimeout(
           source === 'camera'
-            ? await ImagePicker.launchCameraAsync({ quality: 1 })
-            : await ImagePicker.launchImageLibraryAsync({
+            ? ImagePicker.launchCameraAsync({ quality: 1 })
+            : ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 quality: 1,
-              });
+              }),
+          CAMERA_TIMEOUT_MS,
+          "Délai dépassé en attendant l'appareil photo / la galerie"
+        );
 
         if (result.canceled || !result.assets?.[0]) {
           logger.info('Capture annulée par l’utilisateur', { source });
@@ -198,13 +215,7 @@ export default function HomeScreen({ navigation }: Props) {
             )}
 
             <View style={styles.cameraArea}>
-              <BigCameraButton
-                onPress={() => {
-                  logger.info('DEBUG: onPress caméra reçu par le composant');
-                  captureFrom('camera');
-                }}
-                disabled={processing !== 'idle'}
-              />
+              <BigCameraButton onPress={() => captureFrom('camera')} disabled={processing !== 'idle'} />
               {processing !== 'idle' && (
                 <Text style={styles.processingText}>
                   {processing === 'opening'
@@ -218,10 +229,7 @@ export default function HomeScreen({ navigation }: Props) {
                 label="Choisir dans la galerie"
                 icon="folder-open-outline"
                 variant="secondary"
-                onPress={() => {
-                  logger.info('DEBUG: onPress galerie reçu par le composant');
-                  captureFrom('gallery');
-                }}
+                onPress={() => captureFrom('gallery')}
                 disabled={processing !== 'idle'}
                 style={styles.galleryButton}
               />

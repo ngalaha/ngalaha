@@ -1,18 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
+const MA2D_WEBSITE_URL = 'https://www.ma2d.com/fr/entrepreneur-general-ma2d-construction';
 
 export default function AboutScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.brandHeader}>
-        <Image source={require('../../assets/icon.png')} style={styles.appIcon} />
+        <Image source={require('../../assets/ma2d-logo.jpg')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.appName}>MA2D Construction</Text>
         <Text style={styles.appTagline}>Gestion automatique des photos de chantier</Text>
         <View style={styles.versionPill}>
@@ -26,10 +27,18 @@ export default function AboutScreen() {
           <Text style={styles.sectionTitle}>À propos de MA2D Construction</Text>
         </View>
         <Text style={styles.paragraph}>
-          MA2D Construction utilise cette application pour documenter l'avancement de ses
-          chantiers et classer automatiquement les photos par projet, bâtiment et date dans
-          OneDrive — sans manipulation manuelle sur le terrain.
+          MA2D Construction est un entrepreneur général fondé en 2010, spécialisé dans les projets de
+          développement immobilier résidentiel, commercial et industriel dans la région métropolitaine.
         </Text>
+        <Text style={styles.paragraph}>
+          Cette application permet aux équipes de chantier de photographier l'avancement des travaux et
+          de les classer automatiquement dans OneDrive, par projet, bâtiment et appartement — sans
+          manipulation manuelle sur le terrain.
+        </Text>
+        <Pressable onPress={() => Linking.openURL(MA2D_WEBSITE_URL)} style={styles.linkRow}>
+          <Ionicons name="globe-outline" size={16} color={colors.primary} />
+          <Text style={styles.link}>Visiter le site de MA2D</Text>
+        </Pressable>
       </View>
 
       <View style={styles.card}>
@@ -70,7 +79,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
   brandHeader: { alignItems: 'center', marginBottom: 28 },
-  appIcon: { width: 88, height: 88, borderRadius: 20, marginBottom: 12 },
+  logo: { width: 160, height: 90, marginBottom: 12 },
   appName: { ...typography.h1, color: colors.primary, textAlign: 'center' },
   appTagline: { color: colors.textSecondary, textAlign: 'center', marginTop: 4, marginBottom: 12 },
   versionPill: {
@@ -90,7 +99,9 @@ const styles = StyleSheet.create({
   },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   sectionTitle: { ...typography.bodyBold, color: colors.primary },
-  paragraph: { ...typography.body, color: colors.textPrimary, lineHeight: 21 },
+  paragraph: { ...typography.body, color: colors.textPrimary, lineHeight: 21, marginBottom: 10 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+  link: { color: colors.primary, fontWeight: '700' },
   profileRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 12 },
   avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.border },
   profileInfo: { flex: 1 },

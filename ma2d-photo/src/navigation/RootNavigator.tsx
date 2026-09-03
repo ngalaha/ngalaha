@@ -17,6 +17,7 @@ import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import { colors } from '@/theme/colors';
 
+import { navigationRef } from './navigationRef';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -28,7 +29,7 @@ export default function RootNavigator() {
   if (loading) return null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: colors.primary },

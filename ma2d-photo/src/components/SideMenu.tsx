@@ -1,14 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { navigationRef } from '@/navigation/navigationRef';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 
 const PANEL_WIDTH = Math.min(320, Dimensions.get('window').width * 0.82);
-const MA2D_WEBSITE_URL = 'https://www.ma2d.com/fr/entrepreneur-general-ma2d-construction';
-const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 interface Props {
   visible: boolean;
@@ -17,8 +15,8 @@ interface Props {
 
 /**
  * App-wide slide-out menu (right to left), reachable from the hamburger
- * icon in every screen's header (see RootNavigator). Currently a single
- * "À propos" section — more sections can be added below it later.
+ * icon in every screen's header (see RootNavigator). Each row here is a
+ * link to a full screen — the menu itself stays a short list, not content.
  */
 export default function SideMenu({ visible, onClose }: Props) {
   const translateX = useRef(new Animated.Value(PANEL_WIDTH)).current;
@@ -31,6 +29,11 @@ export default function SideMenu({ visible, onClose }: Props) {
     }).start();
   }, [visible, translateX]);
 
+  const goTo = (screen: 'About') => {
+    onClose();
+    if (navigationRef.isReady()) navigationRef.navigate(screen);
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -42,26 +45,15 @@ export default function SideMenu({ visible, onClose }: Props) {
             </Pressable>
           </View>
 
-          <View style={styles.sectionHeaderRow}>
-            <Ionicons name="business-outline" size={18} color={colors.primary} />
-            <Text style={styles.sectionTitle}>À propos</Text>
-          </View>
-          <Text style={styles.paragraph}>
-            MA2D Construction est un entrepreneur général fondé en 2010, spécialisé dans les projets de
-            développement immobilier résidentiel, commercial et industriel dans la région métropolitaine.
-          </Text>
-          <Text style={styles.paragraph}>
-            Cette application permet aux équipes de chantier de photographier l'avancement des travaux et de
-            les classer automatiquement dans OneDrive, par projet, bâtiment et appartement.
-          </Text>
-          <Pressable onPress={() => Linking.openURL(MA2D_WEBSITE_URL)} style={styles.linkRow}>
-            <Ionicons name="globe-outline" size={16} color={colors.primary} />
-            <Text style={styles.link}>Visiter le site de MA2D</Text>
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => goTo('About')}
+            android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+          >
+            <Ionicons name="information-circle-outline" size={22} color={colors.primary} />
+            <Text style={styles.menuItemText}>À propos</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </Pressable>
-
-          <View style={styles.footer}>
-            <Text style={styles.version}>Version {APP_VERSION}</Text>
-          </View>
         </Animated.View>
       </Pressable>
     </Modal>
@@ -74,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     height: '100%',
     paddingTop: 56,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -85,22 +77,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
+    paddingHorizontal: 8,
   },
   closeButton: { padding: 4 },
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  sectionTitle: { ...typography.bodyBold, color: colors.primary, fontSize: 16 },
-  paragraph: { ...typography.body, color: colors.textPrimary, lineHeight: 20, marginBottom: 12 },
-  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  link: { color: colors.primary, fontWeight: '700' },
-  footer: {
-    position: 'absolute',
-    bottom: 24,
-    left: 20,
-    right: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: 16,
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderRadius: 10,
   },
-  version: { color: colors.textSecondary, fontSize: 13 },
+  menuItemText: { ...typography.bodyBold, color: colors.textPrimary, flex: 1 },
 });
