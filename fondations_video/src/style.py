@@ -1,5 +1,6 @@
 """Système de style 'plan technique / blueprint' (fond blanc, accent bordeaux)."""
 import math
+import os
 import random
 from PIL import Image, ImageDraw, ImageFont
 
@@ -14,11 +15,22 @@ FILL_LIGHT = (235, 235, 235)
 ACCENT = (139, 30, 42)
 ACCENT_FILL = (250, 225, 227)
 
-FONT_DIR = "/usr/share/fonts/truetype/dejavu/"
+# Polices embarquées dans le projet (src/fonts/) plutôt que dépendre des
+# polices système : leur chemin varie trop d'un OS à l'autre (Linux classique
+# vs Termux/Android, qui n'a pas de /usr) pour être fiable.
+FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts") + os.sep
 
 
 def font(path, size):
-    return ImageFont.truetype(FONT_DIR + path, size)
+    try:
+        return ImageFont.truetype(FONT_DIR + path, size)
+    except OSError:
+        # Filet de sécurité : la police embarquée est introuvable pour une
+        # raison quelconque — mieux vaut un rendu dégradé qu'un plantage.
+        try:
+            return ImageFont.load_default(size=size)
+        except TypeError:
+            return ImageFont.load_default()
 
 
 def F_MONO(s=26):
