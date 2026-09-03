@@ -125,6 +125,16 @@ def main():
 
     raw_scenes = split_into_scenes(words)
 
+    # Chaîne chaque scène jusqu'au début exact de la suivante : les silences
+    # entre segments de parole ne sont ainsi pas "perdus" (ce qui ferait
+    # dériver la vidéo en avance sur la voix off). La première scène démarre
+    # à 0 pour éviter une image noire avant le premier mot ; la fin de la
+    # toute dernière scène est ajustée sur la durée audio par 04_build_video.py.
+    if raw_scenes:
+        raw_scenes[0]["start"] = 0.0
+        for i in range(len(raw_scenes) - 1):
+            raw_scenes[i]["end"] = raw_scenes[i + 1]["start"]
+
     scenes = []
     fallback_index = 0
     panel_number = 0
@@ -153,14 +163,34 @@ def main():
     for s in scenes:
         s["total_panels"] = total_panels
 
+    panels = []
+    for s in scenes:
+        if not panels or panels[-1]["panel"] != s["panel"]:
+            panels.append({
+                "panel": s["panel"],
+                "category": s["category"],
+                "title": s["title"],
+                "subtitle": s["subtitle"],
+                "start": s["start"],
+                "end": s["end"],
+                "scene_indices": [s["index"]],
+            })
+        else:
+            panels[-1]["end"] = s["end"]
+            panels[-1]["scene_indices"].append(s["index"])
+    for p in panels:
+        p["duration"] = round(p["end"] - p["start"], 3)
+
     out_path = os.path.join(OUTPUT_DIR, "scenes.json")
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(scenes, f, ensure_ascii=False, indent=2)
+        json.dump({"scenes": scenes, "panels": panels, "total_panels": total_panels},
+                   f, ensure_ascii=False, indent=2)
 
     durations = [s["duration"] for s in scenes]
+    panel_durations = [p["duration"] for p in panels]
     print(f"{len(scenes)} scènes générées en {total_panels} panneaux "
-          f"(durée min={min(durations):.1f}s, max={max(durations):.1f}s, "
-          f"moyenne={sum(durations)/len(durations):.1f}s)")
+          f"(durée scène min={min(durations):.1f}s, max={max(durations):.1f}s ; "
+          f"durée panneau min={min(panel_durations):.1f}s, max={max(panel_durations):.1f}s)")
     print(f"-> {out_path}")
 
 

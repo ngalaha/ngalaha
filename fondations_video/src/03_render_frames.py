@@ -5,6 +5,11 @@ Etape 3 : Rendu des images (diagrammes techniques style plan d'architecte).
 génération d'images IA) : plus rapide et plus fiable, en particulier sur
 téléphone.
 
+Le diagramme (seed = numéro de panneau) reste visuellement identique pour
+toutes les scènes d'un même panneau : à l'étape 4, la caméra zoome en
+continu sur ce panneau sans à-coup pendant que la légende change au fil de
+la voix off, comme un seul plan tenu.
+
 Usage:
     python3 src/03_render_frames.py
 
@@ -32,7 +37,9 @@ DIAGRAM_BOX = (S.MARGIN, 340, S.W - S.MARGIN, 1560)
 
 def main():
     with open(os.path.join(OUTPUT_DIR, "scenes.json"), "r", encoding="utf-8") as f:
-        scenes = json.load(f)
+        data = json.load(f)
+    scenes = data["scenes"]
+    total_panels = data["total_panels"]
 
     os.makedirs(FRAMES_DIR, exist_ok=True)
 
@@ -44,16 +51,16 @@ def main():
         img = S.new_frame()
         draw = ImageDraw.Draw(img)
         S.header(draw, scene["panel"], scene["title"], scene.get("subtitle"))
-        D.draw_category(img, draw, DIAGRAM_BOX, scene["category"], seed=scene["index"],
-                         fallback_index=scene["index"])
+        D.draw_category(img, draw, DIAGRAM_BOX, scene["category"], seed=scene["panel"],
+                         fallback_index=scene["panel"])
         draw = ImageDraw.Draw(img)
-        S.footer(draw, scene["text"], page=scene["panel"], total=scene["total_panels"])
+        S.footer(draw, scene["text"], page=scene["panel"], total=total_panels)
 
         img.save(dest_path)
         print(f"[{i+1}/{len(scenes)}] {filename}  ({scene['category']}, panneau {scene['panel']})")
 
     with open(os.path.join(OUTPUT_DIR, "scenes.json"), "w", encoding="utf-8") as f:
-        json.dump(scenes, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
     print(f"\n{len(scenes)} images générées dans {FRAMES_DIR}")
 

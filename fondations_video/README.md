@@ -59,20 +59,30 @@ Le fichier final est généré à la racine du projet :
    détection de mots-clés bilingue FR/EN. Les scènes **consécutives de même
    catégorie sont regroupées en "panneaux"** numérotés (le diagramme et le
    titre restent stables pendant qu'un sujet se développe, comme dans la
-   référence). Produit `output/scenes.json`.
+   référence). Chaque scène est chaînée jusqu'au **début exact de la
+   suivante** (les silences entre segments de parole ne sont donc jamais
+   "perdus") pour un calage image/voix off au frame près. Produit
+   `output/scenes.json` (`scenes` + `panels`).
 
 3. **`03_render_frames.py`** — Dessine chaque image en 1080×1920 avec
    [Pillow](https://python-pillow.org/) : en-tête (numéro de planche, titre,
    annotation technique), diagramme vectoriel (hachures, cotes, callouts,
    texture béton...), légende (texte de la scène) et pied de page (barre de
-   progression, tag "GÉNIE CIVIL", pagination). **100% local, aucun réseau.**
-   Produit `output/frames/scene_NNN.png`.
+   progression, tag "GÉNIE CIVIL", pagination). Le diagramme est identique
+   pour toutes les scènes d'un même panneau (même valeur de départ
+   aléatoire) : à l'étape 4, la caméra tient un seul plan continu sur tout
+   le panneau. **100% local, aucun réseau.** Produit
+   `output/frames/scene_NNN.png`.
 
-4. **`04_build_video.py`** — Applique un léger zoom centré (l'en-tête et le
-   pied de page restent toujours visibles près des bords) à chaque image via
-   le filtre `zoompan` de FFmpeg, concatène tous les clips et ajoute la
-   piste audio d'origine. Les légendes étant déjà incrustées dans les
-   images, il n'y a pas de sous-titres à graver séparément.
+4. **`04_build_video.py`** — Pour chaque panneau : les scènes qui le
+   composent sont mises bout à bout en un plan continu, sur lequel un zoom
+   discret **sans aucune remise à zéro** est appliqué (contrairement à un
+   zoom par scène, qui créerait un saut visible à chaque changement de
+   légende). Les panneaux sont ensuite enchaînés avec un **fondu croisé**
+   (transition de 0,4 s) au lieu d'une coupe franche — chaque panneau (sauf
+   le dernier) porte une queue supplémentaire de cette durée, consommée par
+   le fondu suivant, pour que la durée totale reste calée à la frame près
+   sur la piste audio d'origine, ajoutée en dernière étape.
 
 ## Bibliothèque de diagrammes (`src/diagrams.py`)
 
@@ -129,8 +139,9 @@ le script le détecte automatiquement, sinon fixez `WHISPER_BIN=...`.
 
 ## Reprise après interruption
 
-- `04_build_video.py` ne régénère pas les clips déjà présents dans
-  `output/clips/`.
+- `04_build_video.py` ne régénère pas les clips par scène déjà présents
+  dans `output/segments/` (mais régénère toujours le plan par panneau et
+  l'assemblage final — rapide).
 - Relancer `03_render_frames.py` régénère toutes les images (rapide, tout
   est local) — pratique après avoir ajusté le style.
 
@@ -145,7 +156,10 @@ le script le détecte automatiquement, sinon fixez `WHISPER_BIN=...`.
   (`crack_section`, `tilt_elevation`, `foundation_plan`, etc.).
 - **Titres/annotations par catégorie** : `CATEGORY_HEADER` dans
   `src/02_scene_diagrams.py`.
-- **Intensité du zoom** : `MAX_ZOOM` dans `04_build_video.py`.
+- **Intensité/vitesse du zoom** : `MIN_ZOOM_TARGET`, `MAX_ZOOM_TARGET`,
+  `ZOOM_RATE_PER_SEC` dans `04_build_video.py`.
+- **Durée des transitions** : `TRANSITION_DUR` dans `04_build_video.py`
+  (0,4 s par défaut).
 
 ## Ancienne approche (images IA photoréalistes)
 
