@@ -1,0 +1,332 @@
+[
+  {
+    "text": "Vous voyez ce bâtiment magnifique ?",
+    "start": 0.0,
+    "end": 1.896
+  },
+  {
+    "text": "Imaginez-le...",
+    "start": 1.896,
+    "end": 3.442
+  },
+  {
+    "text": "qui s'enfonce progressivement dans le sol.",
+    "start": 3.442,
+    "end": 6.452
+  },
+  {
+    "text": "Des fissures qui apparaissent partout.",
+    "start": 6.452,
+    "end": 11.151
+  },
+  {
+    "text": "Des portes qui ne ferment plus.",
+    "start": 11.151,
+    "end": 13.603
+  },
+  {
+    "text": "Et dans les cas extrêmes...",
+    "start": 13.603,
+    "end": 15.952
+  },
+  {
+    "text": "l'effondrement total.",
+    "start": 15.952,
+    "end": 18.121
+  },
+  {
+    "text": "Savez-vous pourquoi ?",
+    "start": 18.121,
+    "end": 20.028
+  },
+  {
+    "text": "Les fondations ont été mal calculées.",
+    "start": 20.028,
+    "end": 22.864
+  },
+  {
+    "text": "Aujourd'hui, on décortique la première erreur fatale en construction.",
+    "start": 22.864,
+    "end": 27.782
+  },
+  {
+    "text": "Une fondation, c'est simple en apparence : c'est ce qui supporte votre maison.",
+    "start": 27.782,
+    "end": 34.583
+  },
+  {
+    "text": "Mais c'est beaucoup plus complexe.",
+    "start": 34.583,
+    "end": 37.092
+  },
+  {
+    "text": "Une bonne fondation doit distribuer le poids du bâtiment uniformément, s'adapter à la nature du sol, résister aux forces verticales et horizontales, et durer des décennies sans bouger.",
+    "start": 37.092,
+    "end": 48.873
+  },
+  {
+    "text": "Quand une fondation est mal calculée, c'est souvent parce que : on n'a pas fait d'étude géotechnique sérieuse.",
+    "start": 48.873,
+    "end": 57.261
+  },
+  {
+    "text": "On ne connaît pas vraiment la qualité du sol.",
+    "start": 57.261,
+    "end": 60.631
+  },
+  {
+    "text": "On a sous-estimé le poids total de la structure.",
+    "start": 60.631,
+    "end": 64.534
+  },
+  {
+    "text": "Ou on a oublié les forces supplémentaires comme le vent, les séismes, ou les variations du niveau des eaux souterraines.",
+    "start": 64.534,
+    "end": 73.802
+  },
+  {
+    "text": "Et là, ça commence.",
+    "start": 73.802,
+    "end": 74.856
+  },
+  {
+    "text": "Le bâtiment s'enfonce progressivement.",
+    "start": 74.856,
+    "end": 78.265
+  },
+  {
+    "text": "Quelques centimètres par an.",
+    "start": 78.265,
+    "end": 79.793
+  },
+  {
+    "text": "Rien de visible au début.",
+    "start": 79.793,
+    "end": 81.895
+  },
+  {
+    "text": "Puis des lézardes apparaissent dans les murs.",
+    "start": 81.895,
+    "end": 86.129
+  },
+  {
+    "text": "D'abord horizontales, puis diagonales.",
+    "start": 86.129,
+    "end": 89.008
+  },
+  {
+    "text": "Votre chambre n'est plus d'équerre.",
+    "start": 89.008,
+    "end": 92.442
+  },
+  {
+    "text": "Une partie du bâtiment s'enfonce plus que l'autre.",
+    "start": 92.442,
+    "end": 96.39
+  },
+  {
+    "text": "C'est catastrophique pour la structure.",
+    "start": 96.39,
+    "end": 99.326
+  },
+  {
+    "text": "Les portes se bloquent.",
+    "start": 99.326,
+    "end": 101.436
+  },
+  {
+    "text": "Les fenêtres se cassent.",
+    "start": 101.436,
+    "end": 103.626
+  },
+  {
+    "text": "Les tuyauteries se fissurent.",
+    "start": 103.626,
+    "end": 105.872
+  },
+  {
+    "text": "Les armatures du béton commencent à craquer.",
+    "start": 105.872,
+    "end": 111.011
+  },
+  {
+    "text": "L'eau rentre.",
+    "start": 111.011,
+    "end": 112.62
+  },
+  {
+    "text": "L'acier s'oxyde.",
+    "start": 112.62,
+    "end": 113.515
+  },
+  {
+    "text": "Et là...",
+    "start": 113.515,
+    "end": 115.309
+  },
+  {
+    "text": "c'est trop tard.",
+    "start": 115.309,
+    "end": 116.204
+  },
+  {
+    "text": "La réparation coûte une fortune.",
+    "start": 116.204,
+    "end": 118.951
+  },
+  {
+    "text": "Des centaines de bâtiments en France, au Canada, partout dans le monde...",
+    "start": 118.951,
+    "end": 124.4
+  },
+  {
+    "text": "souffrent de problèmes de fondation.",
+    "start": 124.4,
+    "end": 127.116
+  },
+  {
+    "text": "Certains ont dû être évacués.",
+    "start": 127.116,
+    "end": 129.638
+  },
+  {
+    "text": "D'autres ont coûté des millions en réparations.",
+    "start": 129.638,
+    "end": 133.565
+  },
+  {
+    "text": "Et le plus fou ?",
+    "start": 133.565,
+    "end": 134.772
+  },
+  {
+    "text": "Beaucoup auraient pu être évités avec un simple document : l'étude géotechnique.",
+    "start": 134.772,
+    "end": 140.99
+  },
+  {
+    "text": "Voilà ce qu'il faut faire.",
+    "start": 140.99,
+    "end": 143.199
+  },
+  {
+    "text": "Faites une étude géotechnique complète.",
+    "start": 143.199,
+    "end": 146.274
+  },
+  {
+    "text": "Forages, analyses du sol, test de portance.",
+    "start": 146.274,
+    "end": 149.405
+  },
+  {
+    "text": "C'est l'investissement le plus rentable du projet.",
+    "start": 149.405,
+    "end": 152.686
+  },
+  {
+    "text": "Calculez correctement la profondeur des fondations.",
+    "start": 152.686,
+    "end": 156.24
+  },
+  {
+    "text": "Elle dépend de la nature du sol.",
+    "start": 156.24,
+    "end": 159.035
+  },
+  {
+    "text": "Parfois un mètre, parfois trois mètres, parfois plus.",
+    "start": 159.035,
+    "end": 163.018
+  },
+  {
+    "text": "Dimensionnez les semelles ou radiers correctement.",
+    "start": 163.018,
+    "end": 166.804
+  },
+  {
+    "text": "C'est là que les forces se distribuent.",
+    "start": 166.804,
+    "end": 170.138
+  },
+  {
+    "text": "Pas de raccourcis.",
+    "start": 170.138,
+    "end": 171.138
+  },
+  {
+    "text": "Vérifiez les risques géologiques locaux.",
+    "start": 171.138,
+    "end": 173.928
+  },
+  {
+    "text": "Nappes phréatiques, argiles gonflantes, terrains karstiques...",
+    "start": 173.928,
+    "end": 179.132
+  },
+  {
+    "text": "chaque région a ses pièges.",
+    "start": 179.132,
+    "end": 181.434
+  },
+  {
+    "text": "Les fondations, c'est l'invisible qui porte tout.",
+    "start": 181.434,
+    "end": 185.344
+  },
+  {
+    "text": "Investir cinq mille à dix mille euros dans une étude géotechnique pour une maison ?",
+    "start": 185.344,
+    "end": 190.177
+  },
+  {
+    "text": "C'est rien comparé aux cent mille euros de réparations que vous économiserez.",
+    "start": 190.177,
+    "end": 195.026
+  },
+  {
+    "text": "Les bâtiments qui durent des siècles ?",
+    "start": 195.026,
+    "end": 198.64
+  },
+  {
+    "text": "Ils ont tous une chose en commun : des fondations bien calculées.",
+    "start": 198.64,
+    "end": 204.372
+  },
+  {
+    "text": "Alors avant de construire...",
+    "start": 204.372,
+    "end": 207.777
+  },
+  {
+    "text": "regardez ce qui se passe sous terre.",
+    "start": 207.777,
+    "end": 210.309
+  },
+  {
+    "text": "C'est là que tout se joue.",
+    "start": 210.309,
+    "end": 212.291
+  },
+  {
+    "text": "Si cette vidéo vous a été utile, likez-la maintenant.",
+    "start": 212.291,
+    "end": 216.337
+  },
+  {
+    "text": "Enregistrez-la pour la retrouver plus tard.",
+    "start": 216.337,
+    "end": 219.444
+  },
+  {
+    "text": "Et suivez cette page pour ne pas manquer les prochains épisodes sur les erreurs fatales en construction.",
+    "start": 219.444,
+    "end": 226.452
+  },
+  {
+    "text": "Merci de nous suivre.",
+    "start": 226.452,
+    "end": 228.937125
+  }
+]
