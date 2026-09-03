@@ -1,0 +1,10 @@
+# Dépendances Python du pipeline.
+# NB: le montage (étape 4) appelle directement le binaire ffmpeg (plus
+# robuste et sans dépendance à ImageMagick que moviepy pour un pipeline
+# 100% automatisé), donc seuls whisper et requests sont strictement
+# nécessaires. moviepy et ffmpeg-python restent listés au cas où vous
+# souhaitiez adapter le montage.
+openai-whisper
+requests
+moviepy>=2.0.0
+ffmpeg-python

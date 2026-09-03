@@ -1,0 +1,7 @@
+input/*
+!input/.gitkeep
+output/
+*.mp4
+!*.gitkeep
+__pycache__/
+*.pyc
