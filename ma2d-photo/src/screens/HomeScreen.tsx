@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import ApartmentPicker from '@/components/ApartmentPicker';
 import BigCameraButton from '@/components/BigCameraButton';
@@ -33,7 +33,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-const CAMERA_TIMEOUT_MS = 20000;
+/** How long a permission dialog may stay unanswered before we call it a hang. */
+const PERMISSION_TIMEOUT_MS = 60000;
+/** How long we wait for the camera/gallery Activity to actually come up. */
+const PICKER_OPEN_TIMEOUT_MS = 12000;
 
 /**
  * Races a promise against a timeout so a native call that never resolves
@@ -55,6 +58,40 @@ function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string)
       }
     );
   });
+}
+
+/**
+ * Waits for the camera/gallery picker, failing fast ONLY when its Activity
+ * never actually came up.
+ *
+ * A plain timeout can't be used here: launchCameraAsync doesn't resolve until
+ * the user has finished shooting, so any fixed deadline would kill a 30-second
+ * video or a carefully framed photo and throw the capture away. Once the
+ * native Activity opens, our app leaves the foreground — so if AppState never
+ * left "active" by the deadline, nothing opened and we're genuinely stuck;
+ * if it did, we wait as long as the user needs.
+ */
+function launchWithOpenWatchdog<T>(launch: Promise<T>, timeoutMessage: string): Promise<T> {
+  let leftForeground = false;
+  const subscription = AppState.addEventListener('change', (state) => {
+    if (state !== 'active') leftForeground = true;
+  });
+
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      if (!leftForeground) reject(new Error(timeoutMessage));
+    }, PICKER_OPEN_TIMEOUT_MS);
+    launch.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  }).finally(() => subscription.remove());
 }
 
 /** File extension from a local/picker URI (without the leading dot), or `fallback` if none is found. */
@@ -120,7 +157,7 @@ export default function HomeScreen({ navigation }: Props) {
               source === 'camera'
                 ? ImagePicker.requestCameraPermissionsAsync()
                 : ImagePicker.requestMediaLibraryPermissionsAsync(),
-              CAMERA_TIMEOUT_MS,
+              PERMISSION_TIMEOUT_MS,
               'Délai dépassé en attendant la réponse de permission'
             );
         if (!permission.granted) {
@@ -132,14 +169,19 @@ export default function HomeScreen({ navigation }: Props) {
         const pickerMediaTypes =
           mediaType === 'video' ? ImagePicker.MediaTypeOptions.Videos : ImagePicker.MediaTypeOptions.Images;
 
-        const result = await withTimeout(
+        const result = await launchWithOpenWatchdog(
           source === 'camera'
-            ? ImagePicker.launchCameraAsync({ mediaTypes: pickerMediaTypes, quality: 1 })
+            ? ImagePicker.launchCameraAsync({
+                mediaTypes: pickerMediaTypes,
+                quality: 1,
+                // Keeps a forgotten running recording from producing a
+                // multi-gigabyte file; 5 min is far beyond any site clip.
+                ...(mediaType === 'video' ? { videoMaxDuration: 300 } : {}),
+              })
             : ImagePicker.launchImageLibraryAsync({ mediaTypes: pickerMediaTypes, quality: 1 }),
-          CAMERA_TIMEOUT_MS,
           mediaType === 'video'
-            ? 'Délai dépassé en attendant la caméra vidéo'
-            : "Délai dépassé en attendant l'appareil photo / la galerie"
+            ? "La caméra vidéo ne s'est pas ouverte"
+            : "L'appareil photo / la galerie ne s'est pas ouvert"
         );
 
         if (result.canceled || !result.assets?.[0]) {

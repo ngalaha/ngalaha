@@ -41,23 +41,30 @@ export function useAdminPinGate() {
   }, []);
 
   const onSubmit = useCallback(async () => {
-    if (mode === 'create') {
-      if (pin.length < MIN_PIN_LENGTH) {
-        setError(`Le code PIN doit contenir au moins ${MIN_PIN_LENGTH} chiffres.`);
-        return;
+    try {
+      if (mode === 'create') {
+        if (pin.length < MIN_PIN_LENGTH) {
+          setError(`Le code PIN doit contenir au moins ${MIN_PIN_LENGTH} chiffres.`);
+          return;
+        }
+        if (pin !== confirmPin) {
+          setError('Les deux codes ne correspondent pas.');
+          return;
+        }
+        await setAdminPin(pin);
+      } else {
+        const ok = await verifyAdminPin(pin);
+        if (!ok) {
+          setError('Code PIN incorrect.');
+          setPin('');
+          return;
+        }
       }
-      if (pin !== confirmPin) {
-        setError('Les deux codes ne correspondent pas.');
-        return;
-      }
-      await setAdminPin(pin);
-    } else {
-      const ok = await verifyAdminPin(pin);
-      if (!ok) {
-        setError('Code PIN incorrect.');
-        setPin('');
-        return;
-      }
+    } catch {
+      // Reading/writing the secure store can fail on a locked or unusual
+      // device — surface it here instead of silently doing nothing.
+      setError('Le code PIN n’a pas pu être vérifié. Réessayez.');
+      return;
     }
     const action = actionRef.current;
     setVisible(false);

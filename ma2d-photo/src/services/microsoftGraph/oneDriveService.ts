@@ -223,22 +223,36 @@ async function sessionUpload(
     body: { item: { '@microsoft.graph.conflictBehavior': 'rename', name: fileName } },
   });
 
-  const base64Content = await FileSystem.readAsStringAsync(localUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const bytes = base64Decode(base64Content);
+  // Read the real size from disk rather than trusting the queued record:
+  // a wrong total here would truncate the upload or loop forever.
+  const info = await FileSystem.getInfoAsync(localUri, { size: true });
+  const totalBytes = info.exists && 'size' in info ? (info.size ?? fileSizeBytes) : fileSizeBytes;
+  if (totalBytes <= 0) {
+    throw new AppError(USER_MESSAGES.GENERIC_UPLOAD_FAILURE, `Empty or unreadable file: ${localUri}`);
+  }
 
   let offset = 0;
   let lastItem: GraphDriveItem | null = null;
-  while (offset < bytes.length) {
-    const end = Math.min(offset + UPLOAD_CHUNK_SIZE, bytes.length);
-    const chunk = bytes.slice(offset, end);
+  while (offset < totalBytes) {
+    // One chunk at a time, read straight from disk at `offset`. Reading the
+    // whole file up front (as this used to) means holding the entire video in
+    // memory as base64 + bytes — fine for a 2 MB photo, an out-of-memory
+    // crash for a 100 MB video.
+    const base64Chunk = await FileSystem.readAsStringAsync(localUri, {
+      encoding: FileSystem.EncodingType.Base64,
+      position: offset,
+      length: Math.min(UPLOAD_CHUNK_SIZE, totalBytes - offset),
+    });
+    const chunk = base64Decode(base64Chunk);
+    if (chunk.length === 0) {
+      throw new AppError(USER_MESSAGES.GENERIC_UPLOAD_FAILURE, `Read 0 bytes at offset ${offset}`);
+    }
 
     const response = await fetch(session.uploadUrl, {
       method: 'PUT',
       headers: {
         'Content-Length': String(chunk.length),
-        'Content-Range': `bytes ${offset}-${end - 1}/${fileSizeBytes}`,
+        'Content-Range': `bytes ${offset}-${offset + chunk.length - 1}/${totalBytes}`,
       },
       body: chunk,
     });
@@ -253,8 +267,8 @@ async function sessionUpload(
     if (response.status !== 202) {
       lastItem = (await response.json()) as GraphDriveItem;
     }
-    offset = end;
-    logger.info('Progression upload par session', { offset, total: fileSizeBytes });
+    offset += chunk.length;
+    logger.info('Progression upload par session', { offset, total: totalBytes });
   }
 
   if (!lastItem) {

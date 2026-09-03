@@ -34,6 +34,7 @@
       "package": "com.ma2dconstruction.photo",
       "permissions": [
         "CAMERA",
+        "RECORD_AUDIO",
         "READ_MEDIA_IMAGES",
         "READ_EXTERNAL_STORAGE",
         "RECEIVE_BOOT_COMPLETED",
