@@ -50,6 +50,8 @@ Le fichier final est généré à la racine du projet :
 1. **`01_transcribe.py`** — Transcrit l'audio avec [openai-whisper](https://github.com/openai/whisper)
    (100% local, gratuit, aucune clé API). Produit `output/transcript.json`
    (timestamps mot par mot) et `output/subtitles.srt`.
+   *Sur Termux/Android, utilisez `01_transcribe_termux.sh` à la place (voir
+   section dédiée plus bas) : même sortie, sans dépendance PyTorch.*
 
 2. **`02_scene_prompts.py`** — Regroupe les mots transcrits en scènes de
    3 à 8 secondes (en respectant les fins de phrase quand possible), puis
@@ -71,6 +73,44 @@ Le fichier final est généré à la racine du projet :
    (filtre `subtitles`/libass). Tout est fait en appelant directement le
    binaire `ffmpeg` (plus robuste et sans dépendance à ImageMagick que
    MoviePy pour un pipeline entièrement automatisé).
+
+## Sur smartphone (Termux / Android)
+
+Ça fonctionne, avec un seul changement : `openai-whisper` dépend de
+**PyTorch**, qui n'a pas de wheel précompilé pour Termux (libc `bionic`,
+différente de `glibc`) — `pip install torch` échouera. On utilise à la place
+[whisper.cpp](https://github.com/ggerganov/whisper.cpp) (C++, sans PyTorch,
+optimisé ARM/NEON). Le reste du pipeline (FFmpeg, appels réseau vers
+Pollinations.ai) fonctionne nativement sur Termux.
+
+```bash
+pkg update && pkg install -y clang cmake git ffmpeg python
+
+git clone https://github.com/ggerganov/whisper.cpp ~/whisper.cpp
+cd ~/whisper.cpp
+cmake -B build && cmake --build build --config Release -j$(nproc)
+# Modèle MULTILINGUE (sans suffixe .en) pour du français :
+bash ./models/download-ggml-model.sh base
+
+cd ~/fondations_video    # ou l'emplacement où vous avez dézippé le projet
+python3 -m pip install requests
+
+./src/01_transcribe_termux.sh input/audio.mp3 fr   # au lieu de 01_transcribe.py
+python3 src/02_scene_prompts.py
+python3 src/03_generate_images.py
+python3 src/04_build_video.py
+```
+
+`01_transcribe_termux.sh` fait tourner whisper.cpp deux fois (une passe pour
+des sous-titres lisibles, une passe `-ml 1` pour des timestamps mot par mot)
+et convertit sa sortie JSON vers le même `output/transcript.json` que
+`01_transcribe.py` — les étapes 2, 3 et 4 sont donc identiques, sans aucune
+modification.
+
+Le modèle `base` est un bon compromis vitesse/qualité sur téléphone ; `small`
+est plus précis mais plus lent sur CPU mobile. Le binaire compilé se trouve
+dans `~/whisper.cpp/build/bin/` (`whisper-cli` ou `main` selon la version) —
+le script le détecte automatiquement, sinon fixez `WHISPER_BIN=...`.
 
 ## Reprise après interruption
 
