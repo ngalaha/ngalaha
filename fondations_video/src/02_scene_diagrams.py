@@ -46,23 +46,25 @@ KEYWORD_CATEGORY = [
 FALLBACK_CATEGORY_CYCLE = ["settlement", "crack", "clay", "drilling",
                            "concrete", "foundation", "engineer", "site"]
 
+# (titre, sous-titre, couleur d'accent RGB — une teinte vive par catégorie)
 CATEGORY_HEADER = {
-    "crack": ("FISSURE STRUCTURELLE", "coupe A-A"),
-    "settlement": ("AFFAISSEMENT DU SOL", "élévation"),
-    "foundation": ("SEMELLE DE FONDATION", "éch. 1/50"),
-    "concrete": ("BÉTON ARMÉ", "coupe armatures"),
-    "drilling": ("SONDAGE GÉOTECHNIQUE", "essai pressiométrique"),
-    "clay": ("NATURE DU SOL", "coupe stratigraphique"),
-    "water": ("INFILTRATION D'EAU", "nappe phréatique"),
-    "collapse": ("RUPTURE STRUCTURELLE", "état des lieux"),
-    "engineer": ("DIAGNOSTIC STRUCTUREL", "inspection visuelle"),
-    "blueprint": ("ÉTUDE TECHNIQUE", "cartouche de plan"),
-    "site": ("PLAN DE SITUATION", "éch. 1/2000"),
-    "code": ("NORMES EN VIGUEUR", "DTU 13.12"),
-    "excavation": ("FOUILLE DE TERRASSEMENT", "coupe B-B"),
-    "pile": ("FONDATIONS PROFONDES", "pieux forés"),
-    "retaining_wall": ("MUR DE SOUTÈNEMENT", "poussée des terres"),
+    "crack": ("FISSURE STRUCTURELLE", "coupe A-A", (216, 40, 45)),
+    "settlement": ("AFFAISSEMENT DU SOL", "élévation", (245, 130, 32)),
+    "foundation": ("SEMELLE DE FONDATION", "éch. 1/50", (25, 110, 210)),
+    "concrete": ("BÉTON ARMÉ", "coupe armatures", (0, 137, 123)),
+    "drilling": ("SONDAGE GÉOTECHNIQUE", "essai pressiométrique", (160, 100, 40)),
+    "clay": ("NATURE DU SOL", "coupe stratigraphique", (200, 130, 20)),
+    "water": ("INFILTRATION D'EAU", "nappe phréatique", (0, 150, 190)),
+    "collapse": ("RUPTURE STRUCTURELLE", "état des lieux", (190, 20, 30)),
+    "engineer": ("DIAGNOSTIC STRUCTUREL", "inspection visuelle", (140, 30, 170)),
+    "blueprint": ("ÉTUDE TECHNIQUE", "cartouche de plan", (55, 65, 175)),
+    "site": ("PLAN DE SITUATION", "éch. 1/2000", (55, 155, 60)),
+    "code": ("NORMES EN VIGUEUR", "DTU 13.12", (55, 65, 175)),
+    "excavation": ("FOUILLE DE TERRASSEMENT", "coupe B-B", (120, 80, 45)),
+    "pile": ("FONDATIONS PROFONDES", "pieux forés", (0, 130, 145)),
+    "retaining_wall": ("MUR DE SOUTÈNEMENT", "poussée des terres", (210, 75, 20)),
 }
+DEFAULT_ACCENT = (139, 30, 42)
 
 
 def flatten_words(segments):
@@ -94,7 +96,7 @@ def split_into_scenes(words):
         cut = is_last or dur >= MAX_DUR or (dur >= MIN_DUR and ends_sentence)
         if cut:
             text = "".join(x["word"] for x in cur).strip()
-            scenes.append({"start": cur_start, "end": w["end"], "text": text})
+            scenes.append({"start": cur_start, "end": w["end"], "text": text, "words": list(cur)})
             cur = []
             cur_start = None
 
@@ -102,6 +104,7 @@ def split_into_scenes(words):
         last = scenes.pop()
         scenes[-1]["end"] = last["end"]
         scenes[-1]["text"] = (scenes[-1]["text"] + " " + last["text"]).strip()
+        scenes[-1]["words"] = scenes[-1]["words"] + last["words"]
 
     return scenes
 
@@ -146,17 +149,20 @@ def main():
         if category != prev_category:
             panel_number += 1
             prev_category = category
-        title, subtitle = CATEGORY_HEADER.get(category, ("GÉNIE CIVIL", ""))
+        title, subtitle, accent = CATEGORY_HEADER.get(category, ("GÉNIE CIVIL", "", DEFAULT_ACCENT))
         scenes.append({
             "index": i,
             "start": round(s["start"], 3),
             "end": round(s["end"], 3),
             "duration": round(s["end"] - s["start"], 3),
             "text": s["text"],
+            "words": [{"word": w["word"], "start": round(w["start"], 3), "end": round(w["end"], 3)}
+                      for w in s["words"]],
             "category": category,
             "panel": panel_number,
             "title": title,
             "subtitle": subtitle,
+            "accent": list(accent),
         })
 
     total_panels = panel_number
@@ -171,6 +177,7 @@ def main():
                 "category": s["category"],
                 "title": s["title"],
                 "subtitle": s["subtitle"],
+                "accent": s["accent"],
                 "start": s["start"],
                 "end": s["end"],
                 "scene_indices": [s["index"]],

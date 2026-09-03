@@ -56,23 +56,27 @@ Le fichier final est généré à la racine du projet :
    affaissement, semelle de fondation, béton armé, forage géotechnique,
    nature du sol, infiltration d'eau, effondrement, diagnostic, fondations
    profondes, mur de soutènement, plan de situation, normes...) via une
-   détection de mots-clés bilingue FR/EN. Les scènes **consécutives de même
-   catégorie sont regroupées en "panneaux"** numérotés (le diagramme et le
-   titre restent stables pendant qu'un sujet se développe, comme dans la
-   référence). Chaque scène est chaînée jusqu'au **début exact de la
-   suivante** (les silences entre segments de parole ne sont donc jamais
-   "perdus") pour un calage image/voix off au frame près. Produit
-   `output/scenes.json` (`scenes` + `panels`).
+   détection de mots-clés bilingue FR/EN, avec **une couleur vive propre à
+   chaque catégorie** (rouge pour les fissures, orange pour l'affaissement,
+   bleu pour les fondations, sarcelle pour le béton armé...). Les scènes
+   **consécutives de même catégorie sont regroupées en "panneaux"**
+   numérotés (le diagramme et le titre restent stables pendant qu'un sujet
+   se développe, comme dans la référence). Chaque scène est chaînée jusqu'au
+   **début exact de la suivante** (les silences entre segments de parole ne
+   sont donc jamais "perdus") pour un calage image/voix off au frame près.
+   Produit `output/scenes.json` (`scenes` + `panels`).
 
-3. **`03_render_frames.py`** — Dessine chaque image en 1080×1920 avec
-   [Pillow](https://python-pillow.org/) : en-tête (numéro de planche, titre,
-   annotation technique), diagramme vectoriel (hachures, cotes, callouts,
-   texture béton...), légende (texte de la scène) et pied de page (barre de
-   progression, tag "GÉNIE CIVIL", pagination). Le diagramme est identique
-   pour toutes les scènes d'un même panneau (même valeur de départ
-   aléatoire) : à l'étape 4, la caméra tient un seul plan continu sur tout
-   le panneau. **100% local, aucun réseau.** Produit
-   `output/frames/scene_NNN.png`.
+3. **`03_render_frames.py`** — Génère, pour chaque panneau, **la séquence
+   d'images de son animation** (pas une seule image statique) avec
+   [Pillow](https://python-pillow.org/) : le titre s'écrit lettre par
+   lettre, le diagramme se construit (la fissure se trace comme un trait à
+   main levée, le bâtiment bascule progressivement, les semelles
+   apparaissent une à une, les couches de sol se déposent...), puis la
+   légende de chaque scène apparaît **ligne par ligne exactement quand elle
+   est prononcée** (calée sur les timestamps mot par mot de la
+   transcription). **100% local, aucun réseau.** Produit
+   `output/frames/panel_NNN_fMMM.png` et enrichit `scenes.json` avec, pour
+   chaque panneau, la liste ordonnée des images et de leur durée exacte.
 
 4. **`04_build_video.py`** — Pour chaque panneau : les scènes qui le
    composent sont mises bout à bout en un plan continu, sur lequel un zoom
@@ -150,12 +154,18 @@ le script le détecte automatiquement, sinon fixez `WHISPER_BIN=...`.
 - **Qualité/vitesse de transcription** : changez `--model` (`tiny`, `base`,
   `small`, `medium`, `large`) dans `run_pipeline.sh` ou à l'appel de
   `01_transcribe.py`. `small` est un bon compromis gratuit CPU.
-- **Palette / polices / mise en page** : `src/style.py` (couleurs `INK`,
-  `ACCENT`, `GRAY`... et les fonctions `header()`/`footer()`).
+- **Polices / mise en page** : `src/style.py` (couleurs neutres `INK`,
+  `GRAY`... et les fonctions `header()`/`footer()`).
+- **Couleur par catégorie** : le 3ᵉ élément de chaque tuple dans
+  `CATEGORY_HEADER` (`src/02_scene_diagrams.py`), ex. `(216, 40, 45)` pour
+  le rouge des fissures.
 - **Diagrammes** : `src/diagrams.py` — chaque catégorie a sa fonction
   (`crack_section`, `tilt_elevation`, `foundation_plan`, etc.).
 - **Titres/annotations par catégorie** : `CATEGORY_HEADER` dans
   `src/02_scene_diagrams.py`.
+- **Rythme de l'animation** (construction du diagramme, vitesse de
+  frappe du titre) : `DRAWIN_WINDOW`, `N_DRAWIN_SAMPLES`,
+  `TITLE_WINDOW_FRAC`, `FADE_DUR` dans `03_render_frames.py`.
 - **Intensité/vitesse du zoom** : `MIN_ZOOM_TARGET`, `MAX_ZOOM_TARGET`,
   `ZOOM_RATE_PER_SEC` dans `04_build_video.py`.
 - **Durée des transitions** : `TRANSITION_DUR` dans `04_build_video.py`

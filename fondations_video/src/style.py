@@ -57,42 +57,105 @@ def wrap_text(draw, text, fnt, max_width):
     return lines
 
 
-def header(draw, number, title, subtitle=None):
-    draw.text((MARGIN, 150), f"{number:02d}", font=F_NUM(50), fill=ACCENT)
+def header(draw, number, title, subtitle=None, title_progress=1.0, accent=ACCENT):
+    """title_progress < 1.0 révèle le titre lettre par lettre (effet machine
+    à écrire). `accent` teinte le numéro de planche (couleur par catégorie)."""
+    draw.text((MARGIN, 150), f"{number:02d}", font=F_NUM(50), fill=accent)
     if subtitle:
         tw = draw.textlength(subtitle, font=F_MONO(28))
         draw.text((W - MARGIN - tw, 160), subtitle, font=F_MONO(28), fill=GRAY)
-    draw.text((MARGIN, 215), title.upper(), font=F_TITLE(54), fill=INK)
+    full_title = title.upper()
+    n = len(full_title) if title_progress >= 1.0 else round(len(full_title) * max(0.0, title_progress))
+    shown_title = full_title[:n]
+    draw.text((MARGIN, 215), shown_title, font=F_TITLE(54), fill=INK)
     line_y = 300
     draw.line([(MARGIN, line_y), (W - MARGIN, line_y)], fill=INK, width=4)
     return line_y
 
 
-def footer(draw, caption, tag="GÉNIE CIVIL", page=1, total=8):
+def wrap_caption(draw, caption):
+    """Découpe une légende en lignes affichables (identique à footer())."""
     max_w = W - 2 * MARGIN - 40
     fnt = F_MONO_B(30)
     all_lines = wrap_text(draw, caption, fnt, max_w)
     lines = all_lines[:5]
     if len(all_lines) > 5:
         lines[-1] = lines[-1].rstrip() + " …"
-    line_h = 42
-    y = H - 210 - len(lines) * line_h
-    draw.rectangle([MARGIN, y + 6, MARGIN + 18, y + 24], fill=ACCENT)
-    for line in lines:
-        draw.text((MARGIN + 40, y), line, font=fnt, fill=INK)
-        y += line_h
+    return lines
 
+
+def wrap_caption_with_starts(draw, words):
+    """Comme wrap_caption(), mais retourne une liste de (ligne, t_debut) où
+    t_debut est le timestamp (dans le référentiel de `words`) du premier mot
+    de cette ligne — pour révéler chaque ligne de légende exactement quand
+    elle est prononcée."""
+    max_w = W - 2 * MARGIN - 40
+    fnt = F_MONO_B(30)
+    lines = []
+    cur_text = ""
+    line_start = None
+    for w in words:
+        token = w["word"].strip()
+        if not token:
+            continue
+        trial = (cur_text + " " + token).strip()
+        if draw.textlength(trial, font=fnt) <= max_w:
+            cur_text = trial
+            if line_start is None:
+                line_start = w["start"]
+        else:
+            if cur_text:
+                lines.append((cur_text, line_start))
+            cur_text = token
+            line_start = w["start"]
+    if cur_text:
+        lines.append((cur_text, line_start))
+    if len(lines) > 5:
+        kept = lines[:5]
+        kept[-1] = (kept[-1][0].rstrip() + " …", kept[-1][1])
+        lines = kept
+    return lines
+
+
+def footer_chrome(draw, tag="GÉNIE CIVIL", page=1, total=8, accent=ACCENT):
+    """Barre de progression + tag + pagination : toujours statiques,
+    dessinés une fois par frame indépendamment de la légende."""
     bar_y = H - 130
     draw.line([(MARGIN, bar_y), (W - MARGIN, bar_y)], fill=GRAY_LIGHT, width=4)
     frac = max(0.0, min(1.0, page / total))
     fill_w = (W - 2 * MARGIN) * frac
     if fill_w > 0:
-        draw.line([(MARGIN, bar_y), (MARGIN + fill_w, bar_y)], fill=ACCENT, width=4)
+        draw.line([(MARGIN, bar_y), (MARGIN + fill_w, bar_y)], fill=accent, width=4)
 
     draw.text((MARGIN, H - 95), tag, font=F_MONO(24), fill=GRAY)
     pg = f"{page}/{total}"
     tw = draw.textlength(pg, font=F_MONO(24))
     draw.text((W - MARGIN - tw, H - 95), pg, font=F_MONO(24), fill=GRAY)
+
+
+def footer_caption(draw, lines, lines_shown=None, accent=ACCENT):
+    """Dessine les lignes de légende déjà calculées par wrap_caption().
+    lines_shown limite le nombre de lignes affichées (révélation
+    progressive, ligne par ligne, calée sur la voix off)."""
+    if lines_shown is None:
+        lines_shown = len(lines)
+    visible = lines[:lines_shown]
+    if not visible:
+        return
+    fnt = F_MONO_B(30)
+    line_h = 42
+    y = H - 210 - len(lines) * line_h
+    draw.rectangle([MARGIN, y + 6, MARGIN + 18, y + 24], fill=accent)
+    for line in visible:
+        draw.text((MARGIN + 40, y), line, font=fnt, fill=INK)
+        y += line_h
+
+
+def footer(draw, caption, tag="GÉNIE CIVIL", page=1, total=8, lines_shown=None, accent=ACCENT):
+    """Pied de page complet (compatibilité : légende + barre + tag)."""
+    lines = wrap_caption(draw, caption)
+    footer_caption(draw, lines, lines_shown, accent)
+    footer_chrome(draw, tag, page, total, accent)
 
 
 def hatch_rect(img, box, spacing=16, color=INK, width=2, outline=True):
@@ -168,6 +231,48 @@ def leader(draw, x1, y1, xk, yk, x2, y2, label, fnt=None, color=ACCENT):
     tx = x2 + 10 if align == "left" else x2 - 10 - tw
     tx = max(MARGIN - 40, min(tx, W - MARGIN + 40 - tw))
     draw.text((tx, ty), label, font=fnt, fill=color)
+
+
+def truncate_polyline(points, progress):
+    """Retourne le préfixe de `points` correspondant à la fraction
+    `progress` (0..1) de la longueur totale du tracé — pour animer un trait
+    qui se dessine progressivement (fissure, contour...)."""
+    if progress >= 1.0 or len(points) < 2:
+        return list(points)
+    seg_lengths = [math.hypot(points[i + 1][0] - points[i][0], points[i + 1][1] - points[i][1])
+                   for i in range(len(points) - 1)]
+    total = sum(seg_lengths)
+    if total == 0:
+        return list(points)
+    target = max(0.0, progress) * total
+    out = [points[0]]
+    covered = 0.0
+    for i, seg_len in enumerate(seg_lengths):
+        if covered + seg_len >= target:
+            remaining = target - covered
+            t = remaining / seg_len if seg_len > 0 else 0
+            x = points[i][0] + (points[i + 1][0] - points[i][0]) * t
+            y = points[i][1] + (points[i + 1][1] - points[i][1]) * t
+            out.append((x, y))
+            return out
+        covered += seg_len
+        out.append(points[i + 1])
+    return out
+
+
+def ease(t):
+    """Ease-out léger : démarre vite, ralentit en fin de tracé."""
+    t = max(0.0, min(1.0, t))
+    return 1 - (1 - t) ** 2
+
+
+def stage(progress, start, end):
+    """Ramène `progress` sur l'intervalle [start,end] à une fraction 0..1
+    (0 avant `start`, 1 après `end`) — pour séquencer les étapes d'un
+    diagramme animé."""
+    if end <= start:
+        return 1.0 if progress >= start else 0.0
+    return max(0.0, min(1.0, (progress - start) / (end - start)))
 
 
 def arrow(draw, x1, y1, x2, y2, color=ACCENT, width=5, head=14):

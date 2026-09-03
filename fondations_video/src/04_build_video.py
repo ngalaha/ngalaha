@@ -1,33 +1,32 @@
 """
-Etape 4 : Montage & assemblage (FFmpeg) — zoom continu par panneau et
-transitions en fondu enchaîné, calés sur les timestamps réels de la voix
-off.
+Etape 4 : Montage & assemblage (FFmpeg) — assemble la séquence d'images
+animées de chaque panneau (produite par 03_render_frames.py) en un plan
+continu avec zoom discret, puis enchaîne les panneaux en fondu croisé,
+calé au frame près sur la voix off d'origine.
 
-Pour chaque panneau (un même sujet/diagramme tenu sur plusieurs scènes) :
-  a) chaque scène est convertie en un court clip immobile de sa durée
-     exacte (issue des timestamps Whisper) ;
-  b) ces clips sont mis bout à bout SANS ré-encodage (même codec) pour
-     obtenir un plan continu sur toute la durée du panneau — la légende
-     change au fil du texte pendant que l'image reste la même ;
-  c) un zoom discret et continu (aucune remise à zéro à chaque scène) est
-     appliqué sur ce plan entier.
-Les panneaux sont ensuite enchaînés avec un fondu croisé (transition
-"professionnelle") au lieu d'une coupe franche, puis la piste audio
-d'origine est ajoutée. La durée totale reste calée sur l'audio : chaque
-panneau (sauf le dernier) porte une queue supplémentaire égale à la durée
-de transition, consommée par le fondu suivant, pour que rien ne soit
-raccourci.
+Pour chaque panneau :
+  a) ses images (déjà animées : diagramme qui se construit, légende qui
+     apparaît ligne par ligne) sont assemblées en un flux vidéo continu via
+     le démuxeur concat de FFmpeg, chaque image tenue exactement sa durée ;
+  b) un zoom discret et continu (aucune remise à zéro) est appliqué sur ce
+     plan entier.
+Les panneaux sont ensuite enchaînés avec un fondu croisé (transition de
+0,4s) au lieu d'une coupe franche — chaque panneau (sauf le dernier) porte
+une queue supplémentaire de cette durée, consommée par le fondu suivant,
+pour que la durée totale reste calée à la frame près sur la piste audio
+d'origine, ajoutée en dernière étape.
 
 Usage:
     python3 src/04_build_video.py [--output erreur_fatale_fondations.mp4]
 
 Entrées:
-    output/scenes.json  (scenes + panels, images générées par 03_render_frames.py)
+    output/scenes.json  (panels[i]["frames"], produit par 03_render_frames.py)
     input/audio.mp3
 Sortie:
     erreur_fatale_fondations.mp4 (à la racine du projet)
 """
 import argparse
+import copy
 import json
 import os
 import shutil
@@ -36,7 +35,6 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(ROOT, "output")
-SEGMENTS_DIR = os.path.join(OUTPUT_DIR, "segments")
 PANELS_DIR = os.path.join(OUTPUT_DIR, "panels")
 AUDIO_PATH = os.path.join(ROOT, "input", "audio.mp3")
 
@@ -68,35 +66,39 @@ def ffprobe_duration(path):
     return float(result.stdout.strip())
 
 
-def build_scene_segment(image_path, duration, out_path):
-    frames = max(1, round(duration * FPS))
-    cmd = [
-        "ffmpeg", "-y", "-loglevel", "error",
-        "-loop", "1", "-framerate", str(FPS), "-i", image_path,
-        "-frames:v", str(frames),
-        "-vf", "format=yuv420p",
-        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20", "-pix_fmt", "yuv420p",
-        out_path,
-    ]
-    run(cmd)
-
-
-def concat_segments(segment_paths, out_path):
-    list_path = out_path + ".txt"
+def write_concat_list(frames, list_path):
     with open(list_path, "w", encoding="utf-8") as f:
-        for p in segment_paths:
-            f.write(f"file '{p}'\n")
+        for fr in frames:
+            image_path = os.path.join(OUTPUT_DIR, fr["image"])
+            f.write(f"file '{image_path}'\n")
+            f.write(f"duration {max(fr['duration'], 0.01):.4f}\n")
+        # Contourne le comportement du démuxeur concat qui ignore la durée
+        # de la toute dernière entrée : on répète la dernière image.
+        last_image = os.path.join(OUTPUT_DIR, frames[-1]["image"])
+        f.write(f"file '{last_image}'\n")
+
+
+def zoom_panel(raw_frames, total_duration, out_path, work_dir, panel_num):
+    # zoompan doit recevoir un flux vidéo continu (il consomme un frame
+    # d'entrée par frame de sortie quand d=1) : lui donner directement le
+    # démuxeur concat le fait s'arrêter après seulement quelques images,
+    # une par entrée de la liste, en ignorant leur durée. On assemble donc
+    # d'abord un vrai flux vidéo à durée exacte (sans zoom), puis on
+    # applique le zoom dans une seconde passe sur ce flux.
+    concat_list_path = os.path.join(work_dir, f"panel_{panel_num:03d}_frames.txt")
+    write_concat_list(raw_frames, concat_list_path)
+
+    raw_path = os.path.join(work_dir, f"panel_{panel_num:03d}_raw.mp4")
     run([
         "ffmpeg", "-y", "-loglevel", "error",
-        "-f", "concat", "-safe", "0", "-i", list_path,
-        "-c", "copy", out_path,
+        "-f", "concat", "-safe", "0", "-i", concat_list_path,
+        "-r", str(FPS), "-pix_fmt", "yuv420p",
+        raw_path,
     ])
 
-
-def zoom_panel(raw_path, total_duration, out_path):
-    frames = max(1, round(total_duration * FPS))
+    frames_count = max(1, round(total_duration * FPS))
     target_zoom = min(MAX_ZOOM_TARGET, max(MIN_ZOOM_TARGET, 1.0 + total_duration * ZOOM_RATE_PER_SEC))
-    increment = (target_zoom - 1) / frames
+    increment = (target_zoom - 1) / frames_count
 
     zoom_expr = f"min(zoom+{increment:.8f},{target_zoom:.5f})"
     vf = (
@@ -109,34 +111,21 @@ def zoom_panel(raw_path, total_duration, out_path):
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", raw_path,
         "-vf", vf,
-        "-frames:v", str(frames),
+        "-frames:v", str(frames_count),
         "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
         out_path,
     ]
     run(cmd)
 
 
-def build_panel_clip(panel, scenes_by_index, pad_tail, work_dir):
-    idxs = panel["scene_indices"]
-    segment_paths = []
-    for j, idx in enumerate(idxs):
-        scene = scenes_by_index[idx]
-        dur = scene["duration"]
-        if j == len(idxs) - 1:
-            dur += pad_tail
-        image_path = os.path.join(OUTPUT_DIR, scene["image"])
-        seg_path = os.path.join(SEGMENTS_DIR, f"seg_{scene['index']:03d}.mp4")
-        segment_paths.append(seg_path)
-        if not os.path.isfile(seg_path):
-            build_scene_segment(image_path, max(dur, 0.1), seg_path)
-
-    raw_path = os.path.join(work_dir, f"panel_{panel['panel']:03d}_raw.mp4")
-    concat_segments(segment_paths, raw_path)
-
+def build_panel_clip(panel, pad_tail, work_dir):
+    frames = copy.deepcopy(panel["frames"])
+    frames[-1]["duration"] = round(frames[-1]["duration"] + pad_tail, 4)
     total_duration = panel["duration"] + pad_tail
-    zoomed_path = os.path.join(work_dir, f"panel_{panel['panel']:03d}.mp4")
-    zoom_panel(raw_path, total_duration, zoomed_path)
-    return zoomed_path
+
+    out_path = os.path.join(work_dir, f"panel_{panel['panel']:03d}.mp4")
+    zoom_panel(frames, total_duration, out_path, work_dir, panel["panel"])
+    return out_path
 
 
 def xfade_chain(clip_paths, content_durations, transition_dur, out_path):
@@ -191,40 +180,37 @@ def main():
 
     with open(os.path.join(OUTPUT_DIR, "scenes.json"), "r", encoding="utf-8") as f:
         data = json.load(f)
-    scenes = data["scenes"]
     panels = data["panels"]
 
-    missing = [s for s in scenes if "image" not in s or not os.path.isfile(os.path.join(OUTPUT_DIR, s["image"]))]
+    missing = [p for p in panels if not p.get("frames")]
     if missing:
-        print(f"{len(missing)} image(s) manquante(s). Lancez d'abord 03_render_frames.py.")
+        print(f"{len(missing)} panneau(x) sans images. Lancez d'abord 03_render_frames.py.")
         sys.exit(1)
 
     if not os.path.isfile(AUDIO_PATH):
         print(f"Audio introuvable: {AUDIO_PATH}")
         sys.exit(1)
 
-    scenes_by_index = {s["index"]: s for s in scenes}
-
     audio_duration = ffprobe_duration(AUDIO_PATH)
     panels_end = panels[-1]["end"]
     if audio_duration > panels_end:
         extra = round(audio_duration - panels_end, 3)
         panels[-1]["duration"] = round(panels[-1]["duration"] + extra, 3)
-        last_idx = panels[-1]["scene_indices"][-1]
-        scenes_by_index[last_idx]["duration"] = round(scenes_by_index[last_idx]["duration"] + extra, 3)
+        panels[-1]["frames"][-1]["duration"] = round(panels[-1]["frames"][-1]["duration"] + extra, 3)
 
-    os.makedirs(SEGMENTS_DIR, exist_ok=True)
     os.makedirs(PANELS_DIR, exist_ok=True)
 
-    print(f"Construction de {len(panels)} panneaux (plans continus, zoom sans à-coup)...")
+    print(f"Construction de {len(panels)} panneaux (plans continus animés, zoom sans à-coup)...")
     clip_paths = []
     content_durations = []
     for i, panel in enumerate(panels):
         pad_tail = TRANSITION_DUR if i < len(panels) - 1 else 0.0
+        n_scenes = len(panel["scene_indices"])
         print(f"  [{i+1}/{len(panels)}] panneau {panel['panel']:02d} "
-              f"({panel['category']}, {panel['duration']:.1f}s, {len(panel['scene_indices'])} scène(s))")
-        zoomed_path = build_panel_clip(panel, scenes_by_index, pad_tail, PANELS_DIR)
-        clip_paths.append(zoomed_path)
+              f"({panel['category']}, {panel['duration']:.1f}s, {n_scenes} scène(s), "
+              f"{len(panel['frames'])} images)")
+        clip_path = build_panel_clip(panel, pad_tail, PANELS_DIR)
+        clip_paths.append(clip_path)
         content_durations.append(panel["duration"])
 
     print("Enchaînement des panneaux (fondu croisé)...")
