@@ -32,12 +32,13 @@ export default function RootNavigator() {
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: colors.primary },
-          headerTintColor: colors.textOnPrimary,
-          headerTitleStyle: { fontWeight: '700' },
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.primary,
+          headerTitleStyle: { fontWeight: '700', color: colors.primary },
+          headerShadowVisible: true,
           headerRight: () => (
             <Pressable onPress={() => setMenuOpen(true)} hitSlop={10} style={{ paddingHorizontal: 4 }}>
-              <Ionicons name="menu" size={26} color={colors.textOnPrimary} />
+              <Ionicons name="menu" size={26} color={colors.primary} />
             </Pressable>
           ),
         }}
@@ -46,7 +47,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         ) : (
           <>
-            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'MA2D Construction' }} />
+            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'MA2D Photo' }} />
             <Stack.Screen name="Admin" component={AdminScreen} options={{ title: 'Administration' }} />
             <Stack.Screen
               name="AdminNewProject"

@@ -36,7 +36,8 @@ export default function App() {
 
   return (
     <>
-      <StatusBar style="light" />
+      {/* Dark status-bar icons: every screen (header included) is now light. */}
+      <StatusBar style="dark" />
       <RootNavigator />
     </>
   );

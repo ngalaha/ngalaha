@@ -14,7 +14,7 @@ export default function AboutScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.brandHeader}>
         <Image source={require('../../assets/ma2d-logo.jpg')} style={styles.logo} resizeMode="contain" />
-        <Text style={styles.appName}>MA2D Construction</Text>
+        <Text style={styles.appName}>MA2D Photo</Text>
         <Text style={styles.appTagline}>Gestion automatique des photos de chantier</Text>
         <View style={styles.versionPill}>
           <Text style={styles.versionText}>Version {APP_VERSION}</Text>
@@ -43,6 +43,17 @@ export default function AboutScreen() {
 
       <View style={styles.card}>
         <View style={styles.sectionHeaderRow}>
+          <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
+          <Text style={styles.sectionTitle}>Sécurité</Text>
+        </View>
+        <Text style={styles.paragraph}>
+          Connexion via Microsoft Entra ID. Aucun mot de passe ni identifiant Microsoft n'est
+          stocké dans l'application — uniquement une session sécurisée gérée par Microsoft.
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.sectionHeaderRow}>
           <Ionicons name="person-circle-outline" size={18} color={colors.primary} />
           <Text style={styles.sectionTitle}>Conception et développement</Text>
         </View>
@@ -56,17 +67,6 @@ export default function AboutScreen() {
         <Text style={styles.paragraph}>
           Application conçue et développée en interne pour répondre aux besoins réels des
           équipes de chantier de MA2D Construction.
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <View style={styles.sectionHeaderRow}>
-          <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
-          <Text style={styles.sectionTitle}>Sécurité</Text>
-        </View>
-        <Text style={styles.paragraph}>
-          Connexion via Microsoft Entra ID. Aucun mot de passe ni identifiant Microsoft n'est
-          stocké dans l'application — uniquement une session sécurisée gérée par Microsoft.
         </Text>
       </View>
 

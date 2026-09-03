@@ -25,10 +25,10 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Animated.View style={[styles.logoCard, { opacity, transform: [{ scale }] }]}>
+        <Animated.View style={{ opacity, transform: [{ scale }] }}>
           <Image source={require('../../assets/ma2d-logo.jpg')} style={styles.logoImage} resizeMode="contain" />
         </Animated.View>
-        <Text style={styles.logo}>MA2D</Text>
+        <Text style={styles.logo}>MA2D PHOTO</Text>
         <Text style={styles.subtitle}>CONSTRUCTION</Text>
         <Text style={[typography.body, styles.tagline]}>
           Photos de chantier, classées automatiquement dans OneDrive.
@@ -36,7 +36,7 @@ export default function LoginScreen() {
 
         {!configured && (
           <View style={styles.warningRow}>
-            <Ionicons name="warning" size={16} color={colors.accent} />
+            <Ionicons name="warning" size={16} color={colors.warning} />
             <Text style={styles.warning}>
               Configuration Microsoft manquante. Voir docs/ENTRA_ID_SETUP.md pour renseigner
               MICROSOFT_CLIENT_ID.
@@ -45,7 +45,7 @@ export default function LoginScreen() {
         )}
         {error && (
           <View style={styles.warningRow}>
-            <Ionicons name="warning" size={16} color={colors.accent} />
+            <Ionicons name="warning" size={16} color={colors.warning} />
             <Text style={styles.warning}>{error}</Text>
           </View>
         )}
@@ -66,27 +66,20 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.primary },
+  // White throughout: the MA2D wordmark is dark brown/red and was
+  // unreadable on the navy background it used to sit on.
+  container: { flex: 1, backgroundColor: colors.surface },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  // The MA2D wordmark is dark brown/red: it needs a white plate to be
-  // readable on the navy screen, exactly as it appears on the company's site.
-  logoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingHorizontal: 24,
-    paddingVertical: 18,
-    marginBottom: 24,
-  },
-  logoImage: { width: 180, height: 100 },
-  logo: { fontSize: 48, fontWeight: '900', color: colors.textOnPrimary, letterSpacing: 2 },
+  logoImage: { width: 220, height: 120, marginBottom: 16 },
+  logo: { fontSize: 44, fontWeight: '900', color: colors.primary, letterSpacing: 2 },
   subtitle: { fontSize: 16, fontWeight: '700', color: colors.accent, letterSpacing: 4, marginBottom: 24 },
-  tagline: { color: colors.textOnPrimary, textAlign: 'center', marginBottom: 40, opacity: 0.85 },
+  tagline: { color: colors.textSecondary, textAlign: 'center', marginBottom: 40 },
   warningRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 20, paddingHorizontal: 8 },
-  warning: { color: colors.accent, textAlign: 'left', flex: 1 },
+  warning: { color: colors.warning, textAlign: 'left', flex: 1 },
   button: { width: '100%' },
   credit: {
-    color: colors.textOnPrimary,
-    opacity: 0.45,
+    color: colors.textSecondary,
+    opacity: 0.7,
     textAlign: 'center',
     fontSize: 12,
     paddingBottom: 16,
