@@ -93,4 +93,9 @@ export function initDatabase(): void {
       // Column already exists — nothing to do.
     }
   }
+  try {
+    db.execSync(`ALTER TABLE photos ADD COLUMN mediaType TEXT NOT NULL DEFAULT 'photo'`);
+  } catch {
+    // Column already exists — nothing to do.
+  }
 }

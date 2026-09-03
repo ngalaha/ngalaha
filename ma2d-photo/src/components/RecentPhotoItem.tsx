@@ -27,7 +27,13 @@ export default function RecentPhotoItem({ photo, onRetry }: Props) {
 
   return (
     <Animated.View style={[styles.row, { opacity, transform: [{ translateY }] }]}>
-      <Image source={{ uri: photo.localUri }} style={styles.thumb} />
+      {photo.mediaType === 'video' ? (
+        <View style={[styles.thumb, styles.videoThumb]}>
+          <Ionicons name="videocam" size={22} color={colors.textOnPrimary} />
+        </View>
+      ) : (
+        <Image source={{ uri: photo.localUri }} style={styles.thumb} />
+      )}
       <View style={styles.info}>
         <Text style={typography.bodyBold}>{formatShortTime(photo.capturedAt)}</Text>
         <Text style={styles.building}>
@@ -56,6 +62,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   thumb: { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.border },
+  videoThumb: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary },
   info: { flex: 1, gap: 2 },
   building: { color: colors.textSecondary, fontSize: 14 },
   retryButton: {

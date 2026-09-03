@@ -27,7 +27,7 @@ import { typography } from '@/theme/typography';
 import { generateId } from '@/utils/idUtils';
 import { USER_MESSAGES } from '@/utils/errorMessages';
 import { sanitizeOneDriveSegment } from '@/utils/oneDriveNaming';
-import { PhotoRecord } from '@/types';
+import { MediaType, PhotoRecord } from '@/types';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -55,6 +55,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string)
       }
     );
   });
+}
+
+/** File extension from a local/picker URI (without the leading dot), or `fallback` if none is found. */
+function extensionFromUri(uri: string, fallback: string): string {
+  const match = uri.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+  return match ? match[1].toLowerCase() : fallback;
 }
 
 export default function HomeScreen({ navigation }: Props) {
@@ -92,14 +98,14 @@ export default function HomeScreen({ navigation }: Props) {
   }, [selectedBuilding?.id]);
 
   const captureFrom = useCallback(
-    async (source: 'camera' | 'gallery') => {
+    async (source: 'camera' | 'gallery', mediaType: MediaType = 'photo') => {
       if (!selectedBuilding) {
-        Alert.alert('Bâtiment requis', 'Choisissez un bâtiment avant de prendre une photo.');
+        Alert.alert('Bâtiment requis', 'Choisissez un bâtiment avant de continuer.');
         return;
       }
 
       setProcessing('opening');
-      logger.info('Photo capture requested', { source, buildingId: selectedBuilding.id });
+      logger.info('Capture requested', { source, mediaType, buildingId: selectedBuilding.id });
 
       try {
         // Check first — only call request*PermissionsAsync (which can pop a system
@@ -123,35 +129,41 @@ export default function HomeScreen({ navigation }: Props) {
           return;
         }
 
+        const pickerMediaTypes =
+          mediaType === 'video' ? ImagePicker.MediaTypeOptions.Videos : ImagePicker.MediaTypeOptions.Images;
+
         const result = await withTimeout(
           source === 'camera'
-            ? ImagePicker.launchCameraAsync({ quality: 1 })
-            : ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                quality: 1,
-              }),
+            ? ImagePicker.launchCameraAsync({ mediaTypes: pickerMediaTypes, quality: 1 })
+            : ImagePicker.launchImageLibraryAsync({ mediaTypes: pickerMediaTypes, quality: 1 }),
           CAMERA_TIMEOUT_MS,
-          "Délai dépassé en attendant l'appareil photo / la galerie"
+          mediaType === 'video'
+            ? 'Délai dépassé en attendant la caméra vidéo'
+            : "Délai dépassé en attendant l'appareil photo / la galerie"
         );
 
         if (result.canceled || !result.assets?.[0]) {
-          logger.info('Capture annulée par l’utilisateur', { source });
+          logger.info('Capture annulée par l’utilisateur', { source, mediaType });
           return;
         }
 
         setProcessing('preparing');
         const captureDate = new Date();
-        const compressed = await compressPhoto(result.assets[0].uri);
+        const asset = result.assets[0];
         const selectedApartment = selectedApartmentId
           ? (apartments.find((a) => a.id === selectedApartmentId) ?? null)
           : null;
-        const fileName = generateUniqueFileName(
-          captureDate,
-          selectedApartment ? sanitizeOneDriveSegment(selectedApartment.name) : undefined
-        );
+        const apartmentPrefix = selectedApartment ? sanitizeOneDriveSegment(selectedApartment.name) : undefined;
+
+        // Photos get resized/re-encoded for a predictable size and format;
+        // videos are used as captured — expo-image-manipulator is image-only,
+        // and re-encoding video on-device is far too slow for this app's needs.
+        const sourceUri = mediaType === 'video' ? asset.uri : (await compressPhoto(asset.uri)).uri;
+        const extension = mediaType === 'video' ? extensionFromUri(asset.uri, 'mp4') : 'jpg';
+        const fileName = generateUniqueFileName(captureDate, apartmentPrefix, extension);
 
         setProcessing('saving');
-        const { uri, sizeBytes } = await persistLocalPhoto(compressed.uri, fileName);
+        const { uri, sizeBytes } = await persistLocalPhoto(sourceUri, fileName);
 
         const photo: PhotoRecord = {
           id: generateId(),
@@ -161,6 +173,7 @@ export default function HomeScreen({ navigation }: Props) {
           buildingName: selectedBuilding.name,
           apartmentId: selectedApartment?.id ?? null,
           apartmentName: selectedApartment?.name ?? null,
+          mediaType,
           fileName,
           localUri: uri,
           capturedAt: captureDate.toISOString(),
@@ -173,18 +186,18 @@ export default function HomeScreen({ navigation }: Props) {
           fileSizeBytes: sizeBytes,
         };
         insertPhoto(photo);
-        logger.info('Photo captured', { fileName, buildingId: selectedBuilding.id });
+        logger.info('Media captured', { fileName, mediaType, buildingId: selectedBuilding.id });
 
         if (!selectedBuilding.photoFolder.itemId) {
-          Alert.alert('Photo enregistrée', USER_MESSAGES.FOLDER_NOT_CONFIGURED);
+          Alert.alert('Fichier enregistré', USER_MESSAGES.FOLDER_NOT_CONFIGURED);
         } else if (!isOnline) {
           Alert.alert('Hors ligne', USER_MESSAGES.NO_INTERNET);
         }
 
         runSync();
       } catch (e) {
-        logger.error('Échec de la capture/préparation de la photo', { source, error: String(e) });
-        Alert.alert('Erreur', "La photo n'a pas pu être préparée. Réessayez.");
+        logger.error('Échec de la capture/préparation du fichier', { source, mediaType, error: String(e) });
+        Alert.alert('Erreur', "Le fichier n'a pas pu être préparé. Réessayez.");
       } finally {
         setProcessing('idle');
       }
@@ -215,7 +228,7 @@ export default function HomeScreen({ navigation }: Props) {
             )}
 
             <View style={styles.cameraArea}>
-              <BigCameraButton onPress={() => captureFrom('camera')} disabled={processing !== 'idle'} />
+              <BigCameraButton onPress={() => captureFrom('camera', 'photo')} disabled={processing !== 'idle'} />
               {processing !== 'idle' && (
                 <Text style={styles.processingText}>
                   {processing === 'opening'
@@ -226,10 +239,18 @@ export default function HomeScreen({ navigation }: Props) {
                 </Text>
               )}
               <PrimaryButton
+                label="Filmer une vidéo"
+                icon="videocam-outline"
+                variant="secondary"
+                onPress={() => captureFrom('camera', 'video')}
+                disabled={processing !== 'idle'}
+                style={styles.galleryButton}
+              />
+              <PrimaryButton
                 label="Choisir dans la galerie"
                 icon="folder-open-outline"
                 variant="secondary"
-                onPress={() => captureFrom('gallery')}
+                onPress={() => captureFrom('gallery', 'photo')}
                 disabled={processing !== 'idle'}
                 style={styles.galleryButton}
               />
@@ -238,7 +259,7 @@ export default function HomeScreen({ navigation }: Props) {
             <PendingUploadsBanner pendingCount={pendingCount} syncing={syncing} isOnline={isOnline} />
 
             <View style={styles.recentHeader}>
-              <Text style={typography.h2}>Photos récentes</Text>
+              <Text style={typography.h2}>Photos et vidéos récentes</Text>
               <Text onPress={() => navigation.navigate('Admin')} style={styles.adminLink}>
                 <Ionicons name="settings-outline" size={15} color={colors.primary} /> Administration
               </Text>
@@ -246,7 +267,7 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         }
         renderItem={({ item }) => <RecentPhotoItem photo={item} onRetry={retryPhoto} />}
-        ListEmptyComponent={<Text style={styles.empty}>Aucune photo pour le moment.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Aucun fichier pour le moment.</Text>}
         contentContainerStyle={styles.listContent}
         ListFooterComponent={
           <Text onPress={signOut} style={styles.signOut}>

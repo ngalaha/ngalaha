@@ -34,19 +34,23 @@ export async function compressPhoto(uri: string): Promise<{ uri: string; width: 
  * system alone would miss it and let a later photo silently reuse — and
  * overwrite — its name.
  */
-export function generateUniqueFileName(captureDate: Date = new Date(), apartmentPrefix?: string): string {
+export function generateUniqueFileName(
+  captureDate: Date = new Date(),
+  apartmentPrefix?: string,
+  extension: string = 'jpg'
+): string {
   const base = formatBaseFileName(captureDate);
   const stem = apartmentPrefix ? `${apartmentPrefix}_${base}` : base;
 
-  const plain = `${stem}.jpg`;
+  const plain = `${stem}.${extension}`;
   if (!fileNameExists(plain)) return plain;
 
   for (let suffix = 1; suffix < 100; suffix++) {
-    const candidate = `${stem}_${suffix.toString().padStart(2, '0')}.jpg`;
+    const candidate = `${stem}_${suffix.toString().padStart(2, '0')}.${extension}`;
     if (!fileNameExists(candidate)) return candidate;
   }
   // Extremely unlikely fallback: fall back to a millisecond-based suffix.
-  return `${stem}_${Date.now() % 1000}.jpg`;
+  return `${stem}_${Date.now() % 1000}.${extension}`;
 }
 
 export function dateFolderFor(captureDate: Date = new Date()): string {

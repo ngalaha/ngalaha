@@ -66,8 +66,9 @@ export interface Apartment {
 }
 
 export type PhotoStatus = 'LOCAL' | 'PENDING' | 'UPLOADING' | 'UPLOADED' | 'FAILED';
+export type MediaType = 'photo' | 'video';
 
-/** A photo captured on-site, tracked through its upload lifecycle. */
+/** A photo or video captured on-site, tracked through its upload lifecycle. */
 export interface PhotoRecord {
   id: string;
   projectId: string;
@@ -77,9 +78,10 @@ export interface PhotoRecord {
   /** Set when the photo was taken for a specific apartment rather than the building in general ("Zone commune"). */
   apartmentId: string | null;
   apartmentName: string | null;
-  /** File name assigned at capture time: [apartmentName_]YYYY-MM-DD_HHmmss[_NN].jpg */
+  mediaType: MediaType;
+  /** File name assigned at capture time: [apartmentName_]YYYY-MM-DD_HHmmss[_NN].jpg|mp4 */
   fileName: string;
-  /** Absolute local URI (expo-file-system) of the (compressed) photo. */
+  /** Absolute local URI (expo-file-system) of the (compressed, for photos) file. */
   localUri: string;
   /** ISO date the photo was captured. */
   capturedAt: string;

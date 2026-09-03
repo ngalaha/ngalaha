@@ -19,6 +19,20 @@ interface GraphDriveItem {
 const SIMPLE_UPLOAD_MAX_BYTES = 4 * 1024 * 1024; // Graph limit for PUT .../content
 const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024; // must be a multiple of 320 KiB per Graph docs
 
+const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+};
+
+/** Best-effort Content-Type for a captured photo or video, from its file extension. */
+function mimeTypeForFileName(fileName: string): string {
+  const extension = fileName.split('.').pop()?.toLowerCase() ?? '';
+  return MIME_TYPES_BY_EXTENSION[extension] ?? 'application/octet-stream';
+}
+
 /**
  * Resolves an administrator-provided OneDrive sharing link (any "Copy
  * link" URL from OneDrive/SharePoint) into a durable Drive ID + Item ID
@@ -182,7 +196,7 @@ async function simpleUpload(
     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'image/jpeg',
+      'Content-Type': mimeTypeForFileName(fileName),
     },
   });
 

@@ -5,9 +5,9 @@ export function insertPhoto(photo: PhotoRecord): void {
   const db = getDb();
   db.runSync(
     `INSERT INTO photos
-      (id, projectId, projectName, buildingId, buildingName, apartmentId, apartmentName, fileName, localUri,
-       capturedAt, dateFolder, status, attempts, lastError, uploadedAt, remoteItemId, fileSizeBytes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, projectId, projectName, buildingId, buildingName, apartmentId, apartmentName, mediaType, fileName,
+       localUri, capturedAt, dateFolder, status, attempts, lastError, uploadedAt, remoteItemId, fileSizeBytes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     photo.id,
     photo.projectId,
     photo.projectName,
@@ -15,6 +15,7 @@ export function insertPhoto(photo: PhotoRecord): void {
     photo.buildingName,
     photo.apartmentId,
     photo.apartmentName,
+    photo.mediaType,
     photo.fileName,
     photo.localUri,
     photo.capturedAt,
