@@ -3,6 +3,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useAdminPinGate } from '@/components/AdminPinGate';
 import PrimaryButton from '@/components/PrimaryButton';
 import { createApartments, deleteApartment, listApartments } from '@/database/apartmentsRepository';
 import { getBuilding } from '@/database/projectsRepository';
@@ -18,6 +19,7 @@ export default function AdminApartmentsScreen({ route }: Props) {
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [bulkText, setBulkText] = useState('');
   const building = getBuilding(buildingId);
+  const { requireAdmin, promptElement } = useAdminPinGate();
 
   const refresh = useCallback(() => {
     setApartments(listApartments(buildingId));
@@ -32,15 +34,17 @@ export default function AdminApartmentsScreen({ route }: Props) {
       .filter(Boolean);
     if (!names.length) return;
 
-    const createdCount = createApartments(buildingId, names);
-    setBulkText('');
-    refresh();
-    const skipped = names.length - createdCount;
-    Alert.alert(
-      'Appartements ajoutés',
-      `${createdCount} appartement(s) ajouté(s).` +
-        (skipped > 0 ? `\n${skipped} ignoré(s) (déjà existant(s)).` : '')
-    );
+    requireAdmin(() => {
+      const createdCount = createApartments(buildingId, names);
+      setBulkText('');
+      refresh();
+      const skipped = names.length - createdCount;
+      Alert.alert(
+        'Appartements ajoutés',
+        `${createdCount} appartement(s) ajouté(s).` +
+          (skipped > 0 ? `\n${skipped} ignoré(s) (déjà existant(s)).` : '')
+      );
+    });
   };
 
   const onDelete = (apartment: Apartment) => {
@@ -49,55 +53,59 @@ export default function AdminApartmentsScreen({ route }: Props) {
       {
         text: 'Supprimer',
         style: 'destructive',
-        onPress: () => {
-          deleteApartment(apartment.id);
-          refresh();
-        },
+        onPress: () =>
+          requireAdmin(() => {
+            deleteApartment(apartment.id);
+            refresh();
+          }),
       },
     ]);
   };
 
   return (
-    <FlatList
-      style={styles.container}
-      contentContainerStyle={{ padding: 20 }}
-      data={apartments}
-      keyExtractor={(a) => a.id}
-      ListHeaderComponent={
-        <View>
-          <Text style={typography.h2}>{building?.name ?? ''}</Text>
-          <Text style={styles.hint}>
-            Ajoutez les noms des appartements de ce bâtiment (un par ligne, ou séparés par des virgules).
-            Le dossier OneDrive de chaque appartement sera créé automatiquement dans le dossier Photo du
-            bâtiment, dès la première photo prise pour cet appartement — aucune configuration OneDrive
-            supplémentaire n'est nécessaire ici.
-          </Text>
-          <TextInput
-            value={bulkText}
-            onChangeText={setBulkText}
-            placeholder={'101\n102\n103...'}
-            style={styles.textarea}
-            multiline
-            numberOfLines={5}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <PrimaryButton label="Ajouter" onPress={onAdd} style={{ marginTop: 12, marginBottom: 24 }} />
-          <Text style={styles.count}>
-            {apartments.length} appartement{apartments.length > 1 ? 's' : ''}
-          </Text>
-        </View>
-      }
-      renderItem={({ item }) => (
-        <View style={styles.row}>
-          <Text style={typography.body}>{item.name}</Text>
-          <Text onPress={() => onDelete(item)} style={styles.delete}>
-            Suppr.
-          </Text>
-        </View>
-      )}
-      ListEmptyComponent={<Text style={styles.empty}>Aucun appartement pour le moment.</Text>}
-    />
+    <>
+      <FlatList
+        style={styles.container}
+        contentContainerStyle={{ padding: 20 }}
+        data={apartments}
+        keyExtractor={(a) => a.id}
+        ListHeaderComponent={
+          <View>
+            <Text style={typography.h2}>{building?.name ?? ''}</Text>
+            <Text style={styles.hint}>
+              Ajoutez les noms des appartements de ce bâtiment (un par ligne, ou séparés par des virgules).
+              Le dossier OneDrive de chaque appartement sera créé automatiquement dans le dossier Photo du
+              bâtiment, dès la première photo prise pour cet appartement — aucune configuration OneDrive
+              supplémentaire n'est nécessaire ici.
+            </Text>
+            <TextInput
+              value={bulkText}
+              onChangeText={setBulkText}
+              placeholder={'101\n102\n103...'}
+              style={styles.textarea}
+              multiline
+              numberOfLines={5}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <PrimaryButton label="Ajouter" onPress={onAdd} style={{ marginTop: 12, marginBottom: 24 }} />
+            <Text style={styles.count}>
+              {apartments.length} appartement{apartments.length > 1 ? 's' : ''}
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.row}>
+            <Text style={typography.body}>{item.name}</Text>
+            <Text onPress={() => onDelete(item)} style={styles.delete}>
+              Suppr.
+            </Text>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>Aucun appartement pour le moment.</Text>}
+      />
+      {promptElement}
+    </>
   );
 }
 

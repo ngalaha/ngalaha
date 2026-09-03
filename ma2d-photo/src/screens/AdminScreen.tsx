@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useAdminPinGate } from '@/components/AdminPinGate';
 import PrimaryButton from '@/components/PrimaryButton';
 import { deleteBuilding, listBuildings } from '@/database/projectsRepository';
 import { useProjects } from '@/hooks/useProjects';
@@ -53,48 +54,54 @@ function BuildingRow({
 
 export default function AdminScreen({ navigation }: Props) {
   const { projects, renameProject, removeProject } = useProjects();
+  const { requireAdmin, promptElement } = useAdminPinGate();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-      <PrimaryButton
-        label="+ Ajouter un projet"
-        onPress={() => navigation.navigate('AdminNewProject')}
-        style={{ marginBottom: 24 }}
-      />
-
-      {projects.map((project) => (
-        <ProjectSection
-          key={project.id}
-          projectId={project.id}
-          projectName={project.name}
-          onRenameProject={(name) => renameProject(project.id, name)}
-          onAddBuilding={() => navigation.navigate('AdminNewBuilding', { projectId: project.id })}
-          onEditBuilding={(buildingId) =>
-            navigation.navigate('AdminBuildingEdit', { buildingId, projectId: project.id })
-          }
-          onDeleteProject={() =>
-            Alert.alert('Supprimer le projet', `Supprimer "${project.name}" et tous ses bâtiments ?`, [
-              { text: 'Annuler', style: 'cancel' },
-              { text: 'Supprimer', style: 'destructive', onPress: () => removeProject(project.id) },
-            ])
-          }
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
+        <PrimaryButton
+          label="+ Ajouter un projet"
+          onPress={() => requireAdmin(() => navigation.navigate('AdminNewProject'))}
+          style={{ marginBottom: 24 }}
         />
-      ))}
 
-      <Text onPress={() => navigation.navigate('Diagnostics')} style={styles.diagnosticsLink}>
-        <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> Diagnostic technique
-      </Text>
+        {projects.map((project) => (
+          <ProjectSection
+            key={project.id}
+            projectId={project.id}
+            projectName={project.name}
+            requireAdmin={requireAdmin}
+            onRenameProject={(name) => renameProject(project.id, name)}
+            onAddBuilding={() => navigation.navigate('AdminNewBuilding', { projectId: project.id })}
+            onEditBuilding={(buildingId) =>
+              navigation.navigate('AdminBuildingEdit', { buildingId, projectId: project.id })
+            }
+            onDeleteProject={() =>
+              Alert.alert('Supprimer le projet', `Supprimer "${project.name}" et tous ses bâtiments ?`, [
+                { text: 'Annuler', style: 'cancel' },
+                { text: 'Supprimer', style: 'destructive', onPress: () => requireAdmin(() => removeProject(project.id)) },
+              ])
+            }
+          />
+        ))}
 
-      <Text onPress={() => navigation.navigate('About')} style={styles.credit}>
-        MA2D Construction — Application développée par Pierre NGALAHA
-      </Text>
-    </ScrollView>
+        <Text onPress={() => navigation.navigate('Diagnostics')} style={styles.diagnosticsLink}>
+          <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> Diagnostic technique
+        </Text>
+
+        <Text onPress={() => navigation.navigate('About')} style={styles.credit}>
+          MA2D Construction — Application développée par Pierre NGALAHA
+        </Text>
+      </ScrollView>
+      {promptElement}
+    </>
   );
 }
 
 function ProjectSection({
   projectId,
   projectName,
+  requireAdmin,
   onRenameProject,
   onAddBuilding,
   onEditBuilding,
@@ -102,6 +109,7 @@ function ProjectSection({
 }: {
   projectId: string;
   projectName: string;
+  requireAdmin: (action: () => void) => void;
   onRenameProject: (name: string) => void;
   onAddBuilding: () => void;
   onEditBuilding: (buildingId: string) => void;
@@ -117,14 +125,15 @@ function ProjectSection({
       {
         text: 'Supprimer',
         style: 'destructive',
-        onPress: () => {
-          // Deletes and refreshes this section's own list directly — this
-          // screen renders every project's buildings, not just the one
-          // "selected" project useProjects() tracks for the Home screen,
-          // so it must not depend on that hook's (differently-scoped) state.
-          deleteBuilding(buildingId);
-          refresh();
-        },
+        onPress: () =>
+          requireAdmin(() => {
+            // Deletes and refreshes this section's own list directly — this
+            // screen renders every project's buildings, not just the one
+            // "selected" project useProjects() tracks for the Home screen,
+            // so it must not depend on that hook's (differently-scoped) state.
+            deleteBuilding(buildingId);
+            refresh();
+          }),
       },
     ]);
   };
@@ -178,7 +187,7 @@ function ProjectSection({
           onDelete={() => onDeleteBuilding(b.id, b.name)}
         />
       ))}
-      <Text onPress={onAddBuilding} style={styles.addBuilding}>
+      <Text onPress={() => requireAdmin(onAddBuilding)} style={styles.addBuilding}>
         + Ajouter un bâtiment
       </Text>
     </View>

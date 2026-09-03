@@ -168,9 +168,14 @@ async function simpleUpload(
   localUri: string
 ): Promise<GraphDriveItem> {
   const accessToken = await getAccessToken();
+  // conflictBehavior=rename: file names are already made unique locally
+  // (millisecond timestamp), but if a same-name file somehow already
+  // exists in this folder (e.g. local history was reset), this makes
+  // OneDrive save the new photo under an auto-renamed name instead of
+  // silently overwriting — or failing — on the collision.
   const url = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${parentItemId}:/${encodeURIComponent(
     fileName
-  )}:/content`;
+  )}:/content?@microsoft.graph.conflictBehavior=rename`;
 
   const result = await FileSystem.uploadAsync(url, localUri, {
     httpMethod: 'PUT',
@@ -199,7 +204,9 @@ async function sessionUpload(
   const session = await graphRequest<{ uploadUrl: string }>({
     method: 'POST',
     path: `/drives/${driveId}/items/${parentItemId}:/${encodeURIComponent(fileName)}:/createUploadSession`,
-    body: { item: { '@microsoft.graph.conflictBehavior': 'replace', name: fileName } },
+    // See simpleUpload() above for why 'rename' rather than 'replace': never
+    // silently overwrite or fail on a same-name collision.
+    body: { item: { '@microsoft.graph.conflictBehavior': 'rename', name: fileName } },
   });
 
   const base64Content = await FileSystem.readAsStringAsync(localUri, {
