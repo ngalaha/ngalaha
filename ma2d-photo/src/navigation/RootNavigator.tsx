@@ -1,7 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useState } from 'react';
+import { Pressable } from 'react-native';
 
+import SideMenu from '@/components/SideMenu';
 import { useAuth } from '@/hooks/useAuth';
 import AboutScreen from '@/screens/AboutScreen';
 import AdminApartmentsScreen from '@/screens/AdminApartmentsScreen';
@@ -20,6 +23,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const { isSignedIn, loading } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (loading) return null;
 
@@ -30,6 +34,11 @@ export default function RootNavigator() {
           headerStyle: { backgroundColor: colors.primary },
           headerTintColor: colors.textOnPrimary,
           headerTitleStyle: { fontWeight: '700' },
+          headerRight: () => (
+            <Pressable onPress={() => setMenuOpen(true)} hitSlop={10} style={{ paddingHorizontal: 4 }}>
+              <Ionicons name="menu" size={26} color={colors.textOnPrimary} />
+            </Pressable>
+          ),
         }}
       >
         {!isSignedIn ? (
@@ -63,6 +72,7 @@ export default function RootNavigator() {
           </>
         )}
       </Stack.Navigator>
+      <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </NavigationContainer>
   );
 }
