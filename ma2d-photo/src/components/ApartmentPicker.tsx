@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { Apartment } from '@/types';
+
+import BottomSheet from './BottomSheet';
 
 const COMMON_AREA_LABEL = 'Zone commune';
 /** Show the search box once there are enough apartments that scrolling to find one gets tedious. */
@@ -39,63 +41,65 @@ export default function ApartmentPicker({ apartments, selectedApartmentId, onSel
   return (
     <View>
       <Text style={[typography.caption, styles.label]}>Appartement</Text>
-      <Pressable style={styles.trigger} onPress={() => setOpen(true)}>
+      <Pressable
+        style={styles.trigger}
+        onPress={() => setOpen(true)}
+        android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+      >
         <Text style={styles.triggerText}>{selectedLabel}</Text>
         <Ionicons name="chevron-down" size={18} color={colors.primary} />
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
-        <Pressable style={styles.backdrop} onPress={close}>
-          <View style={styles.sheet}>
-            <Text style={[typography.h2, styles.sheetTitle]}>Choisir un appartement</Text>
-            {apartments.length > SEARCH_THRESHOLD && (
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder="Rechercher un appartement..."
-                style={styles.search}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            )}
-            <FlatList
-              data={filtered}
-              keyExtractor={(a) => a.id}
-              ListHeaderComponent={
-                !query ? (
-                  <Pressable
-                    style={styles.option}
-                    onPress={() => {
-                      onSelect(null);
-                      close();
-                    }}
-                  >
-                    <Text style={typography.bodyBold}>{COMMON_AREA_LABEL}</Text>
-                    {selectedApartmentId === null && (
-                      <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                    )}
-                  </Pressable>
-                ) : null
-              }
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.option}
-                  onPress={() => {
-                    onSelect(item.id);
-                    close();
-                  }}
-                >
-                  <Text style={typography.bodyBold}>{item.name}</Text>
-                  {selectedApartmentId === item.id && (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                  )}
-                </Pressable>
+      <BottomSheet visible={open} onClose={close}>
+        <Text style={[typography.h2, styles.sheetTitle]}>Choisir un appartement</Text>
+        {apartments.length > SEARCH_THRESHOLD && (
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Rechercher un appartement..."
+            style={styles.search}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        )}
+        <FlatList
+          data={filtered}
+          keyExtractor={(a) => a.id}
+          ListHeaderComponent={
+            !query ? (
+              <Pressable
+                style={styles.option}
+                onPress={() => {
+                  onSelect(null);
+                  close();
+                }}
+                android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+              >
+                <Text style={typography.bodyBold}>{COMMON_AREA_LABEL}</Text>
+                {selectedApartmentId === null && (
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                )}
+              </Pressable>
+            ) : null
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.option}
+              onPress={() => {
+                onSelect(item.id);
+                close();
+              }}
+              android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+            >
+              <Text style={typography.bodyBold}>{item.name}</Text>
+              {selectedApartmentId === item.id && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               )}
-              ListEmptyComponent={<Text style={styles.empty}>Aucun résultat.</Text>}
-            />
-          </View>
-        </Pressable>
-      </Modal>
+            </Pressable>
+          )}
+          ListEmptyComponent={<Text style={styles.empty}>Aucun résultat.</Text>}
+        />
+      </BottomSheet>
     </View>
   );
 }
@@ -114,14 +118,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   triggerText: { ...typography.bodyBold, color: colors.primary },
-  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '70%',
-  },
   sheetTitle: { marginBottom: 12 },
   search: {
     borderWidth: 2,

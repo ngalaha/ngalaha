@@ -24,6 +24,7 @@ export default function BigCameraButton({ onPress, disabled }: Props) {
         onPressIn={() => animateTo(0.92)}
         onPressOut={() => animateTo(1)}
         disabled={disabled}
+        android_ripple={disabled ? undefined : { color: 'rgba(255, 255, 255, 0.3)', borderless: false }}
         style={[styles.circle, { opacity: disabled ? 0.5 : 1 }]}
       >
         <Ionicons name="camera" size={64} color={colors.textOnPrimary} />

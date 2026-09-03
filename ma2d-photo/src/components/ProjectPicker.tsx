@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { Project } from '@/types';
+
+import BottomSheet from './BottomSheet';
 
 interface Props {
   projects: Project[];
@@ -18,38 +20,39 @@ export default function ProjectPicker({ projects, selectedProject, onSelect }: P
   return (
     <View>
       <Text style={[typography.caption, styles.label]}>Projet</Text>
-      <Pressable style={styles.trigger} onPress={() => setOpen(true)}>
+      <Pressable
+        style={styles.trigger}
+        onPress={() => setOpen(true)}
+        android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+      >
         <Text style={styles.triggerText}>
           {selectedProject ? selectedProject.name.toUpperCase() : 'Sélectionner un projet'}
         </Text>
         <Ionicons name="chevron-down" size={18} color={colors.primary} />
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <View style={styles.sheet}>
-            <Text style={[typography.h2, styles.sheetTitle]}>Choisir un projet</Text>
-            <FlatList
-              data={projects}
-              keyExtractor={(p) => p.id}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.option}
-                  onPress={() => {
-                    onSelect(item.id);
-                    setOpen(false);
-                  }}
-                >
-                  <Text style={typography.bodyBold}>{item.name}</Text>
-                  {selectedProject?.id === item.id && (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                  )}
-                </Pressable>
+      <BottomSheet visible={open} onClose={() => setOpen(false)} maxHeight="60%">
+        <Text style={[typography.h2, styles.sheetTitle]}>Choisir un projet</Text>
+        <FlatList
+          data={projects}
+          keyExtractor={(p) => p.id}
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.option}
+              onPress={() => {
+                onSelect(item.id);
+                setOpen(false);
+              }}
+              android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+            >
+              <Text style={typography.bodyBold}>{item.name}</Text>
+              {selectedProject?.id === item.id && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               )}
-            />
-          </View>
-        </Pressable>
-      </Modal>
+            </Pressable>
+          )}
+        />
+      </BottomSheet>
     </View>
   );
 }
@@ -68,8 +71,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   triggerText: { ...typography.bodyBold, color: colors.primary },
-  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '60%' },
   sheetTitle: { marginBottom: 12 },
   option: {
     paddingVertical: 16,

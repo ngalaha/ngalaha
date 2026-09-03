@@ -52,6 +52,7 @@ function BuildingCell({
         onPress={() => onSelect(building.id)}
         onPressIn={() => animateTo(0.95)}
         onPressOut={() => animateTo(1)}
+        android_ripple={{ color: selected ? 'rgba(255, 255, 255, 0.25)' : 'rgba(15, 42, 67, 0.12)' }}
         style={[styles.cell, selected && styles.cellSelected]}
       >
         <Text style={[styles.cellText, selected && styles.cellTextSelected]}>

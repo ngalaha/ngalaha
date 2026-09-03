@@ -35,6 +35,8 @@ export default function PrimaryButton({
   const backgroundColor =
     variant === 'primary' ? colors.accent : variant === 'danger' ? colors.danger : colors.surface;
   const textColor = variant === 'secondary' ? colors.primary : colors.textOnPrimary;
+  // Android-only native ripple, tinted to read well against each variant's background.
+  const rippleColor = variant === 'secondary' ? 'rgba(15, 42, 67, 0.12)' : 'rgba(255, 255, 255, 0.28)';
   const scale = useRef(new Animated.Value(1)).current;
 
   const animateTo = (value: number) => {
@@ -48,6 +50,7 @@ export default function PrimaryButton({
         onPressIn={() => animateTo(0.96)}
         onPressOut={() => animateTo(1)}
         disabled={disabled || loading}
+        android_ripple={disabled || loading ? undefined : { color: rippleColor }}
         style={({ pressed }) => [
           styles.button,
           { backgroundColor, opacity: disabled ? 0.5 : pressed ? 0.9 : 1 },
