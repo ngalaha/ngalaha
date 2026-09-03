@@ -30,7 +30,10 @@ export default function RecentPhotoItem({ photo, onRetry }: Props) {
       <Image source={{ uri: photo.localUri }} style={styles.thumb} />
       <View style={styles.info}>
         <Text style={typography.bodyBold}>{formatShortTime(photo.capturedAt)}</Text>
-        <Text style={styles.building}>{photo.buildingName}</Text>
+        <Text style={styles.building}>
+          {photo.buildingName}
+          {photo.apartmentName ? ` — ${photo.apartmentName}` : ''}
+        </Text>
         <PhotoStatusBadge status={photo.status} />
       </View>
       {photo.status === 'FAILED' && onRetry && (

@@ -1,3 +1,4 @@
+import { getApartment, updateApartmentFolder } from '@/database/apartmentsRepository';
 import { getBuilding, updateBuildingFolder } from '@/database/projectsRepository';
 import {
   countPendingPhotos,
@@ -9,8 +10,14 @@ import {
 } from '@/database/photosRepository';
 import { AppError, USER_MESSAGES } from '@/utils/errorMessages';
 import { logger } from '@/services/logging/logger';
-import { ensureDateFolder, uploadPhoto, verifyFolderAccessible } from '@/services/microsoftGraph/oneDriveService';
+import {
+  ensureApartmentFolder,
+  ensureDateFolder,
+  uploadPhoto,
+  verifyFolderAccessible,
+} from '@/services/microsoftGraph/oneDriveService';
 import { deleteLocalPhoto } from '@/services/storage/fileStorage';
+import { OneDriveFolderRef, PhotoRecord } from '@/types';
 
 import { isConnected } from './connectivityService';
 
@@ -26,6 +33,38 @@ export function subscribeQueueChanges(listener: () => void): () => void {
 
 function notify(): void {
   listeners.forEach((l) => l());
+}
+
+/**
+ * Resolves the OneDrive folder a photo's file should land in: a specific
+ * apartment's own folder (created and cached on first use) when one was
+ * selected at capture time, otherwise the usual YYYY-MM-DD date folder
+ * under the building's Photo folder ("Zone commune").
+ */
+async function resolveTargetFolder(photo: PhotoRecord, buildingFolder: OneDriveFolderRef): Promise<string> {
+  if (!photo.apartmentId) {
+    return ensureDateFolder(buildingFolder, photo.dateFolder);
+  }
+
+  const apartment = getApartment(photo.apartmentId);
+  if (!apartment) {
+    throw new AppError(USER_MESSAGES.FOLDER_NOT_CONFIGURED, `Apartment ${photo.apartmentId} no longer exists`);
+  }
+  if (apartment.folder.itemId) {
+    return apartment.folder.itemId;
+  }
+
+  const created = await ensureApartmentFolder(buildingFolder, apartment.name);
+  updateApartmentFolder(apartment.id, {
+    shareUrl: null,
+    driveId: buildingFolder.driveId,
+    itemId: created.itemId,
+    itemName: apartment.name,
+    webUrl: created.webUrl,
+    verifiedAt: new Date().toISOString(),
+    lastError: null,
+  });
+  return created.itemId;
 }
 
 async function uploadOne(photoId: string): Promise<boolean> {
@@ -44,10 +83,10 @@ async function uploadOne(photoId: string): Promise<boolean> {
   }
 
   try {
-    const dateFolderId = await ensureDateFolder(building.photoFolder, photo.dateFolder);
+    const targetFolderItemId = await resolveTargetFolder(photo, building.photoFolder);
     const { itemId } = await uploadPhoto(
       building.photoFolder.driveId,
-      dateFolderId,
+      targetFolderItemId,
       photo.fileName,
       photo.localUri,
       photo.fileSizeBytes ?? 0

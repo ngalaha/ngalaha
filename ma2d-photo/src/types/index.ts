@@ -49,6 +49,22 @@ export interface Building {
   updatedAt: string;
 }
 
+/**
+ * An apartment/unit within a building (e.g. "101"). Unlike a building's
+ * photoFolder (an admin-provided OneDrive link), an apartment's folder is
+ * created automatically by the app, inside the building's photoFolder, the
+ * first time a photo is uploaded for it — folder starts unresolved (all
+ * fields null) and is filled in and cached once that happens.
+ */
+export interface Apartment {
+  id: string;
+  buildingId: string;
+  name: string;
+  folder: OneDriveFolderRef;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type PhotoStatus = 'LOCAL' | 'PENDING' | 'UPLOADING' | 'UPLOADED' | 'FAILED';
 
 /** A photo captured on-site, tracked through its upload lifecycle. */
@@ -58,7 +74,10 @@ export interface PhotoRecord {
   projectName: string;
   buildingId: string;
   buildingName: string;
-  /** File name assigned at capture time: YYYY-MM-DD_HHmmss[_NN].jpg */
+  /** Set when the photo was taken for a specific apartment rather than the building in general ("Zone commune"). */
+  apartmentId: string | null;
+  apartmentName: string | null;
+  /** File name assigned at capture time: [apartmentName_]YYYY-MM-DD_HHmmss[_NN].jpg */
   fileName: string;
   /** Absolute local URI (expo-file-system) of the (compressed) photo. */
   localUri: string;

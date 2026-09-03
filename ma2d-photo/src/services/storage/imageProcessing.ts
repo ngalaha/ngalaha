@@ -22,8 +22,11 @@ export async function compressPhoto(uri: string): Promise<{ uri: string; width: 
 }
 
 /**
- * Builds the YYYY-MM-DD_HHmmss[_NN].jpg file name, avoiding collisions
- * when two photos are taken within the same second (spec section 10).
+ * Builds the [apartmentPrefix_]YYYY-MM-DD_HHmmss[_NN].jpg file name,
+ * avoiding collisions when two photos are taken within the same second
+ * (spec section 10). When an apartment is selected, its (already
+ * OneDrive-sanitized) name is prepended so the file self-identifies its
+ * apartment and date even outside its OneDrive folder.
  *
  * Checked against the local database (every photo ever captured), not the
  * local file system: an already-uploaded photo's local file is deleted
@@ -31,18 +34,19 @@ export async function compressPhoto(uri: string): Promise<{ uri: string; width: 
  * system alone would miss it and let a later photo silently reuse — and
  * overwrite — its name.
  */
-export function generateUniqueFileName(captureDate: Date = new Date()): string {
+export function generateUniqueFileName(captureDate: Date = new Date(), apartmentPrefix?: string): string {
   const base = formatBaseFileName(captureDate);
+  const stem = apartmentPrefix ? `${apartmentPrefix}_${base}` : base;
 
-  const plain = `${base}.jpg`;
+  const plain = `${stem}.jpg`;
   if (!fileNameExists(plain)) return plain;
 
   for (let suffix = 1; suffix < 100; suffix++) {
-    const candidate = `${base}_${suffix.toString().padStart(2, '0')}.jpg`;
+    const candidate = `${stem}_${suffix.toString().padStart(2, '0')}.jpg`;
     if (!fileNameExists(candidate)) return candidate;
   }
   // Extremely unlikely fallback: fall back to a millisecond-based suffix.
-  return `${base}_${Date.now() % 1000}.jpg`;
+  return `${stem}_${Date.now() % 1000}.jpg`;
 }
 
 export function dateFolderFor(captureDate: Date = new Date()): string {

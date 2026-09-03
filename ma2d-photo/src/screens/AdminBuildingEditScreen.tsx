@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import PrimaryButton from '@/components/PrimaryButton';
+import { listApartments } from '@/database/apartmentsRepository';
 import { getBuilding, updateBuildingFolder, updateBuildingName } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
 import { resolveShareLink } from '@/services/microsoftGraph/oneDriveService';
@@ -18,12 +19,14 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
   const [name, setName] = useState('');
   const [link, setLink] = useState('');
   const [saving, setSaving] = useState(false);
+  const [apartmentCount, setApartmentCount] = useState(0);
 
   useEffect(() => {
     const b = getBuilding(buildingId);
     setBuilding(b);
     setName(b?.name ?? '');
     setLink(b?.photoFolder.shareUrl ?? '');
+    setApartmentCount(listApartments(buildingId).length);
   }, [buildingId]);
 
   if (!building) return null;
@@ -85,6 +88,13 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
         </View>
       )}
 
+      <Text
+        onPress={() => navigation.navigate('AdminApartments', { buildingId })}
+        style={styles.apartmentsLink}
+      >
+        Gérer les appartements ({apartmentCount})
+      </Text>
+
       {saving ? (
         <ActivityIndicator style={{ marginTop: 24 }} color={colors.primary} />
       ) : (
@@ -115,4 +125,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   infoLine: { fontSize: 12, color: colors.textSecondary, fontFamily: 'monospace' },
+  apartmentsLink: { color: colors.primary, fontWeight: '700', marginTop: 24, textAlign: 'center' },
 });

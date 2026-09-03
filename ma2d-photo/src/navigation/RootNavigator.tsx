@@ -4,6 +4,7 @@ import React from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
 import AboutScreen from '@/screens/AboutScreen';
+import AdminApartmentsScreen from '@/screens/AdminApartmentsScreen';
 import AdminBuildingEditScreen from '@/screens/AdminBuildingEditScreen';
 import AdminNewBuildingScreen from '@/screens/AdminNewBuildingScreen';
 import AdminNewProjectScreen from '@/screens/AdminNewProjectScreen';
@@ -51,6 +52,11 @@ export default function RootNavigator() {
               name="AdminBuildingEdit"
               component={AdminBuildingEditScreen}
               options={{ title: 'Dossier OneDrive' }}
+            />
+            <Stack.Screen
+              name="AdminApartments"
+              component={AdminApartmentsScreen}
+              options={{ title: 'Appartements' }}
             />
             <Stack.Screen name="Diagnostics" component={DiagnosticsScreen} options={{ title: 'Diagnostic' }} />
             <Stack.Screen name="About" component={AboutScreen} options={{ title: 'À propos' }} />

@@ -62,5 +62,35 @@ export function initDatabase(): void {
 
     CREATE INDEX IF NOT EXISTS idx_photos_status ON photos(status);
     CREATE INDEX IF NOT EXISTS idx_photos_capturedAt ON photos(capturedAt);
+
+    CREATE TABLE IF NOT EXISTS apartments (
+      id TEXT PRIMARY KEY NOT NULL,
+      buildingId TEXT NOT NULL,
+      name TEXT NOT NULL,
+      driveId TEXT,
+      itemId TEXT,
+      itemName TEXT,
+      webUrl TEXT,
+      verifiedAt TEXT,
+      lastError TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL,
+      FOREIGN KEY (buildingId) REFERENCES buildings(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_apartments_buildingId ON apartments(buildingId);
   `);
+
+  // photos.apartmentId/apartmentName were added after the first release —
+  // CREATE TABLE IF NOT EXISTS above leaves an existing install's photos
+  // table untouched, so add the columns here if they're missing. SQLite has
+  // no "ADD COLUMN IF NOT EXISTS"; the try/catch is the standard way to
+  // make this idempotent across every app start.
+  for (const column of ['apartmentId', 'apartmentName']) {
+    try {
+      db.execSync(`ALTER TABLE photos ADD COLUMN ${column} TEXT`);
+    } catch {
+      // Column already exists — nothing to do.
+    }
+  }
 }

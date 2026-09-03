@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, InteractionManager, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
+import ApartmentPicker from '@/components/ApartmentPicker';
 import BigCameraButton from '@/components/BigCameraButton';
 import BuildingGrid from '@/components/BuildingGrid';
 import PendingUploadsBanner from '@/components/PendingUploadsBanner';
@@ -11,6 +12,7 @@ import PrimaryButton from '@/components/PrimaryButton';
 import ProjectPicker from '@/components/ProjectPicker';
 import RecentPhotoItem from '@/components/RecentPhotoItem';
 import { insertPhoto } from '@/database/photosRepository';
+import { useApartments } from '@/hooks/useApartments';
 import { useAuth } from '@/hooks/useAuth';
 import { useConnectivity } from '@/hooks/useConnectivity';
 import { usePhotoQueue } from '@/hooks/usePhotoQueue';
@@ -24,6 +26,7 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { generateId } from '@/utils/idUtils';
 import { USER_MESSAGES } from '@/utils/errorMessages';
+import { sanitizeOneDriveSegment } from '@/utils/oneDriveNaming';
 import { PhotoRecord } from '@/types';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -52,7 +55,9 @@ export default function HomeScreen({ navigation }: Props) {
     refreshBuildings,
   } = useProjects();
   const { recentPhotos, pendingCount, syncing, retryPhoto } = usePhotoQueue();
+  const { apartments, refreshApartments } = useApartments(selectedBuilding?.id ?? null);
   const [processing, setProcessing] = useState<'idle' | 'opening' | 'preparing' | 'saving'>('idle');
+  const [selectedApartmentId, setSelectedApartmentId] = useState<string | null>(null);
 
   // Home stays mounted underneath Administration in the stack, so its
   // building list (OneDrive folder status, names) would otherwise go stale
@@ -60,8 +65,16 @@ export default function HomeScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       refreshBuildings();
-    }, [refreshBuildings])
+      refreshApartments();
+    }, [refreshBuildings, refreshApartments])
   );
+
+  // A previously selected apartment belongs to the previously selected
+  // building — switching buildings without resetting this would silently
+  // tag the next photo with the wrong (or a since-deleted) apartment.
+  useEffect(() => {
+    setSelectedApartmentId(null);
+  }, [selectedBuilding?.id]);
 
   const captureFrom = useCallback(
     async (source: 'camera' | 'gallery') => {
@@ -112,7 +125,13 @@ export default function HomeScreen({ navigation }: Props) {
         setProcessing('preparing');
         const captureDate = new Date();
         const compressed = await compressPhoto(result.assets[0].uri);
-        const fileName = await generateUniqueFileName(captureDate);
+        const selectedApartment = selectedApartmentId
+          ? (apartments.find((a) => a.id === selectedApartmentId) ?? null)
+          : null;
+        const fileName = generateUniqueFileName(
+          captureDate,
+          selectedApartment ? sanitizeOneDriveSegment(selectedApartment.name) : undefined
+        );
 
         setProcessing('saving');
         const { uri, sizeBytes } = await persistLocalPhoto(compressed.uri, fileName);
@@ -123,6 +142,8 @@ export default function HomeScreen({ navigation }: Props) {
           projectName: selectedProject!.name,
           buildingId: selectedBuilding.id,
           buildingName: selectedBuilding.name,
+          apartmentId: selectedApartment?.id ?? null,
+          apartmentName: selectedApartment?.name ?? null,
           fileName,
           localUri: uri,
           capturedAt: captureDate.toISOString(),
@@ -151,7 +172,7 @@ export default function HomeScreen({ navigation }: Props) {
         setProcessing('idle');
       }
     },
-    [selectedBuilding, selectedProject, isOnline]
+    [selectedBuilding, selectedProject, isOnline, selectedApartmentId, apartments]
   );
 
   return (
@@ -167,6 +188,14 @@ export default function HomeScreen({ navigation }: Props) {
               selectedBuildingId={selectedBuilding?.id ?? null}
               onSelect={selectBuilding}
             />
+
+            {selectedBuilding && apartments.length > 0 && (
+              <ApartmentPicker
+                apartments={apartments}
+                selectedApartmentId={selectedApartmentId}
+                onSelect={setSelectedApartmentId}
+              />
+            )}
 
             <View style={styles.cameraArea}>
               <BigCameraButton

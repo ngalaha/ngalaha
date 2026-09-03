@@ -99,6 +99,36 @@ export async function verifyFolderAccessible(folder: OneDriveFolderRef): Promise
   }
 }
 
+/** Finds (or creates) a direct child folder by exact name and returns it. */
+async function findOrCreateChildFolder(
+  driveId: string,
+  parentItemId: string,
+  name: string
+): Promise<GraphDriveItem> {
+  try {
+    const existing = await graphRequest<GraphDriveItem>({
+      path: `/drives/${driveId}/items/${parentItemId}:/${encodeURIComponent(name)}`,
+    });
+    logger.info('Dossier existant trouvé', { name, id: existing.id });
+    return existing;
+  } catch (e) {
+    if (!(e instanceof AppError) || e.userMessage !== USER_MESSAGES.FOLDER_NOT_FOUND) {
+      throw e;
+    }
+  }
+
+  logger.info('Création du dossier', { name });
+  return graphRequest<GraphDriveItem>({
+    method: 'POST',
+    path: `/drives/${driveId}/items/${parentItemId}/children`,
+    body: {
+      name,
+      folder: {},
+      '@microsoft.graph.conflictBehavior': 'fail',
+    },
+  });
+}
+
 /**
  * Finds (or creates) the YYYY-MM-DD sub-folder inside the building's
  * Photo folder and returns its Item ID (spec section 12).
@@ -110,32 +140,25 @@ export async function ensureDateFolder(
   if (!folder.driveId || !folder.itemId) {
     throw new AppError(USER_MESSAGES.FOLDER_NOT_CONFIGURED, 'Building has no OneDrive folder configured');
   }
+  const item = await findOrCreateChildFolder(folder.driveId, folder.itemId, dateFolderName);
+  return item.id;
+}
 
-  const { driveId, itemId } = folder;
-
-  try {
-    const existing = await graphRequest<GraphDriveItem>({
-      path: `/drives/${driveId}/items/${itemId}:/${encodeURIComponent(dateFolderName)}`,
-    });
-    logger.info('Dossier date existant trouvé', { dateFolderName, id: existing.id });
-    return existing.id;
-  } catch (e) {
-    if (!(e instanceof AppError) || e.userMessage !== USER_MESSAGES.FOLDER_NOT_FOUND) {
-      throw e;
-    }
+/**
+ * Finds (or creates) an apartment's own sub-folder directly inside the
+ * building's Photo folder — apartment folders are flat siblings of the
+ * date folders used for "Zone commune" photos, created automatically the
+ * first time a photo for that apartment is uploaded, and reused after.
+ */
+export async function ensureApartmentFolder(
+  buildingFolder: OneDriveFolderRef,
+  apartmentName: string
+): Promise<{ itemId: string; webUrl: string }> {
+  if (!buildingFolder.driveId || !buildingFolder.itemId) {
+    throw new AppError(USER_MESSAGES.FOLDER_NOT_CONFIGURED, 'Building has no OneDrive folder configured');
   }
-
-  logger.info('Création du dossier date', { dateFolderName });
-  const created = await graphRequest<GraphDriveItem>({
-    method: 'POST',
-    path: `/drives/${driveId}/items/${itemId}/children`,
-    body: {
-      name: dateFolderName,
-      folder: {},
-      '@microsoft.graph.conflictBehavior': 'fail',
-    },
-  });
-  return created.id;
+  const item = await findOrCreateChildFolder(buildingFolder.driveId, buildingFolder.itemId, apartmentName);
+  return { itemId: item.id, webUrl: item.webUrl };
 }
 
 async function simpleUpload(
