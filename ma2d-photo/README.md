@@ -123,6 +123,10 @@ ma2d-photo/
   `offline_access` — aucune permission d'application. Le variant
   `.All` est imposé par l'endpoint `/shares` utilisé pour résoudre
   les liens de partage (voir `docs/ENTRA_ID_SETUP.md`).
+- Consentement **en deux temps** : la connexion ne demande que l'identité,
+  l'accès aux fichiers est obtenu silencieusement au premier accès réel à
+  OneDrive. L'application reste donc utilisable (photos mises en file
+  d'attente) tant que l'administrateur n'a pas donné son accord.
 - Toutes les opérations OneDrive respectent les droits réels du compte
   Microsoft connecté — l'app ne contourne aucune permission.
 

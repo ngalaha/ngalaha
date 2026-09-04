@@ -6,7 +6,7 @@ import { logger } from '@/services/logging/logger';
 import { OneDriveFolderRef } from '@/types';
 
 import { graphRequest } from './graphClient';
-import { getAccessToken } from './authService';
+import { getFilesAccessToken } from './authService';
 
 interface GraphDriveItem {
   id: string;
@@ -181,7 +181,7 @@ async function simpleUpload(
   fileName: string,
   localUri: string
 ): Promise<GraphDriveItem> {
-  const accessToken = await getAccessToken();
+  const accessToken = await getFilesAccessToken();
   // conflictBehavior=rename: file names are already made unique locally
   // (millisecond timestamp), but if a same-name file somehow already
   // exists in this folder (e.g. local history was reset), this makes
@@ -324,7 +324,7 @@ export async function readJsonFile<T>(
   parentItemId: string,
   fileName: string
 ): Promise<RemoteJsonFile<T> | null> {
-  const accessToken = await getAccessToken();
+  const accessToken = await getFilesAccessToken();
   const base = itemContentUrl(driveId, parentItemId, fileName);
 
   const metaResponse = await fetch(`${base}?$select=id,eTag`, {
@@ -382,7 +382,7 @@ export async function writeJsonFile(
   content: unknown,
   eTag: string | null
 ): Promise<string | null> {
-  const accessToken = await getAccessToken();
+  const accessToken = await getFilesAccessToken();
   const conflictBehavior = eTag ? 'replace' : 'fail';
   const url = `${itemContentUrl(driveId, parentItemId, fileName)}/content?@microsoft.graph.conflictBehavior=${conflictBehavior}`;
 

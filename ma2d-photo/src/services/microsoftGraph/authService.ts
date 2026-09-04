@@ -9,7 +9,7 @@ import { clearTokenCache, loadTokenCache, saveTokenCache } from '@/services/stor
 import { base64Decode, utf8DecodeBytes } from '@/utils/base64';
 import { MicrosoftAccount } from '@/types';
 
-import { GRAPH_SCOPES, discovery, getRedirectUri } from './authConfig';
+import { FILE_SCOPES, SIGN_IN_SCOPES, discovery, getRedirectUri } from './authConfig';
 import { publishAccount } from './authStore';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -22,6 +22,8 @@ interface TokenSet {
 }
 
 let cachedTokenSet: TokenSet | null = null;
+/** Kept in memory only — it is derived from the stored refresh token. */
+let filesToken: { accessToken: string; expiresAt: number } | null = null;
 const REFRESH_SAFETY_MARGIN_MS = 5 * 60 * 1000;
 
 function decodeIdTokenClaims(idToken: string): { username: string; name: string | null; oid: string } {
@@ -53,6 +55,7 @@ async function persist(tokenSet: TokenSet): Promise<void> {
 /** Drops the session everywhere: memory, secure store, and every screen. */
 async function forgetSession(): Promise<void> {
   cachedTokenSet = null;
+  filesToken = null;
   await clearTokenCache();
   publishAccount(null);
 }
@@ -82,7 +85,7 @@ export async function signIn(): Promise<MicrosoftAccount> {
   const redirectUri = getRedirectUri();
   const request = new AuthSession.AuthRequest({
     clientId: ENV.MICROSOFT_CLIENT_ID,
-    scopes: GRAPH_SCOPES,
+    scopes: SIGN_IN_SCOPES,
     redirectUri,
     usePKCE: true,
     responseType: AuthSession.ResponseType.Code,
@@ -101,7 +104,7 @@ export async function signIn(): Promise<MicrosoftAccount> {
       clientId: ENV.MICROSOFT_CLIENT_ID,
       code: result.params.code,
       redirectUri,
-      scopes: GRAPH_SCOPES,
+      scopes: SIGN_IN_SCOPES,
       extraParams: {
         code_verifier: request.codeVerifier ?? '',
       },
@@ -150,7 +153,7 @@ export async function getAccessToken(): Promise<string> {
       {
         clientId: ENV.MICROSOFT_CLIENT_ID,
         refreshToken: tokenSet.refreshToken,
-        scopes: GRAPH_SCOPES,
+        scopes: SIGN_IN_SCOPES,
       },
       discovery
     );
@@ -166,6 +169,64 @@ export async function getAccessToken(): Promise<string> {
     logger.error('Échec du renouvellement du jeton Microsoft', { error: String(e) });
     await forgetSession();
     throw new AppError(USER_MESSAGES.SESSION_EXPIRED, 'Refresh failed', e);
+  }
+}
+
+
+/**
+ * An access token that may touch OneDrive files.
+ *
+ * Sign-in only asks for identity (see authConfig), so this exchanges the
+ * refresh token for the file scopes as well. Microsoft grants that silently
+ * once — and only once — an administrator has consented; until then it
+ * refuses, which is reported as "autorisation en attente" rather than as a
+ * broken session. Nothing here signs the user out: the account is fine, it
+ * is the authorization that is missing.
+ */
+export async function getFilesAccessToken(): Promise<string> {
+  if (filesToken && Date.now() < filesToken.expiresAt - REFRESH_SAFETY_MARGIN_MS) {
+    return filesToken.accessToken;
+  }
+
+  const tokenSet = await restore();
+  if (!tokenSet) throw new AppError(USER_MESSAGES.SESSION_EXPIRED, 'No token cache');
+  if (!tokenSet.refreshToken) {
+    await forgetSession();
+    throw new AppError(USER_MESSAGES.SESSION_EXPIRED, 'No refresh token available');
+  }
+
+  try {
+    const upgraded = await AuthSession.refreshAsync(
+      {
+        clientId: ENV.MICROSOFT_CLIENT_ID,
+        refreshToken: tokenSet.refreshToken,
+        scopes: FILE_SCOPES,
+      },
+      discovery
+    );
+    filesToken = {
+      accessToken: upgraded.accessToken,
+      expiresAt: Date.now() + (upgraded.expiresIn ?? 3600) * 1000,
+    };
+    // A refreshed refresh token must replace the stored one, or the next
+    // silent call would present a token Microsoft has already rotated out.
+    if (upgraded.refreshToken && upgraded.refreshToken !== tokenSet.refreshToken) {
+      await persist({ ...tokenSet, refreshToken: upgraded.refreshToken });
+    }
+    return filesToken.accessToken;
+  } catch (e) {
+    filesToken = null;
+    // A refusal here has two very different causes. Ask for the sign-in
+    // scopes alone to tell them apart: if that works, the session is healthy
+    // and it is the file authorization that is missing; if it fails too, the
+    // session itself is gone and getAccessToken has already cleared it and
+    // thrown SESSION_EXPIRED — which sends the user back to the login screen
+    // instead of leaving them staring at a consent message forever.
+    await getAccessToken();
+    logger.warn('Accès aux fichiers OneDrive refusé — consentement administrateur en attente', {
+      error: String(e),
+    });
+    throw new AppError(USER_MESSAGES.AUTHORIZATION_PENDING, 'Files scope not consented', e);
   }
 }
 

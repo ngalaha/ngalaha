@@ -65,6 +65,24 @@ Microsoft Entra ID (anciennement Azure AD) pour obtenir un **Client ID**.
 4. Si votre organisation l'exige, cliquer **Accorder un consentement
    d'administrateur** ("Grant admin consent").
 
+### Le consentement se fait en deux temps
+
+L'application ne demande **que l'identité** au moment de la connexion
+(`openid`, `profile`, `offline_access`, `User.Read`). L'accès aux fichiers
+(`Files.ReadWrite.All`) est demandé séparément et silencieusement, la
+première fois que l'application touche réellement à OneDrive.
+
+C'est délibéré : dans un locataire qui exige l'approbation d'un
+administrateur pour l'accès aux fichiers, tout demander à la connexion
+transforme l'écran de connexion lui-même en « Approbation administrateur
+requise » — l'application devient inutilisable, et pas seulement incapable
+d'envoyer. En deux temps, chacun peut se connecter, prendre des photos et
+les mettre en file d'attente pendant que l'autorisation est en cours
+d'obtention ; l'envoi affiche « autorisation en attente ».
+
+Dès que le consentement administrateur est accordé, la demande silencieuse
+aboutit et la file part toute seule — personne n'a à se reconnecter.
+
 ### Pourquoi `Files.ReadWrite.All` et pas `Files.ReadWrite`
 
 L'app atteint le dossier Photo de chaque bâtiment à partir de son **lien

@@ -2,7 +2,7 @@ import { AppError, USER_MESSAGES } from '@/utils/errorMessages';
 import { logger } from '@/services/logging/logger';
 
 import { GRAPH_BASE_URL } from './authConfig';
-import { getAccessToken, signOut } from './authService';
+import { getFilesAccessToken, signOut } from './authService';
 
 interface GraphRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -14,7 +14,8 @@ interface GraphRequestOptions {
 
 /** Thin, explicit wrapper around Microsoft Graph REST calls (v1.0). */
 export async function graphRequest<T>(options: GraphRequestOptions): Promise<T> {
-  const accessToken = await getAccessToken();
+  // Every Graph call this client makes touches OneDrive files.
+  const accessToken = await getFilesAccessToken();
   const url = options.path.startsWith('http') ? options.path : `${GRAPH_BASE_URL}${options.path}`;
 
   const headers: Record<string, string> = {

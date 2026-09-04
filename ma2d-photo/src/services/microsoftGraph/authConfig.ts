@@ -9,24 +9,31 @@ import { ENV } from '@/config/env';
  */
 
 /**
- * Delegated scopes only — the app never acts on its own behalf, always as
- * the signed-in user.
+ * Scopes are asked for in two steps, on purpose.
  *
- * Files.ReadWrite.All rather than Files.ReadWrite: the building folders are
+ * SIGN_IN_SCOPES is what signing in requests: identity only. MA2D's tenant
+ * requires an administrator to approve access to files, and asking for that
+ * up front turns the sign-in screen itself into "Approbation administrateur
+ * requise" — the app becomes unusable, not just unable to upload. Keeping
+ * sign-in to identity means everyone can use the app, take photos and queue
+ * them while the authorization is being arranged.
+ *
+ * FILE_SCOPES is requested silently, later, the first time the app actually
+ * touches OneDrive (see getFilesAccessToken). Before consent is granted that
+ * request fails and the queue reports "autorisation en attente"; the moment
+ * an administrator grants it, the same silent request succeeds and the
+ * backlog uploads on its own, with nobody signing in again.
+ *
+ * Files.ReadWrite.All rather than Files.ReadWrite: building folders are
  * reached through a share link resolved with GET /shares/{id}/driveItem
- * (oneDriveService.ts), and that endpoint is only granted by the .All
- * variant. Files.ReadWrite alone covers the user's own drive and would
- * fail with 403 on every company-shared folder — which is exactly the
- * setup this app is built for. Being delegated, it still never exceeds
- * what the signed-in employee can already open in OneDrive themselves.
+ * (oneDriveService.ts), and Graph only grants that endpoint to the .All
+ * variant. Every scope here is delegated — the app never acts on its own
+ * behalf, and never reaches beyond what the signed-in employee can already
+ * open in OneDrive themselves.
  */
-export const GRAPH_SCOPES = [
-  'openid',
-  'profile',
-  'offline_access',
-  'User.Read',
-  'Files.ReadWrite.All',
-];
+export const SIGN_IN_SCOPES = ['openid', 'profile', 'offline_access', 'User.Read'];
+
+export const FILE_SCOPES = [...SIGN_IN_SCOPES, 'Files.ReadWrite.All'];
 
 export function getAuthority(): string {
   return `https://login.microsoftonline.com/${ENV.MICROSOFT_TENANT_ID}/v2.0`;
