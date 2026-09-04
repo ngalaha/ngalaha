@@ -6,8 +6,12 @@ sans aucune manipulation manuelle, dans le bon dossier **Microsoft
 OneDrive** :
 
 ```
-Projet > Bâtiment > Photo > YYYY-MM-DD > YYYY-MM-DD_HHmmss.jpg
+Projet > Bâtiment > Photo > Appartement > Appartement_YYYY-MM-DD_HHmmss_mmm.jpg
+Projet > Bâtiment > Photo > YYYY-MM-DD  > YYYY-MM-DD_HHmmss_mmm.jpg   (zone commune)
 ```
+
+Le dossier de chaque appartement est créé automatiquement dans le dossier
+Photo du bâtiment ; seul le lien du dossier Photo se configure à la main.
 
 Fonctionne **hors ligne** : toute photo prise sans connexion est conservée
 localement et envoyée automatiquement dès le retour d'Internet, même après
@@ -41,15 +45,24 @@ bénéfice marginal — React Native + Expo reste donc le bon choix.
   par session pour les fichiers volumineux).
 - ✅ Base de données locale (SQLite) : projets, bâtiments, file d'attente
   de photos avec statuts.
-- ✅ Capture photo (appareil photo + galerie), compression, renommage
-  automatique avec anti-collision.
+- ✅ Capture **dans l'application** (photo et vidéo) et import depuis la
+  galerie, compression, renommage automatique horodaté à la milliseconde
+  — deux photos du même endroit dans la même seconde ne s’écrasent
+  jamais.
+- ✅ Appartements par bâtiment : saisie en lot avec plages ("101-127"),
+  dossier OneDrive de l'appartement créé automatiquement, ou "zone
+  commune" quand aucun appartement n'est choisi.
 - ✅ File d'attente hors ligne, reprise automatique à la reconnexion, à la
-  réouverture de l'app, et en tâche de fond best-effort.
-- ✅ Écran principal (sélection projet/bâtiment, gros bouton photo, photos
-  récentes, bannière "en attente").
-- ✅ Administration (projets/bâtiments, configuration des dossiers
-  OneDrive, statut ✓/⚠ par bâtiment) + écran de diagnostic technique.
-- ✅ Configuration initiale : Projet Champfleury + Bâtiments A à F
+  réouverture de l'app, et en tâche de fond best-effort ; envoi manuel en
+  touchant la bannière, réessai ou retrait d'un fichier en échec.
+- ✅ Écran principal (sélection projet/bâtiment/appartement, gros bouton
+  photo, fichiers récents, bannière "en attente") et menu latéral avec
+  l'écran "À propos".
+- ✅ Administration protégée par code PIN (création/suppression de projets,
+  bâtiments et appartements, configuration des dossiers OneDrive, statut
+  ✓/⚠ par bâtiment, changement du code PIN) + écran de diagnostic
+  technique dont le journal peut être partagé.
+- ✅ Configuration initiale : Projet Champfleury Phase 1 + Bâtiments A à F
   (liens OneDrive en placeholder — à renseigner, voir plus bas).
 - ✅ Documentation complète (ce fichier + `docs/`).
 

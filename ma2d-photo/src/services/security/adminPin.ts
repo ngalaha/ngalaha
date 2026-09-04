@@ -29,6 +29,11 @@ export function isAdminSessionActive(): boolean {
   return Date.now() - lastVerifiedAt < ADMIN_SESSION_MS;
 }
 
+/** Locks administration again — called on sign-out. */
+export function clearAdminSession(): void {
+  lastVerifiedAt = 0;
+}
+
 async function hashPin(pin: string): Promise<string> {
   return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin);
 }

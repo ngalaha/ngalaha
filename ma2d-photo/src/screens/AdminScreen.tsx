@@ -7,6 +7,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-nati
 import { useAdminPinGate } from '@/components/AdminPinGate';
 import PrimaryButton from '@/components/PrimaryButton';
 import { deleteBuilding, listBuildings } from '@/database/projectsRepository';
+import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
 import { colors } from '@/theme/colors';
@@ -54,7 +55,8 @@ function BuildingRow({
 
 export default function AdminScreen({ navigation }: Props) {
   const { projects, renameProject, removeProject } = useProjects();
-  const { requireAdmin, promptElement } = useAdminPinGate();
+  const { account } = useAuth();
+  const { requireAdmin, promptPinChange, promptElement } = useAdminPinGate();
 
   return (
     <>
@@ -84,6 +86,19 @@ export default function AdminScreen({ navigation }: Props) {
             }
           />
         ))}
+
+        <View style={styles.section}>
+          <Text style={typography.h2}>SÉCURITÉ</Text>
+          <View style={styles.securityRow}>
+            <Ionicons name="person-circle-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.securityText} numberOfLines={1}>
+              {account ? `Connecté : ${account.username}` : 'Aucun compte Microsoft connecté'}
+            </Text>
+          </View>
+          <Text onPress={promptPinChange} style={[styles.link, { marginTop: 12 }]}>
+            Changer le code PIN administrateur
+          </Text>
+        </View>
 
         <Text onPress={() => navigation.navigate('Diagnostics')} style={styles.diagnosticsLink}>
           <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> Diagnostic technique
@@ -235,6 +250,8 @@ const styles = StyleSheet.create({
   buildingNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   status: { fontSize: 13, marginTop: 2 },
   link: { color: colors.primary, fontWeight: '700' },
+  securityRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  securityText: { color: colors.textSecondary, fontSize: 13, flex: 1 },
   addBuilding: { color: colors.primary, fontWeight: '700', marginTop: 12 },
   credit: { textAlign: 'center', color: colors.textSecondary, opacity: 0.6, fontSize: 12, marginBottom: 24 },
   diagnosticsLink: { textAlign: 'center', color: colors.textSecondary, marginTop: 12, marginBottom: 12 },

@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { listRecentPhotos } from '@/database/photosRepository';
-import { getPendingCount, isSyncRunning, retryPhoto, runSync, subscribeQueueChanges } from '@/services/upload/uploadQueueService';
+import {
+  discardFailedPhoto,
+  getPendingCount,
+  isSyncRunning,
+  retryPhoto,
+  runSync,
+  subscribeQueueChanges,
+} from '@/services/upload/uploadQueueService';
 import { PhotoRecord } from '@/types';
 
 export function usePhotoQueue() {
@@ -28,5 +35,6 @@ export function usePhotoQueue() {
     refresh,
     triggerSync: runSync,
     retryPhoto,
+    discardPhoto: discardFailedPhoto,
   };
 }

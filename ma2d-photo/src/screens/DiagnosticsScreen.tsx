@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Share, StyleSheet, Text, View } from 'react-native';
 
 import PrimaryButton from '@/components/PrimaryButton';
 import { logger, LogEntry } from '@/services/logging/logger';
@@ -18,11 +18,31 @@ export default function DiagnosticsScreen() {
 
   useEffect(() => logger.subscribe(() => setEntries(logger.getEntries())), []);
 
+  /**
+   * Sends the log out as plain text. Diagnosing an upload that fails on a
+   * jobsite phone means putting these lines in front of whoever administers
+   * OneDrive, and reading them off the screen is not that.
+   */
+  const shareLog = () => {
+    if (!entries.length) return;
+    const text = entries
+      .map(
+        (e) =>
+          `${new Date(e.timestamp).toISOString()} [${e.level.toUpperCase()}] ${e.message}` +
+          (e.data ? ` ${JSON.stringify(e.data)}` : '')
+      )
+      .join('\n');
+    Share.share({ title: 'MA2D Photo — journal technique', message: text });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.actions}>
-        <PrimaryButton label="Forcer la synchronisation" onPress={() => runSync()} style={{ flex: 1 }} />
-        <PrimaryButton label="Effacer" variant="secondary" onPress={() => logger.clear()} style={{ flex: 1 }} />
+        <PrimaryButton label="Forcer la synchronisation" onPress={() => runSync()} />
+        <View style={styles.actionsRow}>
+          <PrimaryButton label="Partager" variant="secondary" onPress={shareLog} style={{ flex: 1 }} />
+          <PrimaryButton label="Effacer" variant="secondary" onPress={() => logger.clear()} style={{ flex: 1 }} />
+        </View>
       </View>
       <FlatList
         data={entries}
@@ -43,7 +63,8 @@ export default function DiagnosticsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  actions: { flexDirection: 'row', gap: 12, padding: 16 },
+  actions: { gap: 12, padding: 16 },
+  actionsRow: { flexDirection: 'row', gap: 12 },
   entry: { marginBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: 8 },
   time: { fontSize: 11, color: colors.textSecondary },
   data: { fontSize: 11, color: colors.textSecondary, fontFamily: 'monospace' },

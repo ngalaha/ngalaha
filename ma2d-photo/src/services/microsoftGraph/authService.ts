@@ -4,11 +4,13 @@ import * as WebBrowser from 'expo-web-browser';
 import { ENV, isMicrosoftAuthConfigured } from '@/config/env';
 import { AppError, USER_MESSAGES } from '@/utils/errorMessages';
 import { logger } from '@/services/logging/logger';
+import { clearAdminSession } from '@/services/security/adminPin';
 import { clearTokenCache, loadTokenCache, saveTokenCache } from '@/services/storage/secureStore';
 import { base64Decode, utf8DecodeBytes } from '@/utils/base64';
 import { MicrosoftAccount } from '@/types';
 
 import { GRAPH_SCOPES, discovery, getRedirectUri } from './authConfig';
+import { publishAccount } from './authStore';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -45,6 +47,14 @@ function decodeIdTokenClaims(idToken: string): { username: string; name: string 
 async function persist(tokenSet: TokenSet): Promise<void> {
   cachedTokenSet = tokenSet;
   await saveTokenCache(tokenSet);
+  publishAccount(tokenSet.account);
+}
+
+/** Drops the session everywhere: memory, secure store, and every screen. */
+async function forgetSession(): Promise<void> {
+  cachedTokenSet = null;
+  await clearTokenCache();
+  publishAccount(null);
 }
 
 async function restore(): Promise<TokenSet | null> {
@@ -52,6 +62,7 @@ async function restore(): Promise<TokenSet | null> {
   const stored = await loadTokenCache();
   if (!stored) return null;
   cachedTokenSet = stored;
+  publishAccount(stored.account);
   return cachedTokenSet;
 }
 
@@ -129,8 +140,7 @@ export async function getAccessToken(): Promise<string> {
   }
 
   if (!tokenSet.refreshToken) {
-    await clearTokenCache();
-    cachedTokenSet = null;
+    await forgetSession();
     throw new AppError(USER_MESSAGES.SESSION_EXPIRED, 'No refresh token available');
   }
 
@@ -154,8 +164,7 @@ export async function getAccessToken(): Promise<string> {
     return refreshed.accessToken;
   } catch (e) {
     logger.error('Échec du renouvellement du jeton Microsoft', { error: String(e) });
-    await clearTokenCache();
-    cachedTokenSet = null;
+    await forgetSession();
     throw new AppError(USER_MESSAGES.SESSION_EXPIRED, 'Refresh failed', e);
   }
 }
@@ -170,7 +179,9 @@ export async function isSignedIn(): Promise<boolean> {
 }
 
 export async function signOut(): Promise<void> {
-  cachedTokenSet = null;
-  await clearTokenCache();
+  await forgetSession();
+  // A new person signing in must not inherit the previous one's unlocked
+  // administration window.
+  clearAdminSession();
   logger.info('Déconnexion Microsoft effectuée');
 }

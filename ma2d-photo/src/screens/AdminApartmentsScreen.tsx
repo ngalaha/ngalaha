@@ -8,6 +8,7 @@ import PrimaryButton from '@/components/PrimaryButton';
 import { createApartments, deleteApartment, listApartments } from '@/database/apartmentsRepository';
 import { getBuilding } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
+import { parseApartmentNames } from '@/utils/apartmentNames';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { Apartment } from '@/types';
@@ -28,10 +29,7 @@ export default function AdminApartmentsScreen({ route }: Props) {
   useFocusEffect(refresh);
 
   const onAdd = () => {
-    const names = bulkText
-      .split(/[\n,]/)
-      .map((n) => n.trim())
-      .filter(Boolean);
+    const names = parseApartmentNames(bulkText);
     if (!names.length) return;
 
     requireAdmin(() => {
@@ -73,15 +71,16 @@ export default function AdminApartmentsScreen({ route }: Props) {
           <View>
             <Text style={typography.h2}>{building?.name ?? ''}</Text>
             <Text style={styles.hint}>
-              Ajoutez les noms des appartements de ce bâtiment (un par ligne, ou séparés par des virgules).
-              Le dossier OneDrive de chaque appartement sera créé automatiquement dans le dossier Photo du
-              bâtiment, dès la première photo prise pour cet appartement — aucune configuration OneDrive
-              supplémentaire n'est nécessaire ici.
+              Ajoutez les noms des appartements de ce bâtiment : un par ligne ou séparés par des virgules.
+              Pour une série complète, écrivez simplement la plage — « 101-127 » crée les 27 appartements
+              d'un coup, et « A-1 - A-5 » fonctionne aussi. Le dossier OneDrive de chaque appartement est
+              créé automatiquement dans le dossier Photo du bâtiment dès la première photo prise pour cet
+              appartement — rien d'autre à configurer ici.
             </Text>
             <TextInput
               value={bulkText}
               onChangeText={setBulkText}
-              placeholder={'101\n102\n103...'}
+              placeholder={'101-127\nZone commune'}
               style={styles.textarea}
               multiline
               numberOfLines={5}

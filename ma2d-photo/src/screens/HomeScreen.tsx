@@ -23,7 +23,7 @@ import { logger } from '@/services/logging/logger';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { USER_MESSAGES } from '@/utils/errorMessages';
-import { MediaType } from '@/types';
+import { MediaType, PhotoRecord } from '@/types';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -102,7 +102,15 @@ export default function HomeScreen({ navigation }: Props) {
     selectBuilding,
     refreshBuildings,
   } = useProjects();
-  const { recentPhotos, pendingCount, syncing, retryPhoto, refresh: refreshQueue } = usePhotoQueue();
+  const {
+    recentPhotos,
+    pendingCount,
+    syncing,
+    retryPhoto,
+    discardPhoto,
+    triggerSync,
+    refresh: refreshQueue,
+  } = usePhotoQueue();
   const { apartments, refreshApartments } = useApartments(selectedBuilding?.id ?? null);
   const { requireAdmin, promptElement } = useAdminPinGate();
   const [processing, setProcessing] = useState<'idle' | 'opening' | 'saving'>('idle');
@@ -217,6 +225,28 @@ export default function HomeScreen({ navigation }: Props) {
     }
   }, [captureContext, isOnline, selectedBuilding]);
 
+  const confirmDiscard = useCallback(
+    (photo: PhotoRecord) => {
+      Alert.alert(
+        'Retirer le fichier',
+        `"${photo.fileName}" sera supprimé du téléphone sans être envoyé dans OneDrive. Cette action est définitive.`,
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Retirer',
+            style: 'destructive',
+            onPress: () => {
+              discardPhoto(photo.id).catch((e) =>
+                logger.error('Échec du retrait du fichier', { error: String(e) })
+              );
+            },
+          },
+        ]
+      );
+    },
+    [discardPhoto]
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -264,7 +294,12 @@ export default function HomeScreen({ navigation }: Props) {
               />
             </View>
 
-            <PendingUploadsBanner pendingCount={pendingCount} syncing={syncing} isOnline={isOnline} />
+            <PendingUploadsBanner
+              pendingCount={pendingCount}
+              syncing={syncing}
+              isOnline={isOnline}
+              onPress={triggerSync}
+            />
 
             <View style={styles.recentHeader}>
               <Text style={typography.h2}>Photos et vidéos récentes</Text>
@@ -279,7 +314,9 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
           </View>
         }
-        renderItem={({ item }) => <RecentPhotoItem photo={item} onRetry={retryPhoto} />}
+        renderItem={({ item }) => (
+          <RecentPhotoItem photo={item} onRetry={retryPhoto} onDiscard={confirmDiscard} />
+        )}
         ListEmptyComponent={<Text style={styles.empty}>Aucun fichier pour le moment.</Text>}
         contentContainerStyle={styles.listContent}
         ListFooterComponent={
