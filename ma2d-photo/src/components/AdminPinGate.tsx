@@ -1,7 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { hasAdminPin, setAdminPin, verifyAdminPin } from '@/services/security/adminPin';
+import {
+  hasAdminPin,
+  isAdminSessionActive,
+  markAdminVerified,
+  setAdminPin,
+  verifyAdminPin,
+} from '@/services/security/adminPin';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 
@@ -25,6 +31,12 @@ export function useAdminPinGate() {
   const actionRef = useRef<(() => void) | null>(null);
 
   const requireAdmin = useCallback((action: () => void) => {
+    // Already unlocked a moment ago (e.g. just entered Administration):
+    // don't ask again for every action inside it.
+    if (isAdminSessionActive()) {
+      action();
+      return;
+    }
     actionRef.current = action;
     setPin('');
     setConfirmPin('');
@@ -66,6 +78,7 @@ export function useAdminPinGate() {
       setError('Le code PIN n’a pas pu être vérifié. Réessayez.');
       return;
     }
+    markAdminVerified();
     const action = actionRef.current;
     setVisible(false);
     actionRef.current = null;

@@ -51,6 +51,14 @@
     "plugins": [
       "expo-secure-store",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "MA2D Photo a besoin de l'appareil photo pour prendre des photos et vidéos de chantier.",
+          "microphonePermission": "MA2D Photo a besoin du microphone pour enregistrer le son des vidéos de chantier.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "MA2D Construction a besoin d'accéder à vos photos pour envoyer des photos existantes vers OneDrive.",

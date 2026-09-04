@@ -14,10 +14,13 @@ import { Building, Project, emptyOneDriveFolderRef } from '@/types';
 
 const CHAMPFLEURY_PROJECT_ID = 'projet-champfleury';
 
+/** The real project these pre-configured buildings belong to. */
+export const CHAMPFLEURY_PROJECT_NAME = 'Champfleury Phase 1';
+
 export const SEED_PROJECTS: Project[] = [
   {
     id: CHAMPFLEURY_PROJECT_ID,
-    name: 'Champfleury',
+    name: CHAMPFLEURY_PROJECT_NAME,
     createdAt: new Date(0).toISOString(),
     updatedAt: new Date(0).toISOString(),
   },

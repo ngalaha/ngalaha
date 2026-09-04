@@ -1,6 +1,6 @@
 import { getDb } from './db';
 import { Building, OneDriveFolderRef, Project, emptyOneDriveFolderRef } from '@/types';
-import { SEED_BUILDINGS, SEED_PROJECTS } from '@/config/seedData';
+import { CHAMPFLEURY_PROJECT_NAME, SEED_BUILDINGS, SEED_PROJECTS } from '@/config/seedData';
 import { generateId } from '@/utils/idUtils';
 
 interface BuildingRow {
@@ -42,7 +42,19 @@ function rowToBuilding(row: BuildingRow): Building {
 export function ensureSeeded(): void {
   const db = getDb();
   const countRow = db.getFirstSync<{ count: number }>('SELECT COUNT(*) as count FROM projects');
-  if ((countRow?.count ?? 0) > 0) return;
+  if ((countRow?.count ?? 0) > 0) {
+    // The seeded project shipped as plain "Champfleury" before its real name
+    // was known. Rename it in place on installs that still carry the old
+    // value — but only that exact value, so a name the user chose is kept.
+    db.runSync(
+      'UPDATE projects SET name = ?, updatedAt = ? WHERE id = ? AND name = ?',
+      CHAMPFLEURY_PROJECT_NAME,
+      new Date().toISOString(),
+      SEED_PROJECTS[0].id,
+      'Champfleury'
+    );
+    return;
+  }
 
   db.withTransactionSync(() => {
     for (const project of SEED_PROJECTS) {

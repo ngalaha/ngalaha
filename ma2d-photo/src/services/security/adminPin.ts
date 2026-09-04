@@ -13,6 +13,22 @@ import * as SecureStore from 'expo-secure-store';
 const PIN_HASH_KEY = 'ma2d.adminPinHash';
 const SECURE_STORE_OPTIONS = { keychainAccessible: SecureStore.WHEN_UNLOCKED };
 
+/**
+ * How long a successful PIN entry keeps counting, so entering Administration
+ * and then deleting something inside it doesn't ask twice in a row. Kept in
+ * memory only: it resets when the app is closed.
+ */
+const ADMIN_SESSION_MS = 5 * 60 * 1000;
+let lastVerifiedAt = 0;
+
+export function markAdminVerified(): void {
+  lastVerifiedAt = Date.now();
+}
+
+export function isAdminSessionActive(): boolean {
+  return Date.now() - lastVerifiedAt < ADMIN_SESSION_MS;
+}
+
 async function hashPin(pin: string): Promise<string> {
   return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin);
 }

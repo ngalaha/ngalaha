@@ -12,6 +12,7 @@ import AdminBuildingEditScreen from '@/screens/AdminBuildingEditScreen';
 import AdminNewBuildingScreen from '@/screens/AdminNewBuildingScreen';
 import AdminNewProjectScreen from '@/screens/AdminNewProjectScreen';
 import AdminScreen from '@/screens/AdminScreen';
+import CameraScreen from '@/screens/CameraScreen';
 import DiagnosticsScreen from '@/screens/DiagnosticsScreen';
 import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
@@ -36,18 +37,31 @@ export default function RootNavigator() {
           headerTintColor: colors.primary,
           headerTitleStyle: { fontWeight: '700', color: colors.primary },
           headerShadowVisible: true,
-          headerRight: () => (
-            <Pressable onPress={() => setMenuOpen(true)} hitSlop={10} style={{ paddingHorizontal: 4 }}>
-              <Ionicons name="menu" size={26} color={colors.primary} />
-            </Pressable>
-          ),
         }}
       >
         {!isSignedIn ? (
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         ) : (
           <>
-            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'MA2D Photo' }} />
+            {/* The hamburger lives on Home only: every other screen is reached
+                through it (or through Home) and shows a back arrow instead. */}
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                title: 'MA2D Photo',
+                headerRight: () => (
+                  <Pressable onPress={() => setMenuOpen(true)} hitSlop={10} style={{ paddingHorizontal: 4 }}>
+                    <Ionicons name="menu" size={26} color={colors.primary} />
+                  </Pressable>
+                ),
+              }}
+            />
+            <Stack.Screen
+              name="Camera"
+              component={CameraScreen}
+              options={{ headerShown: false, animation: 'fade' }}
+            />
             <Stack.Screen name="Admin" component={AdminScreen} options={{ title: 'Administration' }} />
             <Stack.Screen
               name="AdminNewProject"
