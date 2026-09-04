@@ -8,6 +8,7 @@ import PrimaryButton from '@/components/PrimaryButton';
 import { createApartments, deleteApartment, listApartments } from '@/database/apartmentsRepository';
 import { getBuilding } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
+import { syncSoon } from '@/services/sync/configSyncService';
 import { parseApartmentNames } from '@/utils/apartmentNames';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -36,6 +37,7 @@ export default function AdminApartmentsScreen({ route }: Props) {
       const createdCount = createApartments(buildingId, names);
       setBulkText('');
       refresh();
+      syncSoon(true);
       const skipped = names.length - createdCount;
       Alert.alert(
         'Appartements ajoutés',
@@ -55,6 +57,7 @@ export default function AdminApartmentsScreen({ route }: Props) {
           requireAdmin(() => {
             deleteApartment(apartment.id);
             refresh();
+            syncSoon(true);
           }),
       },
     ]);

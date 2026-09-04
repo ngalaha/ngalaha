@@ -5,6 +5,7 @@ import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import PrimaryButton from '@/components/PrimaryButton';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
+import { syncSoon } from '@/services/sync/configSyncService';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 
@@ -20,6 +21,8 @@ export default function AdminNewProjectScreen({ navigation }: Props) {
       return;
     }
     addProject(name.trim());
+    // Publish it to the other phones right away.
+    syncSoon(true);
     navigation.navigate('Admin');
   };
 

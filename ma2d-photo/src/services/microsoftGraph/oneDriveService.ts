@@ -297,3 +297,122 @@ export async function uploadPhoto(
   logger.info('Upload completed', { fileName, itemId: item.id });
   return { itemId: item.id, webUrl: item.webUrl };
 }
+
+/**
+ * Small JSON documents living beside the photos, in a OneDrive folder —
+ * how the app shares its configuration between phones without a server
+ * (see services/sync/configSyncService).
+ *
+ * Both helpers go through fetch directly rather than graphRequest: the
+ * caller needs the file's eTag, which is a response header/field the
+ * generic wrapper does not surface.
+ */
+export interface RemoteJsonFile<T> {
+  content: T;
+  eTag: string | null;
+}
+
+function itemContentUrl(driveId: string, parentItemId: string, fileName: string): string {
+  return `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${parentItemId}:/${encodeURIComponent(
+    fileName
+  )}:`;
+}
+
+/** Reads a JSON file from a folder. Returns null when it does not exist yet. */
+export async function readJsonFile<T>(
+  driveId: string,
+  parentItemId: string,
+  fileName: string
+): Promise<RemoteJsonFile<T> | null> {
+  const accessToken = await getAccessToken();
+  const base = itemContentUrl(driveId, parentItemId, fileName);
+
+  const metaResponse = await fetch(`${base}?$select=id,eTag`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (metaResponse.status === 404) return null;
+  if (!metaResponse.ok) {
+    const text = await metaResponse.text().catch(() => '');
+    throw new AppError(
+      USER_MESSAGES.ONEDRIVE_ACCESS_ERROR,
+      `Graph ${metaResponse.status} reading ${fileName}: ${text}`,
+      undefined,
+      metaResponse.status
+    );
+  }
+  const meta = (await metaResponse.json()) as { eTag?: string };
+
+  const contentResponse = await fetch(`${base}/content`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (contentResponse.status === 404) return null;
+  if (!contentResponse.ok) {
+    const text = await contentResponse.text().catch(() => '');
+    throw new AppError(
+      USER_MESSAGES.ONEDRIVE_ACCESS_ERROR,
+      `Graph ${contentResponse.status} downloading ${fileName}: ${text}`,
+      undefined,
+      contentResponse.status
+    );
+  }
+
+  const raw = await contentResponse.text();
+  try {
+    return { content: JSON.parse(raw) as T, eTag: meta.eTag ?? null };
+  } catch (e) {
+    throw new AppError(
+      USER_MESSAGES.ONEDRIVE_ACCESS_ERROR,
+      `${fileName} is not valid JSON`,
+      e
+    );
+  }
+}
+
+/**
+ * Writes a JSON file into a folder, refusing to overwrite a version we
+ * have not seen: pass the eTag read earlier, or null when we believe the
+ * file does not exist yet. A 409/412 means someone else wrote in the
+ * meantime — the caller re-reads and replays its change rather than
+ * silently discarding theirs.
+ */
+export async function writeJsonFile(
+  driveId: string,
+  parentItemId: string,
+  fileName: string,
+  content: unknown,
+  eTag: string | null
+): Promise<string | null> {
+  const accessToken = await getAccessToken();
+  const conflictBehavior = eTag ? 'replace' : 'fail';
+  const url = `${itemContentUrl(driveId, parentItemId, fileName)}/content?@microsoft.graph.conflictBehavior=${conflictBehavior}`;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  };
+  if (eTag) headers['If-Match'] = eTag;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(content, null, 2),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    logger.warn("Échec de l'écriture du fichier de configuration", {
+      status: response.status,
+      fileName,
+      body: text,
+    });
+    throw new AppError(
+      USER_MESSAGES.ONEDRIVE_ACCESS_ERROR,
+      `Graph ${response.status} writing ${fileName}: ${text}`,
+      undefined,
+      response.status
+    );
+  }
+
+  const item = (await response.json()) as { eTag?: string };
+  return item.eTag ?? null;
+}

@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { recordDeletion } from './deletionsRepository';
 import { Apartment, OneDriveFolderRef, emptyOneDriveFolderRef } from '@/types';
 import { generateId } from '@/utils/idUtils';
 
@@ -128,5 +129,10 @@ export function updateApartmentFolder(apartmentId: string, folder: OneDriveFolde
 
 export function deleteApartment(apartmentId: string): void {
   const db = getDb();
-  db.runSync('DELETE FROM apartments WHERE id = ?', apartmentId);
+  db.withTransactionSync(() => {
+    db.runSync('DELETE FROM apartments WHERE id = ?', apartmentId);
+    // See deletionsRepository: a deletion has to be recorded, not just done,
+    // for the other phones to stop re-adding it.
+    recordDeletion('apartment', apartmentId);
+  });
 }

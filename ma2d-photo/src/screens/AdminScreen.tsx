@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useAdminPinGate } from '@/components/AdminPinGate';
@@ -10,6 +10,12 @@ import { deleteBuilding, listBuildings } from '@/database/projectsRepository';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
+import {
+  getSyncState,
+  getWorkspaceFolder,
+  subscribeSync,
+  syncSoon,
+} from '@/services/sync/configSyncService';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { Building } from '@/types';
@@ -54,9 +60,24 @@ function BuildingRow({
 }
 
 export default function AdminScreen({ navigation }: Props) {
-  const { projects, renameProject, removeProject } = useProjects();
+  const { projects, renameProject, removeProject, refresh: refreshProjects } = useProjects();
   const { account } = useAuth();
   const { requireAdmin, promptPinChange, promptElement } = useAdminPinGate();
+  const [workspace, setWorkspace] = useState(() => ({
+    folder: getWorkspaceFolder(),
+    state: getSyncState(),
+  }));
+
+  // A sync can replace every project and building under this screen, so
+  // follow it rather than showing what was there before it ran.
+  useEffect(
+    () =>
+      subscribeSync(() => {
+        setWorkspace({ folder: getWorkspaceFolder(), state: getSyncState() });
+        refreshProjects();
+      }),
+    [refreshProjects]
+  );
 
   return (
     <>
@@ -73,7 +94,10 @@ export default function AdminScreen({ navigation }: Props) {
             projectId={project.id}
             projectName={project.name}
             requireAdmin={requireAdmin}
-            onRenameProject={(name) => renameProject(project.id, name)}
+            onRenameProject={(name) => {
+              renameProject(project.id, name);
+              syncSoon(true);
+            }}
             onAddBuilding={() => navigation.navigate('AdminNewBuilding', { projectId: project.id })}
             onEditBuilding={(buildingId) =>
               navigation.navigate('AdminBuildingEdit', { buildingId, projectId: project.id })
@@ -81,11 +105,48 @@ export default function AdminScreen({ navigation }: Props) {
             onDeleteProject={() =>
               Alert.alert('Supprimer le projet', `Supprimer "${project.name}" et tous ses bâtiments ?`, [
                 { text: 'Annuler', style: 'cancel' },
-                { text: 'Supprimer', style: 'destructive', onPress: () => requireAdmin(() => removeProject(project.id)) },
+                {
+                  text: 'Supprimer',
+                  style: 'destructive',
+                  onPress: () =>
+                    requireAdmin(() => {
+                      removeProject(project.id);
+                      syncSoon(true);
+                    }),
+                },
               ])
             }
           />
         ))}
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={typography.h2}>ESPACE PARTAGÉ</Text>
+            <Text onPress={() => requireAdmin(() => navigation.navigate('AdminWorkspace'))} style={styles.link}>
+              Configurer
+            </Text>
+          </View>
+          <View style={styles.securityRow}>
+            <Ionicons
+              name={workspace.folder?.itemId ? 'checkmark-circle' : 'alert-circle'}
+              size={16}
+              color={workspace.folder?.itemId ? colors.success : colors.warning}
+            />
+            <Text style={styles.securityText} numberOfLines={1}>
+              {workspace.folder?.itemId
+                ? `Dossier « ${workspace.folder.itemName} »`
+                : 'Non configuré — cet appareil ne partage rien'}
+            </Text>
+          </View>
+          {workspace.folder?.itemId && (
+            <Text style={styles.securityText}>
+              Dernière synchronisation :{' '}
+              {workspace.state.lastSyncedAt
+                ? new Date(workspace.state.lastSyncedAt).toLocaleString('fr-CA')
+                : 'jamais'}
+            </Text>
+          )}
+        </View>
 
         <View style={styles.section}>
           <Text style={typography.h2}>SÉCURITÉ</Text>
@@ -148,6 +209,7 @@ function ProjectSection({
             // so it must not depend on that hook's (differently-scoped) state.
             deleteBuilding(buildingId);
             refresh();
+            syncSoon(true);
           }),
       },
     ]);

@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from 'rea
 import PrimaryButton from '@/components/PrimaryButton';
 import { createBuilding, updateBuildingFolder } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
+import { syncSoon } from '@/services/sync/configSyncService';
 import { resolveShareLink } from '@/services/microsoftGraph/oneDriveService';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -35,6 +36,7 @@ export default function AdminNewBuildingScreen({ route, navigation }: Props) {
           );
         }
       }
+      syncSoon(true);
       navigation.navigate('Admin');
     } finally {
       setSaving(false);

@@ -20,6 +20,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
 import { CaptureContext, saveCapturedMedia } from '@/services/capture/saveCapturedMedia';
 import { logger } from '@/services/logging/logger';
+import { subscribeSync, syncSoon } from '@/services/sync/configSyncService';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { USER_MESSAGES } from '@/utils/errorMessages';
@@ -100,6 +101,7 @@ export default function HomeScreen({ navigation }: Props) {
     selectedBuilding,
     selectProject,
     selectBuilding,
+    refresh: refreshProjects,
     refreshBuildings,
   } = useProjects();
   const {
@@ -122,10 +124,26 @@ export default function HomeScreen({ navigation }: Props) {
   // focus, which is also how a just-captured photo shows up immediately.
   useFocusEffect(
     useCallback(() => {
+      refreshProjects();
       refreshBuildings();
       refreshApartments();
       refreshQueue();
-    }, [refreshBuildings, refreshApartments, refreshQueue])
+      // Picks up what colleagues created on their own phones. Throttled
+      // inside syncSoon, so returning to this screen repeatedly is cheap.
+      syncSoon();
+    }, [refreshProjects, refreshBuildings, refreshApartments, refreshQueue])
+  );
+
+  // A sync that lands while Home is open must be visible immediately —
+  // a building added by someone else is only useful once it is selectable.
+  useEffect(
+    () =>
+      subscribeSync(() => {
+        refreshProjects();
+        refreshBuildings();
+        refreshApartments();
+      }),
+    [refreshProjects, refreshBuildings, refreshApartments]
   );
 
   // A previously selected apartment belongs to the previously selected

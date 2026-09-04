@@ -19,10 +19,14 @@ export const USER_MESSAGES = {
 export class AppError extends Error {
   readonly userMessage: string;
   readonly cause?: unknown;
+  /** HTTP status when the error came from a Graph response, for callers
+   *  that must tell "not found" or "changed under us" from a real failure. */
+  readonly status?: number;
 
-  constructor(userMessage: string, technicalMessage?: string, cause?: unknown) {
+  constructor(userMessage: string, technicalMessage?: string, cause?: unknown, status?: number) {
     super(technicalMessage ?? userMessage);
     this.userMessage = userMessage;
     this.cause = cause;
+    this.status = status;
   }
 }

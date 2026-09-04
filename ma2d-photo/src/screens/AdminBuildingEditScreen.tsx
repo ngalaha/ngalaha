@@ -7,6 +7,7 @@ import { listApartments } from '@/database/apartmentsRepository';
 import { getBuilding, updateBuildingFolder, updateBuildingName } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
 import { resolveShareLink } from '@/services/microsoftGraph/oneDriveService';
+import { syncSoon } from '@/services/sync/configSyncService';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { Building, emptyOneDriveFolderRef } from '@/types';
@@ -53,6 +54,7 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
           Alert.alert('Dossier connecté', `Dossier OneDrive vérifié : "${resolved.itemName}".`);
         }
       }
+      syncSoon(true);
       navigation.navigate('Admin');
     } finally {
       setSaving(false);

@@ -12,6 +12,7 @@ import AdminBuildingEditScreen from '@/screens/AdminBuildingEditScreen';
 import AdminNewBuildingScreen from '@/screens/AdminNewBuildingScreen';
 import AdminNewProjectScreen from '@/screens/AdminNewProjectScreen';
 import AdminScreen from '@/screens/AdminScreen';
+import AdminWorkspaceScreen from '@/screens/AdminWorkspaceScreen';
 import CameraScreen from '@/screens/CameraScreen';
 import DiagnosticsScreen from '@/screens/DiagnosticsScreen';
 import HomeScreen from '@/screens/HomeScreen';
@@ -82,6 +83,11 @@ export default function RootNavigator() {
               name="AdminApartments"
               component={AdminApartmentsScreen}
               options={{ title: 'Appartements' }}
+            />
+            <Stack.Screen
+              name="AdminWorkspace"
+              component={AdminWorkspaceScreen}
+              options={{ title: 'Espace partagé' }}
             />
             <Stack.Screen name="Diagnostics" component={DiagnosticsScreen} options={{ title: 'Diagnostic' }} />
             <Stack.Screen name="About" component={AboutScreen} options={{ title: 'À propos' }} />

@@ -5,6 +5,49 @@ qui fournit, pour chaque bâtiment, le lien de partage exact de son dossier
 "Photo". L'application le transforme ensuite en référence stable
 (Drive ID + Item ID) via Microsoft Graph (spec section 6).
 
+## 0. L'espace partagé : à faire en premier, une seule fois
+
+Plusieurs personnes utilisent l'application, sur plusieurs téléphones.
+Sans espace partagé, chaque appareil a sa propre liste de projets, de
+bâtiments et d'appartements : ce que l'un crée, les autres ne le voient
+pas, et chacun doit tout resaisir.
+
+L'espace partagé règle cela **sans serveur** : un dossier OneDrive commun
+contient un petit fichier `ma2d-photo-config.json` où l'application publie
+la liste des projets, des bâtiments, des appartements et des liens de
+dossiers Photo. Chaque téléphone le lit et y écrit.
+
+**ACTION À FAIRE (une fois pour l'équipe)**
+1. Dans OneDrive, créer un dossier, par exemple
+   `MA2D Photo — Configuration`.
+2. Le partager en **modification** avec les personnes qui utiliseront
+   l'application (le même niveau d'accès que les dossiers Photo).
+3. Copier son lien de partage.
+
+**ACTION À FAIRE (une fois par téléphone)**
+1. Dans l'application : Administration (code PIN) > **ESPACE PARTAGÉ** >
+   *Configurer*.
+2. Coller le lien et toucher **Connecter**.
+
+Le téléphone reçoit alors toute la configuration de l'équipe, et tout ce
+qu'il crée ensuite y est publié automatiquement. C'est **le seul lien à
+coller sur les téléphones des collègues** : les liens des dossiers Photo
+des bâtiments, eux, ne sont saisis qu'une fois, par la personne qui
+configure les bâtiments.
+
+### Ce qui se passe quand deux personnes modifient en même temps
+
+- Deux créations différentes (l'un ajoute le Bâtiment G, l'autre le
+  Bâtiment H) : les deux sont conservées.
+- La même chose modifiée des deux côtés (renommage d'un même bâtiment) :
+  la modification la plus récente l'emporte.
+- Une suppression : elle est enregistrée comme telle et l'emporte sur les
+  copies plus anciennes — un bâtiment supprimé ne réapparaît pas depuis
+  le téléphone d'un collègue qui était hors ligne.
+- Deux téléphones qui publient au même instant : le second voit que le
+  fichier a changé, relit et rejoue sa modification par-dessus. Rien
+  n'est perdu.
+
 ## 1. Préparer l'arborescence dans OneDrive
 
 **ACTION À FAIRE**, pour chaque bâtiment (A à F pour Champfleury) :

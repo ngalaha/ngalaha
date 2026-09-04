@@ -58,6 +58,12 @@ bénéfice marginal — React Native + Expo reste donc le bon choix.
 - ✅ Écran principal (sélection projet/bâtiment/appartement, gros bouton
   photo, fichiers récents, bannière "en attente") et menu latéral avec
   l'écran "À propos".
+- ✅ **Espace partagé** : un dossier OneDrive commun tient la
+  configuration de l'équipe (projets, bâtiments, appartements, liens des
+  dossiers Photo). Chaque téléphone la reçoit et y publie ses propres
+  ajouts — un seul lien à coller par appareil, aucun serveur. Fusion par
+  entité (la plus récente gagne) avec pierres tombales, pour qu'une
+  suppression ne soit pas ressuscitée par un téléphone hors ligne.
 - ✅ Administration protégée par code PIN (création/suppression de projets,
   bâtiments et appartements, configuration des dossiers OneDrive, statut
   ✓/⚠ par bâtiment, changement du code PIN) + écran de diagnostic

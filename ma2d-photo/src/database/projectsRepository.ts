@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { recordDeletion } from './deletionsRepository';
 import { Building, OneDriveFolderRef, Project, emptyOneDriveFolderRef } from '@/types';
 import { CHAMPFLEURY_PROJECT_NAME, SEED_BUILDINGS, SEED_PROJECTS } from '@/config/seedData';
 import { generateId } from '@/utils/idUtils';
@@ -135,8 +136,25 @@ export function updateProjectName(projectId: string, name: string): void {
 export function deleteProject(projectId: string): void {
   const db = getDb();
   db.withTransactionSync(() => {
+    // Tombstones for the whole subtree: the other phones still hold these
+    // rows, and without a record of the deletion their copies would win the
+    // next merge and bring the project back.
+    const buildings = db.getAllSync<{ id: string }>(
+      'SELECT id FROM buildings WHERE projectId = ?',
+      projectId
+    );
+    for (const building of buildings) {
+      const apartments = db.getAllSync<{ id: string }>(
+        'SELECT id FROM apartments WHERE buildingId = ?',
+        building.id
+      );
+      for (const apartment of apartments) recordDeletion('apartment', apartment.id);
+      db.runSync('DELETE FROM apartments WHERE buildingId = ?', building.id);
+      recordDeletion('building', building.id);
+    }
     db.runSync('DELETE FROM buildings WHERE projectId = ?', projectId);
     db.runSync('DELETE FROM projects WHERE id = ?', projectId);
+    recordDeletion('project', projectId);
   });
 }
 
@@ -202,5 +220,14 @@ export function updateBuildingFolder(buildingId: string, folder: OneDriveFolderR
 
 export function deleteBuilding(buildingId: string): void {
   const db = getDb();
-  db.runSync('DELETE FROM buildings WHERE id = ?', buildingId);
+  db.withTransactionSync(() => {
+    const apartments = db.getAllSync<{ id: string }>(
+      'SELECT id FROM apartments WHERE buildingId = ?',
+      buildingId
+    );
+    for (const apartment of apartments) recordDeletion('apartment', apartment.id);
+    db.runSync('DELETE FROM apartments WHERE buildingId = ?', buildingId);
+    db.runSync('DELETE FROM buildings WHERE id = ?', buildingId);
+    recordDeletion('building', buildingId);
+  });
 }

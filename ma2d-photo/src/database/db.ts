@@ -79,6 +79,20 @@ export function initDatabase(): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_apartments_buildingId ON apartments(buildingId);
+
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT
+    );
+
+    -- Tombstones. Without them a deletion is invisible to the shared
+    -- configuration: the other phones still have the row, their copy wins
+    -- on the next merge, and the deleted building comes back.
+    CREATE TABLE IF NOT EXISTS deletions (
+      id TEXT PRIMARY KEY NOT NULL,
+      kind TEXT NOT NULL,
+      deletedAt TEXT NOT NULL
+    );
   `);
 
   // photos.apartmentId/apartmentName were added after the first release —
