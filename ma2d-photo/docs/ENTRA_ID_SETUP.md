@@ -57,18 +57,40 @@ Microsoft Entra ID (anciennement Azure AD) pour obtenir un **Client ID**.
    **Autorisations déléguées** ("Delegated permissions").
 3. Ajouter :
    - `User.Read` (généralement déjà présent par défaut)
-   - `Files.ReadWrite` (créer/lire/écrire des fichiers dans les dossiers
-     OneDrive auxquels l'utilisateur a accès)
+   - `Files.ReadWrite.All` (créer/lire/écrire des fichiers dans les
+     dossiers OneDrive auxquels l'utilisateur a accès, **y compris les
+     dossiers partagés avec lui** — voir l'encadré ci-dessous)
    - `offline_access` (permet le renouvellement silencieux de session,
      pour ne pas redemander la connexion à chaque ouverture)
 4. Si votre organisation l'exige, cliquer **Accorder un consentement
    d'administrateur** ("Grant admin consent").
 
-⚠️ Ne demandez **jamais** `Files.ReadWrite.All` ou des permissions
-d'application ("Application permissions") pour cette app mobile : cela
-dépasserait le principe du moindre privilège demandé (spec section 8/34).
-`Files.ReadWrite` (délégué) suffit : l'app agit avec les droits du compte
-Microsoft de la personne connectée, sur les dossiers auxquels elle a accès.
+### Pourquoi `Files.ReadWrite.All` et pas `Files.ReadWrite`
+
+L'app atteint le dossier Photo de chaque bâtiment à partir de son **lien
+de partage**, résolu par `GET /shares/{id}/driveItem`. Microsoft Graph
+n'autorise cet endpoint qu'avec la variante `.All` : avec
+`Files.ReadWrite` seul, l'app ne voit que le OneDrive personnel de
+l'utilisateur et échoue en **403 sur tout dossier partagé par
+l'entreprise** — c'est-à-dire sur l'usage même pour lequel elle existe.
+
+Le moindre privilège est préservé par le fait que la permission est
+**déléguée**, jamais applicative :
+
+- ❌ Aucune permission d'application ("Application permissions") : l'app
+  n'a aucun accès autonome au tenant, elle ne peut rien faire sans qu'un
+  employé soit connecté.
+- ✅ Elle n'atteint jamais plus que ce que la personne connectée peut
+  déjà ouvrir elle-même dans OneDrive.
+- ✅ Elle n'écrit que dans les dossiers dont le lien de partage a été
+  explicitement configuré dans l'Administration de l'app.
+- ✅ Le consentement est révocable en tout temps depuis Entra ID >
+  Applications d'entreprise.
+
+Si l'organisation exige un périmètre plus étroit qu'un scope délégué,
+la seule alternative Graph est `Sites.Selected` (permission applicative
+restreinte à un site SharePoint précis), qui impose un composant serveur
+détenant un secret client — hors de portée d'une app mobile publique.
 
 ## 4. Renseigner le Client ID dans l'application
 
@@ -96,8 +118,9 @@ dans ce projet.
   Keychain (iOS) / Keystore (Android) via `expo-secure-store`, avec
   renouvellement silencieux (`offline_access`) et expiration gérée par
   Microsoft.
-- ✅ Permissions Graph limitées à `User.Read`, `Files.ReadWrite`,
-  `offline_access`.
+- ✅ Permissions Graph **déléguées** uniquement, limitées à
+  `User.Read`, `Files.ReadWrite.All`, `offline_access` — aucune
+  permission d'application.
 
 ## Prochaine étape
 

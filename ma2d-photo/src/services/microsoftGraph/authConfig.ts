@@ -8,7 +8,25 @@ import { ENV } from '@/config/env';
  * ever (see spec section 8/34 and docs/ENTRA_ID_SETUP.md).
  */
 
-export const GRAPH_SCOPES = ['openid', 'profile', 'offline_access', 'User.Read', 'Files.ReadWrite'];
+/**
+ * Delegated scopes only — the app never acts on its own behalf, always as
+ * the signed-in user.
+ *
+ * Files.ReadWrite.All rather than Files.ReadWrite: the building folders are
+ * reached through a share link resolved with GET /shares/{id}/driveItem
+ * (oneDriveService.ts), and that endpoint is only granted by the .All
+ * variant. Files.ReadWrite alone covers the user's own drive and would
+ * fail with 403 on every company-shared folder — which is exactly the
+ * setup this app is built for. Being delegated, it still never exceeds
+ * what the signed-in employee can already open in OneDrive themselves.
+ */
+export const GRAPH_SCOPES = [
+  'openid',
+  'profile',
+  'offline_access',
+  'User.Read',
+  'Files.ReadWrite.All',
+];
 
 export function getAuthority(): string {
   return `https://login.microsoftonline.com/${ENV.MICROSOFT_TENANT_ID}/v2.0`;

@@ -99,8 +99,11 @@ ma2d-photo/
   client secret ni mot de passe** dans le code de l'app.
 - Jetons stockés uniquement dans le Keychain/Keystore
   (`expo-secure-store`), jamais en clair.
-- Permissions Microsoft Graph réduites au strict nécessaire :
-  `User.Read`, `Files.ReadWrite`, `offline_access`.
+- Permissions Microsoft Graph **déléguées** uniquement, réduites au
+  strict nécessaire : `User.Read`, `Files.ReadWrite.All`,
+  `offline_access` — aucune permission d'application. Le variant
+  `.All` est imposé par l'endpoint `/shares` utilisé pour résoudre
+  les liens de partage (voir `docs/ENTRA_ID_SETUP.md`).
 - Toutes les opérations OneDrive respectent les droits réels du compte
   Microsoft connecté — l'app ne contourne aucune permission.
 
