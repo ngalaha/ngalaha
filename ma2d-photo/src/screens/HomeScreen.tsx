@@ -102,20 +102,22 @@ export default function HomeScreen({ navigation }: Props) {
     selectBuilding,
     refreshBuildings,
   } = useProjects();
-  const { recentPhotos, pendingCount, syncing, retryPhoto } = usePhotoQueue();
+  const { recentPhotos, pendingCount, syncing, retryPhoto, refresh: refreshQueue } = usePhotoQueue();
   const { apartments, refreshApartments } = useApartments(selectedBuilding?.id ?? null);
   const { requireAdmin, promptElement } = useAdminPinGate();
   const [processing, setProcessing] = useState<'idle' | 'opening' | 'saving'>('idle');
   const [selectedApartmentId, setSelectedApartmentId] = useState<string | null>(null);
 
-  // Home stays mounted underneath Administration in the stack, so its
-  // building list (OneDrive folder status, names) would otherwise go stale
-  // after an edit made there — refresh it every time Home regains focus.
+  // Home stays mounted underneath the camera and Administration in the stack,
+  // so its building list (OneDrive folder status, names) and its recent-files
+  // list would otherwise go stale — refresh both every time Home regains
+  // focus, which is also how a just-captured photo shows up immediately.
   useFocusEffect(
     useCallback(() => {
       refreshBuildings();
       refreshApartments();
-    }, [refreshBuildings, refreshApartments])
+      refreshQueue();
+    }, [refreshBuildings, refreshApartments, refreshQueue])
   );
 
   // A previously selected apartment belongs to the previously selected

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
+import { StatusBar } from 'expo-status-bar';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import PrimaryButton from '@/components/PrimaryButton';
 import { RootStackParamList } from '@/navigation/types';
@@ -111,8 +112,9 @@ export default function CameraScreen({ route, navigation }: Props) {
     cameraRef.current.stopRecording();
   };
 
-  const permissionMissing =
-    !cameraPermission?.granted || (isVideo && micPermission != null && !micPermission.granted);
+  // Only the camera itself is mandatory: a refused microphone falls back to
+  // a silent recording (see startRecording) instead of blocking the screen.
+  const permissionMissing = !cameraPermission?.granted;
 
   if (!cameraPermission) {
     return (
@@ -128,14 +130,18 @@ export default function CameraScreen({ route, navigation }: Props) {
         <Ionicons name="camera-outline" size={48} color={colors.textSecondary} />
         <Text style={[typography.h2, styles.permissionTitle]}>Autorisation requise</Text>
         <Text style={styles.permissionText}>
-          {isVideo
-            ? "L'accès à l'appareil photo et au microphone est nécessaire pour filmer une vidéo de chantier."
-            : "L'accès à l'appareil photo est nécessaire pour prendre une photo de chantier."}
+          {cameraPermission.canAskAgain
+            ? "L'accès à l'appareil photo est nécessaire pour documenter le chantier."
+            : "L'accès à l'appareil photo a été refusé. Activez-le dans les réglages du téléphone pour continuer."}
         </Text>
         <PrimaryButton
-          label="Autoriser"
-          icon="checkmark-circle-outline"
+          label={cameraPermission.canAskAgain ? 'Autoriser' : 'Ouvrir les réglages'}
+          icon={cameraPermission.canAskAgain ? 'checkmark-circle-outline' : 'settings-outline'}
           onPress={() => {
+            if (!cameraPermission.canAskAgain) {
+              Linking.openSettings();
+              return;
+            }
             requestCameraPermission();
             if (isVideo) requestMicPermission();
           }}
@@ -154,7 +160,17 @@ export default function CameraScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={isVideo ? 'video' : 'picture'} />
+      {/* The rest of the app is light, but this screen is a black preview. */}
+      <StatusBar style="light" />
+      <CameraView
+        ref={cameraRef}
+        style={StyleSheet.absoluteFill}
+        facing={facing}
+        mode={isVideo ? 'video' : 'picture'}
+        // If the microphone was refused, record silently rather than refusing
+        // to film at all — the picture is what documents the site.
+        mute={!micPermission?.granted}
+      />
 
       <View style={styles.topBar}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.iconButton}>
