@@ -1,5 +1,10 @@
 # MA2D Construction — Application mobile de photos de chantier
 
+> **Confidentiel.** Dépôt privé, accès nominatif. Le code est communiqué pour
+> revue, vérification de sécurité et exploitation interne chez MA2D
+> Construction ; toute autre réutilisation requiert un accord écrit. Voir
+> [`LICENSE`](../LICENSE).
+
 Application mobile **native** (Android + iOS, un seul code source) qui
 permet de prendre une photo de chantier et de l'envoyer automatiquement,
 sans aucune manipulation manuelle, dans le bon dossier **Microsoft
