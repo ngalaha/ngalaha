@@ -24,8 +24,9 @@ Microsoft Entra ID (anciennement Azure AD) pour obtenir un **Client ID**.
 6. Sur la page de l'application, noter :
    - **Application (client) ID** → à copier dans `app.json` /
      variable `MICROSOFT_CLIENT_ID`.
-   - **Directory (tenant) ID** → si vous utilisez "single-tenant", copier
-     cette valeur dans `MICROSOFT_TENANT_ID` (sinon laisser `common`).
+   - **Directory (tenant) ID** → à copier dans `MICROSOFT_TENANT_ID`.
+     C'est cette valeur, et non `common`, qui adresse la connexion à
+     l'annuaire de l'entreprise.
 
 ## 2. Ajouter la plateforme "Mobile et applications de bureau"
 
@@ -117,9 +118,15 @@ détenant un secret client — hors de portée d'une app mobile publique.
 ```json
 "extra": {
   "microsoftClientId": "COLLER_ICI_L_APPLICATION_CLIENT_ID",
-  "microsoftTenantId": "COLLER_ICI_LE_TENANT_ID_OU_common"
+  "microsoftTenantId": "COLLER_ICI_LE_TENANT_ID"
 }
 ```
+
+`microsoftTenantId` vaut désormais le Tenant ID de MA2D Construction :
+la connexion s'adresse directement à l'annuaire de l'entreprise, et non
+au point d'entrée générique `common`. Seuls les comptes MA2D peuvent
+donc se connecter, ce qui est le comportement voulu. `common` ne reste
+utile que pour un essai hors du locataire de l'entreprise.
 
 Ne jamais commiter de vraie valeur dans un dépôt public si l'organisation
 préfère la garder privée — ces valeurs restent toutefois "publiques" au
