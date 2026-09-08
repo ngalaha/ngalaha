@@ -92,20 +92,26 @@ export function utf8DecodeBytes(bytes: Uint8Array): string {
 export function base64Decode(input: string): Uint8Array {
   const clean = input.replace(/[^A-Za-z0-9+/]/g, '');
   const bytes: number[] = [];
-  let i = 0;
-  while (i < clean.length) {
-    const enc1 = CHARS.indexOf(clean.charAt(i++));
-    const enc2 = CHARS.indexOf(clean.charAt(i++));
-    const enc3 = CHARS.indexOf(clean.charAt(i++));
-    const enc4 = CHARS.indexOf(clean.charAt(i++));
 
-    const b1 = (enc1 << 2) | (enc2 >> 4);
-    const b2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-    const b3 = ((enc3 & 3) << 6) | enc4;
+  for (let i = 0; i < clean.length; i += 4) {
+    const chunk = clean.slice(i, i + 4);
+    // A final group of 2 or 3 characters — an unpadded JWT payload, or any
+    // input whose "=" padding was just stripped above — must yield 1 or 2
+    // bytes, not 3. charAt() past the end returns "", and indexOf("") is 0
+    // rather than -1, so reading blindly used to append NUL bytes: enough to
+    // make JSON.parse choke on a decoded id_token, and enough to corrupt the
+    // last chunk of a large upload.
+    const e1 = CHARS.indexOf(chunk.charAt(0));
+    const e2 = CHARS.indexOf(chunk.charAt(1));
+    const e3 = chunk.length > 2 ? CHARS.indexOf(chunk.charAt(2)) : -1;
+    const e4 = chunk.length > 3 ? CHARS.indexOf(chunk.charAt(3)) : -1;
 
-    bytes.push(b1);
-    if (enc3 !== -1 && enc3 !== 64) bytes.push(b2);
-    if (enc4 !== -1 && enc4 !== 64) bytes.push(b3);
+    if (e1 < 0 || e2 < 0) break; // truncated or invalid tail: stop cleanly
+
+    bytes.push((e1 << 2) | (e2 >> 4));
+    if (e3 >= 0) bytes.push(((e2 & 15) << 4) | (e3 >> 2));
+    if (e3 >= 0 && e4 >= 0) bytes.push(((e3 & 3) << 6) | e4);
   }
+
   return new Uint8Array(bytes);
 }
