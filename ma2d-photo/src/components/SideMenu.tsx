@@ -29,7 +29,7 @@ export default function SideMenu({ visible, onClose }: Props) {
     }).start();
   }, [visible, translateX]);
 
-  const goTo = (screen: 'About') => {
+  const goTo = (screen: 'About' | 'Settings') => {
     onClose();
     if (navigationRef.isReady()) navigationRef.navigate(screen);
   };
@@ -44,6 +44,16 @@ export default function SideMenu({ visible, onClose }: Props) {
               <Ionicons name="close" size={24} color={colors.primary} />
             </Pressable>
           </View>
+
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => goTo('Settings')}
+            android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
+          >
+            <Ionicons name="options-outline" size={22} color={colors.primary} />
+            <Text style={styles.menuItemText}>Paramètres</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+          </Pressable>
 
           <Pressable
             style={styles.menuItem}

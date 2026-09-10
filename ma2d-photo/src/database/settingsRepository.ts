@@ -10,6 +10,7 @@ export const SETTINGS_KEYS = {
   workspaceFolder: 'workspace.folder',
   workspaceETag: 'workspace.etag',
   workspaceSyncedAt: 'workspace.syncedAt',
+  appSettings: 'app.settings',
 } as const;
 
 export function getSetting(key: string): string | null {

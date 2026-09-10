@@ -1,10 +1,8 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 
 import { fileNameExists } from '@/database/photosRepository';
+import { PHOTO_QUALITY_PRESETS, getSettings } from '@/services/settings/appSettings';
 import { formatBaseFileName, formatDateFolder } from '@/utils/dateUtils';
-
-const MAX_DIMENSION = 2048; // preserves cracks/rebar/formwork detail while capping file size
-const JPEG_QUALITY = 0.78;
 
 /**
  * Resizes (if needed) and re-encodes a photo as JPEG at a quality level
@@ -13,10 +11,11 @@ const JPEG_QUALITY = 0.78;
  * (spec section 11).
  */
 export async function compressPhoto(uri: string): Promise<{ uri: string; width: number; height: number }> {
+  const { maxDimension, compress } = PHOTO_QUALITY_PRESETS[getSettings().photoQuality];
   const result = await ImageManipulator.manipulateAsync(
     uri,
-    [{ resize: { width: MAX_DIMENSION } }],
-    { compress: JPEG_QUALITY, format: ImageManipulator.SaveFormat.JPEG }
+    [{ resize: { width: maxDimension } }],
+    { compress, format: ImageManipulator.SaveFormat.JPEG }
   );
   return result;
 }

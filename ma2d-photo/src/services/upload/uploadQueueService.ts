@@ -17,9 +17,10 @@ import {
   verifyFolderAccessible,
 } from '@/services/microsoftGraph/oneDriveService';
 import { deleteLocalPhoto } from '@/services/storage/fileStorage';
+import { getSettings } from '@/services/settings/appSettings';
 import { OneDriveFolderRef, PhotoRecord } from '@/types';
 
-import { isConnected } from './connectivityService';
+import { isConnected, isOnWifi } from './connectivityService';
 
 const MAX_AUTO_ATTEMPTS = 5;
 
@@ -97,7 +98,11 @@ async function uploadOne(photoId: string): Promise<boolean> {
       remoteItemId: itemId,
       lastError: null,
     });
-    await deleteLocalPhoto(photo.localUri);
+    // Kept when the operator asked for it — the record still points at the
+    // file, so the thumbnail and any later inspection keep working.
+    if (!getSettings().keepLocalAfterUpload) {
+      await deleteLocalPhoto(photo.localUri);
+    }
     logger.info('Photo envoyée avec succès', { fileName: photo.fileName, itemId });
     return true;
   } catch (e) {
@@ -134,6 +139,13 @@ export async function runSync(): Promise<number> {
   try {
     if (!(await isConnected())) {
       logger.info('Synchronisation ignorée : pas de connexion Internet');
+      return 0;
+    }
+
+    // The data-saving setting holds the queue rather than failing it: the
+    // files stay PENDING and leave on their own at the next Wi-Fi.
+    if (getSettings().wifiOnlyUploads && !(await isOnWifi())) {
+      logger.info('Synchronisation reportée : envoi limité au Wi-Fi');
       return 0;
     }
 

@@ -13,6 +13,7 @@ import AdminNewBuildingScreen from '@/screens/AdminNewBuildingScreen';
 import AdminNewProjectScreen from '@/screens/AdminNewProjectScreen';
 import AdminScreen from '@/screens/AdminScreen';
 import AdminWorkspaceScreen from '@/screens/AdminWorkspaceScreen';
+import SettingsScreen from '@/screens/SettingsScreen';
 import CameraScreen from '@/screens/CameraScreen';
 import DiagnosticsScreen from '@/screens/DiagnosticsScreen';
 import HomeScreen from '@/screens/HomeScreen';
@@ -89,6 +90,7 @@ export default function RootNavigator() {
               component={AdminWorkspaceScreen}
               options={{ title: 'Espace partagé' }}
             />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Paramètres' }} />
             <Stack.Screen name="Diagnostics" component={DiagnosticsScreen} options={{ title: 'Diagnostic' }} />
             <Stack.Screen name="About" component={AboutScreen} options={{ title: 'À propos' }} />
           </>

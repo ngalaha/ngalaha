@@ -21,6 +21,7 @@ export type RootStackParamList = {
   AdminNewBuilding: { projectId: string };
   AdminApartments: { buildingId: string };
   AdminWorkspace: undefined;
+  Settings: undefined;
   Diagnostics: undefined;
   About: undefined;
 };

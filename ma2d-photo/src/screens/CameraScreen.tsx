@@ -18,13 +18,13 @@ import PrimaryButton from '@/components/PrimaryButton';
 import { RootStackParamList } from '@/navigation/types';
 import { logger } from '@/services/logging/logger';
 import { saveCapturedMedia } from '@/services/capture/saveCapturedMedia';
+import { getSettings } from '@/services/settings/appSettings';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { USER_MESSAGES } from '@/utils/errorMessages';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Camera'>;
 
-const MAX_VIDEO_SECONDS = 300;
 
 /**
  * expo-camera's zoom is a fraction of the device's maximum, so the real
@@ -128,7 +128,11 @@ export default function CameraScreen({ route, navigation }: Props) {
     setElapsed(0);
     try {
       // Resolves only once stopRecording() is called or maxDuration is hit.
-      const video = await cameraRef.current.recordAsync({ maxDuration: MAX_VIDEO_SECONDS });
+      // Read at the moment of recording, so a change in Paramètres applies
+      // to the very next clip without restarting the app.
+      const video = await cameraRef.current.recordAsync({
+        maxDuration: getSettings().maxVideoSeconds,
+      });
       setRecording(false);
       if (!video?.uri) throw new Error('recordAsync returned no uri');
       setBusy(true);
