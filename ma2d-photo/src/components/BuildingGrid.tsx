@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { Building } from '@/types';
 
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function BuildingGrid({ buildings, selectedBuildingId, onSelect }: Props) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View>
       <Text style={[typography.caption, styles.label]}>Bâtiment</Text>
@@ -39,6 +41,8 @@ function BuildingCell({
   selected: boolean;
   onSelect: (buildingId: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const configured = !!building.photoFolder.itemId;
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -71,7 +75,8 @@ function BuildingCell({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   label: { color: colors.textSecondary, marginBottom: 8, marginTop: 20 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   cellWrapper: { width: '30%' },

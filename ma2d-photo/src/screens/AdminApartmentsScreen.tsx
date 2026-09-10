@@ -10,13 +10,15 @@ import { getBuilding } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
 import { syncSoon } from '@/services/sync/configSyncService';
 import { parseApartmentNames } from '@/utils/apartmentNames';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { Apartment } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminApartments'>;
 
 export default function AdminApartmentsScreen({ route }: Props) {
+  const styles = useThemedStyles(createStyles);
   const { buildingId } = route.params;
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [bulkText, setBulkText] = useState('');
@@ -111,7 +113,8 @@ export default function AdminApartmentsScreen({ route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   hint: { color: colors.textSecondary, fontSize: 13, marginTop: 8, marginBottom: 16, lineHeight: 18 },
   textarea: {

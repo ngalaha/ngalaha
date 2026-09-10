@@ -16,7 +16,8 @@ import {
   subscribeSync,
   syncSoon,
 } from '@/services/sync/configSyncService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { Building } from '@/types';
 
@@ -31,6 +32,8 @@ function BuildingRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const configured = !!building.photoFolder.itemId;
   const hasError = !!building.photoFolder.lastError;
   const ok = configured && !hasError;
@@ -60,6 +63,8 @@ function BuildingRow({
 }
 
 export default function AdminScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { projects, renameProject, removeProject, refresh: refreshProjects } = useProjects();
   const { account } = useAuth();
   const { requireAdmin, promptPinChange, promptElement } = useAdminPinGate();
@@ -191,6 +196,8 @@ function ProjectSection({
   onEditBuilding: (buildingId: string) => void;
   onDeleteProject: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { buildings, refresh } = useProjectBuildings(projectId);
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState(projectName);
@@ -282,7 +289,8 @@ function useProjectBuildings(projectId: string) {
   return { buildings, refresh };
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   section: {
     backgroundColor: colors.surface,

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, StyleSheet } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 const OFFSCREEN_OFFSET = 320;
 
@@ -18,6 +19,7 @@ interface Props {
  * and ApartmentPicker.
  */
 export default function BottomSheet({ visible, onClose, children, maxHeight = '70%' }: Props) {
+  const styles = useThemedStyles(createStyles);
   const translateY = useRef(new Animated.Value(OFFSCREEN_OFFSET)).current;
 
   useEffect(() => {
@@ -39,7 +41,8 @@ export default function BottomSheet({ visible, onClose, children, maxHeight = '7
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.surface,

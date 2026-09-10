@@ -8,7 +8,8 @@ import {
   setAdminPin,
   verifyAdminPin,
 } from '@/services/security/adminPin';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 import PrimaryButton from './PrimaryButton';
@@ -26,6 +27,7 @@ type Mode = 'verify' | 'create' | 'change';
  * to replace an existing PIN.
  */
 export function useAdminPinGate() {
+  const styles = useThemedStyles(createStyles);
   const [visible, setVisible] = useState(false);
   const [mode, setMode] = useState<Mode>('verify');
   const [currentPin, setCurrentPin] = useState('');
@@ -191,7 +193,8 @@ export function useAdminPinGate() {
   return { requireAdmin, promptPinChange, promptElement };
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlay,

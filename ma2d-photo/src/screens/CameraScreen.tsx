@@ -19,7 +19,8 @@ import { RootStackParamList } from '@/navigation/types';
 import { logger } from '@/services/logging/logger';
 import { saveCapturedMedia } from '@/services/capture/saveCapturedMedia';
 import { getSettings } from '@/services/settings/appSettings';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { USER_MESSAGES } from '@/utils/errorMessages';
 
@@ -59,6 +60,8 @@ function formatElapsed(seconds: number): string {
  * the capture is done inside the app, where nothing can swallow it.
  */
 export default function CameraScreen({ route, navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { mode, folderConfigured, ...context } = route.params;
   const isVideo = mode === 'video';
 
@@ -332,7 +335,8 @@ export default function CameraScreen({ route, navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   centered: {
     flex: 1,

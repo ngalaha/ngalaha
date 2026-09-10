@@ -13,7 +13,8 @@ import {
   subscribeSync,
   syncNow,
 } from '@/services/sync/configSyncService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { AppError } from '@/utils/errorMessages';
 import { OneDriveFolderRef } from '@/types';
@@ -31,6 +32,8 @@ function formatDate(iso: string | null): string {
  * and anything created here reaches the other phones the same way.
  */
 export default function AdminWorkspaceScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [folder, setFolder] = useState<OneDriveFolderRef | null>(getWorkspaceFolder);
   const [state, setState] = useState(getSyncState);
   const [link, setLink] = useState('');
@@ -178,7 +181,8 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
   intro: { color: colors.textSecondary, fontSize: 13, lineHeight: 19, marginBottom: 20 },

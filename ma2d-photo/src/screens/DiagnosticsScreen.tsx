@@ -4,16 +4,17 @@ import { FlatList, Share, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '@/components/PrimaryButton';
 import { logger, LogEntry } from '@/services/logging/logger';
 import { runSync } from '@/services/upload/uploadQueueService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
-const LEVEL_COLOR: Record<LogEntry['level'], string> = {
-  info: colors.textSecondary,
-  warn: colors.warning,
-  error: colors.danger,
-};
+function levelColor(colors: ThemeColors): Record<LogEntry['level'], string> {
+  return { info: colors.textSecondary, warn: colors.warning, error: colors.danger };
+}
 
 export default function DiagnosticsScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
   const [entries, setEntries] = useState<LogEntry[]>(logger.getEntries());
 
   useEffect(() => logger.subscribe(() => setEntries(logger.getEntries())), []);
@@ -50,7 +51,7 @@ export default function DiagnosticsScreen() {
         renderItem={({ item }) => (
           <View style={styles.entry}>
             <Text style={[styles.time]}>{new Date(item.timestamp).toLocaleTimeString('fr-CA')}</Text>
-            <Text style={[typography.body, { color: LEVEL_COLOR[item.level] }]}>{item.message}</Text>
+            <Text style={[typography.body, { color: levelColor(colors)[item.level] }]}>{item.message}</Text>
             {item.data && <Text style={styles.data}>{JSON.stringify(item.data)}</Text>}
           </View>
         )}
@@ -61,7 +62,8 @@ export default function DiagnosticsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   actions: { gap: 12, padding: 16 },
   actionsRow: { flexDirection: 'row', gap: 12 },

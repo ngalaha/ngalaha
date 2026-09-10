@@ -9,8 +9,11 @@ import { logger } from '@/services/logging/logger';
  */
 
 export type PhotoQuality = 'high' | 'balanced' | 'light';
+export type ThemePreference = 'light' | 'dark' | 'system';
 
 export interface AppSettings {
+  /** Light stays the default: it is the readable one in direct sunlight. */
+  theme: ThemePreference;
   /** Trade-off between legible detail on site and file size on a data plan. */
   photoQuality: PhotoQuality;
   /** Hold uploads until the phone is on Wi-Fi. */
@@ -34,6 +37,7 @@ export const PHOTO_QUALITY_PRESETS: Record<
 export const VIDEO_DURATION_CHOICES = [60, 180, 300] as const;
 
 const DEFAULTS: AppSettings = {
+  theme: 'light',
   photoQuality: 'balanced',
   wifiOnlyUploads: false,
   maxVideoSeconds: 300,

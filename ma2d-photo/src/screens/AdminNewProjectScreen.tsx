@@ -6,12 +6,14 @@ import PrimaryButton from '@/components/PrimaryButton';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
 import { syncSoon } from '@/services/sync/configSyncService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminNewProject'>;
 
 export default function AdminNewProjectScreen({ navigation }: Props) {
+  const styles = useThemedStyles(createStyles);
   const { addProject } = useProjects();
   const [name, setName] = useState('');
 
@@ -42,7 +44,8 @@ export default function AdminNewProjectScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: 20 },
   label: { marginTop: 24, marginBottom: 8, color: colors.textSecondary },
   input: {

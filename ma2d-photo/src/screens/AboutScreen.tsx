@@ -3,13 +3,16 @@ import Constants from 'expo-constants';
 import React from 'react';
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 const MA2D_WEBSITE_URL = 'https://www.ma2d.com/fr/entrepreneur-general-ma2d-construction';
 
 export default function AboutScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.brandHeader}>
@@ -75,7 +78,8 @@ export default function AboutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
   brandHeader: { alignItems: 'center', marginBottom: 28 },

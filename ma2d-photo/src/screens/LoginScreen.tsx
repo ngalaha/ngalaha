@@ -5,10 +5,13 @@ import { Animated, Image, SafeAreaView, StyleSheet, Text, View } from 'react-nat
 import PrimaryButton from '@/components/PrimaryButton';
 import { useAuth } from '@/hooks/useAuth';
 import { isMicrosoftAuthConfigured } from '@/config/env';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 export default function LoginScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { signIn, loading, error } = useAuth();
   const configured = isMicrosoftAuthConfigured();
 
@@ -65,7 +68,8 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   // White throughout: the MA2D wordmark is dark brown/red and was
   // unreadable on the navy background it used to sit on.
   container: { flex: 1, backgroundColor: colors.surface },

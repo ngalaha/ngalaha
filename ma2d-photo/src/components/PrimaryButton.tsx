@@ -10,7 +10,8 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 interface Props {
@@ -32,6 +33,8 @@ export default function PrimaryButton({
   disabled,
   style,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const backgroundColor =
     variant === 'primary' ? colors.accent : variant === 'danger' ? colors.danger : colors.surface;
   const textColor = variant === 'secondary' ? colors.primary : colors.textOnPrimary;
@@ -70,7 +73,8 @@ export default function PrimaryButton({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   button: {
     minHeight: 56,
     borderRadius: 14,

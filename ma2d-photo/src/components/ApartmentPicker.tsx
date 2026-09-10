@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { Apartment } from '@/types';
 
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export default function ApartmentPicker({ apartments, selectedApartmentId, onSelect }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -104,7 +107,8 @@ export default function ApartmentPicker({ apartments, selectedApartmentId, onSel
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   label: { color: colors.textSecondary, marginBottom: 4 },
   trigger: {
     minHeight: 56,

@@ -5,11 +5,13 @@ import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import {
   AppSettings,
   PhotoQuality,
+  ThemePreference,
   VIDEO_DURATION_CHOICES,
   getSettings,
   updateSettings,
 } from '@/services/settings/appSettings';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 const QUALITY_LABELS: Record<PhotoQuality, { title: string; detail: string }> = {
@@ -18,11 +20,19 @@ const QUALITY_LABELS: Record<PhotoQuality, { title: string; detail: string }> = 
   light: { title: 'Légère', detail: 'Fichiers légers, forfait limité' },
 };
 
+const THEME_LABELS: Record<ThemePreference, string> = {
+  light: 'Clair',
+  dark: 'Sombre',
+  system: 'Système',
+};
+
 function formatDuration(seconds: number): string {
   return seconds >= 60 ? `${seconds / 60} min` : `${seconds} s`;
 }
 
 function Section({ title, icon, children }: { title: string; icon: keyof typeof Ionicons.glyphMap; children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -45,6 +55,7 @@ function Choice({
   selected: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Text
       onPress={onPress}
@@ -68,6 +79,8 @@ function Toggle({
   value: boolean;
   onChange: (next: boolean) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.toggleRow}>
       <View style={styles.toggleText}>
@@ -89,12 +102,30 @@ function Toggle({
  * plan, its storage — so nothing is published to the shared configuration.
  */
 export default function SettingsScreen() {
+  const styles = useThemedStyles(createStyles);
   const [settings, setSettings] = useState<AppSettings>(getSettings);
 
   const apply = (patch: Partial<AppSettings>) => setSettings(updateSettings(patch));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Section title="APPARENCE" icon="color-palette-outline">
+        <Text style={styles.label}>Fond de l'application</Text>
+        <View style={styles.choiceRow}>
+          {(Object.keys(THEME_LABELS) as ThemePreference[]).map((theme) => (
+            <Choice
+              key={theme}
+              label={THEME_LABELS[theme]}
+              selected={settings.theme === theme}
+              onPress={() => apply({ theme })}
+            />
+          ))}
+        </View>
+        <Text style={styles.hint}>
+          « Système » suit le réglage du téléphone. Le fond clair reste conseillé en plein soleil.
+        </Text>
+      </Section>
+
       <Section title="PRISE DE VUE" icon="camera-outline">
         <Text style={styles.label}>Qualité des photos</Text>
         <View style={styles.choiceRow}>
@@ -145,7 +176,8 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
   section: {
@@ -159,6 +191,7 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { ...typography.bodyBold, color: colors.primary },
   label: { color: colors.textSecondary, fontSize: 13, marginTop: 14, marginBottom: 8 },
+  hint: { color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 10 },
   choiceRow: { flexDirection: 'row', gap: 8 },
   choice: {
     flex: 1,

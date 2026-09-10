@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 interface Props {
   pendingCount: number;
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export default function PendingUploadsBanner({ pendingCount, syncing, isOnline, onPress }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -51,7 +54,8 @@ export default function PendingUploadsBanner({ pendingCount, syncing, isOnline, 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',

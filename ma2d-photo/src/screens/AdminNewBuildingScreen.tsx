@@ -7,12 +7,15 @@ import { createBuilding, updateBuildingFolder } from '@/database/projectsReposit
 import { RootStackParamList } from '@/navigation/types';
 import { syncSoon } from '@/services/sync/configSyncService';
 import { resolveShareLink } from '@/services/microsoftGraph/oneDriveService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminNewBuilding'>;
 
 export default function AdminNewBuildingScreen({ route, navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { projectId } = route.params;
   const [name, setName] = useState('');
   const [link, setLink] = useState('');
@@ -73,7 +76,8 @@ export default function AdminNewBuildingScreen({ route, navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: 20 },
   label: { marginTop: 20, marginBottom: 8, color: colors.textSecondary },
   input: {

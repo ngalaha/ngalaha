@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 interface Props {
   onPress: () => void;
@@ -11,6 +12,8 @@ interface Props {
 
 /** The app's single most important control — large enough to hit reliably with gloves on. */
 export default function BigCameraButton({ onPress, disabled }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const scale = useRef(new Animated.Value(1)).current;
 
   const animateTo = (value: number) => {
@@ -34,7 +37,8 @@ export default function BigCameraButton({ onPress, disabled }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   circle: {
     alignSelf: 'center',
     width: 200,

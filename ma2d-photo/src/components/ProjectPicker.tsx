@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { Project } from '@/types';
 
@@ -15,6 +16,8 @@ interface Props {
 }
 
 export default function ProjectPicker({ projects, selectedProject, onSelect }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [open, setOpen] = useState(false);
 
   return (
@@ -57,7 +60,8 @@ export default function ProjectPicker({ projects, selectedProject, onSelect }: P
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   label: { color: colors.textSecondary, marginBottom: 4 },
   trigger: {
     minHeight: 56,

@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { formatShortTime } from '@/utils/dateUtils';
 import { PhotoRecord } from '@/types';
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export default function RecentPhotoItem({ photo, onRetry, onDiscard }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(8)).current;
 
@@ -73,7 +76,8 @@ export default function RecentPhotoItem({ photo, onRetry, onDiscard }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

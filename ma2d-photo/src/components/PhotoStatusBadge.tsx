@@ -2,22 +2,27 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { PhotoStatus } from '@/types';
 
-const STATUS_CONFIG: Record<
-  PhotoStatus,
-  { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }
-> = {
-  LOCAL: { label: 'Locale', color: colors.textSecondary, icon: 'save-outline' },
-  PENDING: { label: 'En attente', color: colors.warning, icon: 'time-outline' },
-  UPLOADING: { label: 'Envoi...', color: colors.primary, icon: 'sync' },
-  UPLOADED: { label: 'Envoyée', color: colors.success, icon: 'checkmark-circle' },
-  FAILED: { label: 'Échec', color: colors.danger, icon: 'alert-circle' },
-};
+/** Built from the active palette: a status colour differs between themes. */
+function statusConfig(
+  colors: ThemeColors
+): Record<PhotoStatus, { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }> {
+  return {
+    LOCAL: { label: 'Locale', color: colors.textSecondary, icon: 'save-outline' },
+    PENDING: { label: 'En attente', color: colors.warning, icon: 'time-outline' },
+    UPLOADING: { label: 'Envoi...', color: colors.primary, icon: 'sync' },
+    UPLOADED: { label: 'Envoyée', color: colors.success, icon: 'checkmark-circle' },
+    FAILED: { label: 'Échec', color: colors.danger, icon: 'alert-circle' },
+  };
+}
 
 export default function PhotoStatusBadge({ status }: { status: PhotoStatus }) {
-  const config = STATUS_CONFIG[status];
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+  const config = statusConfig(colors)[status];
   const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -42,7 +47,8 @@ export default function PhotoStatusBadge({ status }: { status: PhotoStatus }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 2 },
   text: { fontSize: 13, fontWeight: '700' },
 });

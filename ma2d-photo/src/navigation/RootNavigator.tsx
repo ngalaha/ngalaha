@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer, Theme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
@@ -18,7 +18,8 @@ import CameraScreen from '@/screens/CameraScreen';
 import DiagnosticsScreen from '@/screens/DiagnosticsScreen';
 import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 import { navigationRef } from './navigationRef';
 import { RootStackParamList } from './types';
@@ -26,13 +27,28 @@ import { RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
+  const { colors, isDark } = useTheme();
   const { isSignedIn, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (loading) return null;
 
+  // Without this, React Navigation keeps painting its own white ground behind
+  // the screens — a white flash on every transition in dark mode.
+  const navigationTheme: Theme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme : DefaultTheme).colors,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.textPrimary,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
+
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} theme={navigationTheme}>
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: colors.surface },

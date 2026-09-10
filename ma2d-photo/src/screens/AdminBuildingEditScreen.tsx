@@ -8,13 +8,16 @@ import { getBuilding, updateBuildingFolder, updateBuildingName } from '@/databas
 import { RootStackParamList } from '@/navigation/types';
 import { resolveShareLink } from '@/services/microsoftGraph/oneDriveService';
 import { syncSoon } from '@/services/sync/configSyncService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { Building, emptyOneDriveFolderRef } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminBuildingEdit'>;
 
 export default function AdminBuildingEditScreen({ route, navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { buildingId } = route.params;
   const [building, setBuilding] = useState<Building | null>(null);
   const [name, setName] = useState('');
@@ -106,7 +109,8 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: 20 },
   label: { marginTop: 20, marginBottom: 8, color: colors.textSecondary },
   input: {

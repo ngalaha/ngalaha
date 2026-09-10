@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { initDatabase } from '@/database/db';
 import { ensureSeeded } from '@/database/projectsRepository';
 import RootNavigator from '@/navigation/RootNavigator';
+import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
 import { registerBackgroundSync } from '@/services/upload/backgroundSyncTask';
 import { subscribeOnReconnect } from '@/services/upload/connectivityService';
 import { runSync } from '@/services/upload/uploadQueueService';
@@ -35,9 +36,18 @@ export default function App() {
   if (!ready) return null;
 
   return (
+    <ThemeProvider>
+      <ThemedApp />
+    </ThemeProvider>
+  );
+}
+
+/** Inside the provider, so the status bar can follow the chosen theme. */
+function ThemedApp() {
+  const { isDark } = useTheme();
+  return (
     <>
-      {/* Dark status-bar icons: every screen (header included) is now light. */}
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <RootNavigator />
     </>
   );

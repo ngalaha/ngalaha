@@ -21,7 +21,8 @@ import { RootStackParamList } from '@/navigation/types';
 import { CaptureContext, saveCapturedMedia } from '@/services/capture/saveCapturedMedia';
 import { logger } from '@/services/logging/logger';
 import { subscribeSync, syncSoon } from '@/services/sync/configSyncService';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 import { USER_MESSAGES } from '@/utils/errorMessages';
 import { MediaType, PhotoRecord } from '@/types';
@@ -92,6 +93,8 @@ function launchWithOpenWatchdog<T>(launch: Promise<T>, timeoutMessage: string): 
 }
 
 export default function HomeScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { signOut } = useAuth();
   const isOnline = useConnectivity();
   const {
@@ -395,7 +398,8 @@ export default function HomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   listContent: { padding: 20, paddingBottom: 40 },
   header: { gap: 4 },

@@ -3,7 +3,8 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { navigationRef } from '@/navigation/navigationRef';
-import { colors } from '@/theme/colors';
+import { ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
 const PANEL_WIDTH = Math.min(320, Dimensions.get('window').width * 0.82);
@@ -19,6 +20,8 @@ interface Props {
  * link to a full screen — the menu itself stays a short list, not content.
  */
 export default function SideMenu({ visible, onClose }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const translateX = useRef(new Animated.Value(PANEL_WIDTH)).current;
 
   useEffect(() => {
@@ -70,7 +73,8 @@ export default function SideMenu({ visible, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.overlay, flexDirection: 'row', justifyContent: 'flex-end' },
   panel: {
     backgroundColor: colors.surface,
