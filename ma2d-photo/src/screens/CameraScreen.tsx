@@ -2,8 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import PrimaryButton from '@/components/PrimaryButton';
 import { RootStackParamList } from '@/navigation/types';
@@ -16,6 +25,27 @@ import { USER_MESSAGES } from '@/utils/errorMessages';
 type Props = NativeStackScreenProps<RootStackParamList, 'Camera'>;
 
 const MAX_VIDEO_SECONDS = 300;
+
+/**
+ * expo-camera's zoom is a fraction of the device's maximum, so the real
+ * factor is unknown to us — the badge therefore shows a percentage rather
+ * than a made-up "3x".
+ */
+const ZOOM_STEP = 0.05;
+/** Spreading the fingers to twice their spacing covers half the zoom range. */
+const PINCH_RANGE = 0.5;
+
+/**
+ * Without an explicit ratio the preview is scaled to FILL the screen, which
+ * crops the sensor's 4:3 field to the phone's tall aspect: the operator frames
+ * on less than the lens actually sees and has to step back for a wide shot.
+ * Asking for 4:3 switches the preview to FIT — full field of view, letterboxed.
+ */
+const PREVIEW_RATIO = '4:3';
+
+function clampZoom(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
 
 function formatElapsed(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -37,6 +67,11 @@ export default function CameraScreen({ route, navigation }: Props) {
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [busy, setBusy] = useState(false);
+  const [zoom, setZoom] = useState(0);
+  // PanResponder closes over its callbacks once; the ref keeps the pinch
+  // reading the live zoom instead of the value captured on first render.
+  const zoomRef = useRef(0);
+  zoomRef.current = zoom;
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
@@ -107,6 +142,42 @@ export default function CameraScreen({ route, navigation }: Props) {
     }
   };
 
+  const pinchStart = useRef<{ distance: number; zoom: number } | null>(null);
+
+  /**
+   * Two-finger pinch, without pulling in a gesture library: only a
+   * two-touch gesture is claimed, so single taps still reach the buttons
+   * layered above this view.
+   */
+  const pinchResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: (event) => event.nativeEvent.touches.length === 2,
+        onMoveShouldSetPanResponder: (event) => event.nativeEvent.touches.length === 2,
+        onPanResponderMove: (event) => {
+          const touches = event.nativeEvent.touches;
+          if (touches.length !== 2) return;
+          const distance = Math.hypot(
+            touches[0].pageX - touches[1].pageX,
+            touches[0].pageY - touches[1].pageY
+          );
+          if (!pinchStart.current) {
+            pinchStart.current = { distance, zoom: zoomRef.current };
+            return;
+          }
+          const spread = distance / pinchStart.current.distance;
+          setZoom(clampZoom(pinchStart.current.zoom + (spread - 1) * PINCH_RANGE));
+        },
+        onPanResponderRelease: () => {
+          pinchStart.current = null;
+        },
+        onPanResponderTerminate: () => {
+          pinchStart.current = null;
+        },
+      }),
+    []
+  );
+
   const stopRecording = () => {
     if (!recording || !cameraRef.current) return;
     cameraRef.current.stopRecording();
@@ -167,10 +238,16 @@ export default function CameraScreen({ route, navigation }: Props) {
         style={StyleSheet.absoluteFill}
         facing={facing}
         mode={isVideo ? 'video' : 'picture'}
+        ratio={PREVIEW_RATIO}
+        zoom={zoom}
         // If the microphone was refused, record silently rather than refusing
         // to film at all — the picture is what documents the site.
         mute={!micPermission?.granted}
       />
+
+      {/* Sits above the preview but below the controls, and only claims
+          two-finger gestures, so the shutter stays reachable. */}
+      <View style={StyleSheet.absoluteFill} {...pinchResponder.panHandlers} />
 
       <View style={styles.topBar}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.iconButton}>
@@ -196,6 +273,32 @@ export default function CameraScreen({ route, navigation }: Props) {
         </View>
       )}
 
+      <View style={styles.zoomBar}>
+        <Pressable
+          onPress={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
+          disabled={zoom === 0}
+          hitSlop={8}
+          style={[styles.zoomButton, zoom === 0 && styles.zoomButtonDisabled]}
+        >
+          <Ionicons name="remove" size={22} color="#FFFFFF" />
+        </Pressable>
+
+        <Pressable onPress={() => setZoom(0)} hitSlop={8} style={styles.zoomLevel}>
+          <Text style={styles.zoomLevelText}>
+            {zoom === 0 ? '1×' : `${Math.round(zoom * 100)} %`}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
+          disabled={zoom === 1}
+          hitSlop={8}
+          style={[styles.zoomButton, zoom === 1 && styles.zoomButtonDisabled]}
+        >
+          <Ionicons name="add" size={22} color="#FFFFFF" />
+        </Pressable>
+      </View>
+
       <View style={styles.bottomBar}>
         {busy ? (
           <ActivityIndicator size="large" color="#FFFFFF" />
@@ -219,6 +322,7 @@ export default function CameraScreen({ route, navigation }: Props) {
               : 'Touchez pour filmer'
             : 'Touchez pour prendre la photo'}
         </Text>
+        <Text style={styles.zoomHint}>Pincez l'écran pour zoomer</Text>
       </View>
     </View>
   );
@@ -271,6 +375,31 @@ const styles = StyleSheet.create({
   recordingDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.danger },
   recordingText: { color: '#FFFFFF', fontWeight: '700' },
   bottomBar: { position: 'absolute', bottom: 48, left: 0, right: 0, alignItems: 'center', gap: 12 },
+  zoomBar: {
+    position: 'absolute',
+    right: 16,
+    top: '38%',
+    alignItems: 'center',
+    gap: 10,
+  },
+  zoomButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#00000066',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoomButtonDisabled: { opacity: 0.35 },
+  zoomLevel: {
+    minWidth: 52,
+    borderRadius: 14,
+    backgroundColor: '#00000066',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    alignItems: 'center',
+  },
+  zoomLevelText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
   shutter: {
     width: 84,
     height: 84,
@@ -285,4 +414,5 @@ const styles = StyleSheet.create({
   recordCircle: { width: 62, height: 62, borderRadius: 31, backgroundColor: colors.danger },
   stopSquare: { width: 34, height: 34, borderRadius: 6, backgroundColor: colors.danger },
   hint: { color: '#FFFFFFCC', fontSize: 13, fontWeight: '600' },
+  zoomHint: { color: '#FFFFFF80', fontSize: 11 },
 });

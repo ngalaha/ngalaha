@@ -117,6 +117,8 @@ export default function HomeScreen({ navigation }: Props) {
   const { requireAdmin, promptElement } = useAdminPinGate();
   const [processing, setProcessing] = useState<'idle' | 'opening' | 'saving'>('idle');
   const [selectedApartmentId, setSelectedApartmentId] = useState<string | null>(null);
+  /** Only set while several picked files are being prepared one after another. */
+  const [savingProgress, setSavingProgress] = useState<{ done: number; total: number } | null>(null);
 
   // Home stays mounted underneath the camera and Administration in the stack,
   // so its building list (OneDrive folder status, names) and its recent-files
@@ -218,28 +220,69 @@ export default function HomeScreen({ navigation }: Props) {
       }
 
       const result = await launchWithOpenWatchdog(
-        ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 1 }),
+        ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+          // Picking one photo at a time is the slow part of a day's upload.
+          allowsMultipleSelection: true,
+          selectionLimit: 0, // as many as the system allows
+          // Numbers the selection and returns the assets in that same order,
+          // which is what makes the generated file names follow it.
+          orderedSelection: true,
+        }),
         "La galerie ne s'est pas ouverte"
       );
 
-      if (result.canceled || !result.assets?.[0]) {
+      if (result.canceled || !result.assets?.length) {
         logger.info('Sélection annulée par l’utilisateur');
         return;
       }
 
+      const assets = result.assets;
       setProcessing('saving');
-      await saveCapturedMedia(result.assets[0].uri, 'photo', context);
+      setSavingProgress({ done: 0, total: assets.length });
 
-      if (!selectedBuilding?.photoFolder.itemId) {
-        Alert.alert('Fichier enregistré', USER_MESSAGES.FOLDER_NOT_CONFIGURED);
+      // Sequentially, never in parallel: each file takes its name from the
+      // moment it is saved, so the order of selection becomes the order of
+      // the names — and compressing a dozen photos at once would starve the
+      // phone's memory.
+      let saved = 0;
+      const failures: string[] = [];
+      for (const asset of assets) {
+        try {
+          await saveCapturedMedia(asset.uri, 'photo', context);
+          saved += 1;
+        } catch (e) {
+          failures.push(asset.fileName ?? asset.uri.split('/').pop() ?? '?');
+          logger.error("Échec de la préparation d'un fichier de la galerie", {
+            uri: asset.uri,
+            error: String(e),
+          });
+        }
+        setSavingProgress({ done: saved + failures.length, total: assets.length });
+      }
+
+      if (failures.length) {
+        Alert.alert(
+          'Certains fichiers ont échoué',
+          `${saved} fichier(s) ajouté(s), ${failures.length} en échec.`
+        );
+      } else if (!selectedBuilding?.photoFolder.itemId) {
+        Alert.alert(
+          assets.length > 1 ? `${saved} fichiers enregistrés` : 'Fichier enregistré',
+          USER_MESSAGES.FOLDER_NOT_CONFIGURED
+        );
       } else if (!isOnline) {
         Alert.alert('Hors ligne', USER_MESSAGES.NO_INTERNET);
+      } else if (assets.length > 1) {
+        Alert.alert('Fichiers ajoutés', `${saved} fichiers ont été mis en file d'envoi.`);
       }
     } catch (e) {
       logger.error('Échec de la sélection/préparation du fichier', { error: String(e) });
       Alert.alert('Erreur', "Le fichier n'a pas pu être préparé. Réessayez.");
     } finally {
       setProcessing('idle');
+      setSavingProgress(null);
     }
   }, [captureContext, isOnline, selectedBuilding]);
 
@@ -291,7 +334,11 @@ export default function HomeScreen({ navigation }: Props) {
               <BigCameraButton onPress={() => openCamera('photo')} disabled={processing !== 'idle'} />
               {processing !== 'idle' && (
                 <Text style={styles.processingText}>
-                  {processing === 'opening' ? 'Ouverture...' : 'Enregistrement...'}
+                  {processing === 'opening'
+                    ? 'Ouverture...'
+                    : savingProgress && savingProgress.total > 1
+                      ? `Enregistrement ${savingProgress.done}/${savingProgress.total}...`
+                      : 'Enregistrement...'}
                 </Text>
               )}
               <PrimaryButton
