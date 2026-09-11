@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import PrimaryButton from '@/components/PrimaryButton';
 import { useProjects } from '@/hooks/useProjects';
 import { RootStackParamList } from '@/navigation/types';
@@ -14,12 +15,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AdminNewProject'>;
 
 export default function AdminNewProjectScreen({ navigation }: Props) {
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const { addProject } = useProjects();
   const [name, setName] = useState('');
 
   const onCreate = () => {
     if (!name.trim()) {
-      Alert.alert('Nom requis', 'Indiquez le nom du projet.');
+      Alert.alert(t('newProject.nameRequired.title'), t('newProject.nameRequired.body'));
       return;
     }
     addProject(name.trim());
@@ -30,16 +32,16 @@ export default function AdminNewProjectScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={typography.h2}>+ NOUVEAU PROJET</Text>
-      <Text style={styles.label}>Nom du projet :</Text>
+      <Text style={typography.h2}>{t('newProject.title')}</Text>
+      <Text style={styles.label}>{t('newProject.label')}</Text>
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Ex : Projet Laval"
+        placeholder={t('newProject.placeholder')}
         style={styles.input}
         autoFocus
       />
-      <PrimaryButton label="Créer" onPress={onCreate} style={{ marginTop: 24 }} />
+      <PrimaryButton label={t('newProject.create')} onPress={onCreate} style={{ marginTop: 24 }} />
     </View>
   );
 }

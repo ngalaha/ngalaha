@@ -18,3 +18,13 @@ export const DEFAULT_LANGUAGE: Language = 'fr';
 export function isLanguage(value: unknown): value is Language {
   return LANGUAGES.some((entry) => entry.code === value);
 }
+
+/**
+ * BCP 47 tag for dates and numbers. French stays fr-CA: the app is used in
+ * Quebec, where 2026-09-11 is the ordinary way to write a date.
+ */
+export const LOCALES: Record<Language, string> = {
+  fr: 'fr-CA',
+  en: 'en-CA',
+  es: 'es',
+};

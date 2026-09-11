@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -9,7 +10,6 @@ import { Apartment } from '@/types';
 
 import BottomSheet from './BottomSheet';
 
-const COMMON_AREA_LABEL = 'Zone commune';
 /** Show the search box once there are enough apartments that scrolling to find one gets tedious. */
 const SEARCH_THRESHOLD = 8;
 
@@ -23,12 +23,13 @@ interface Props {
 export default function ApartmentPicker({ apartments, selectedApartmentId, onSelect }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
   const selectedLabel = selectedApartmentId
-    ? (apartments.find((a) => a.id === selectedApartmentId)?.name ?? COMMON_AREA_LABEL)
-    : COMMON_AREA_LABEL;
+    ? (apartments.find((a) => a.id === selectedApartmentId)?.name ?? t('picker.commonArea'))
+    : t('picker.commonArea');
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -43,7 +44,7 @@ export default function ApartmentPicker({ apartments, selectedApartmentId, onSel
 
   return (
     <View>
-      <Text style={[typography.caption, styles.label]}>Appartement</Text>
+      <Text style={[typography.caption, styles.label]}>{t('picker.apartment.label')}</Text>
       <Pressable
         style={styles.trigger}
         onPress={() => setOpen(true)}
@@ -54,12 +55,12 @@ export default function ApartmentPicker({ apartments, selectedApartmentId, onSel
       </Pressable>
 
       <BottomSheet visible={open} onClose={close}>
-        <Text style={[typography.h2, styles.sheetTitle]}>Choisir un appartement</Text>
+        <Text style={[typography.h2, styles.sheetTitle]}>{t('picker.apartment.title')}</Text>
         {apartments.length > SEARCH_THRESHOLD && (
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Rechercher un appartement..."
+            placeholder={t('picker.searchApartment')}
             style={styles.search}
             autoCapitalize="none"
             autoCorrect={false}
@@ -78,7 +79,7 @@ export default function ApartmentPicker({ apartments, selectedApartmentId, onSel
                 }}
                 android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
               >
-                <Text style={typography.bodyBold}>{COMMON_AREA_LABEL}</Text>
+                <Text style={typography.bodyBold}>{t('picker.commonArea')}</Text>
                 {selectedApartmentId === null && (
                   <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                 )}
@@ -100,7 +101,7 @@ export default function ApartmentPicker({ apartments, selectedApartmentId, onSel
               )}
             </Pressable>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Aucun résultat.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>{t('picker.apartment.empty')}</Text>}
         />
       </BottomSheet>
     </View>

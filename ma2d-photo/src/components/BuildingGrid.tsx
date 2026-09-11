@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -15,9 +16,10 @@ interface Props {
 
 export default function BuildingGrid({ buildings, selectedBuildingId, onSelect }: Props) {
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   return (
     <View>
-      <Text style={[typography.caption, styles.label]}>Bâtiment</Text>
+      <Text style={[typography.caption, styles.label]}>{t('picker.building.label')}</Text>
       <View style={styles.grid}>
         {buildings.map((building) => (
           <BuildingCell

@@ -2,6 +2,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
+import { LOCALES } from '@/i18n/languages';
+import { userMessage } from '@/utils/errorMessages';
 import PrimaryButton from '@/components/PrimaryButton';
 import { listApartments } from '@/database/apartmentsRepository';
 import { getBuilding, updateBuildingFolder, updateBuildingName } from '@/database/projectsRepository';
@@ -18,6 +21,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AdminBuildingEdit'>;
 export default function AdminBuildingEditScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t, language } = useTranslation();
   const { buildingId } = route.params;
   const [building, setBuilding] = useState<Building | null>(null);
   const [name, setName] = useState('');
@@ -51,10 +55,13 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
           const resolved = await resolveShareLink(trimmedLink);
           updateBuildingFolder(buildingId, resolved);
           if (resolved.lastError) {
-            Alert.alert('Lien non vérifié', resolved.lastError);
+            Alert.alert(t('buildingEdit.linkUnverified.title'), userMessage(resolved.lastError));
             return;
           }
-          Alert.alert('Dossier connecté', `Dossier OneDrive vérifié : "${resolved.itemName}".`);
+          Alert.alert(
+            t('buildingEdit.connected.title'),
+            t('buildingEdit.connected.body', { name: resolved.itemName ?? '' })
+          );
         }
       }
       syncSoon(true);
@@ -68,14 +75,14 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
     <View style={styles.container}>
       <Text style={typography.h2}>{building.name}</Text>
 
-      <Text style={styles.label}>Nom du bâtiment :</Text>
+      <Text style={styles.label}>{t('newBuilding.nameLabel')}</Text>
       <TextInput value={name} onChangeText={setName} style={styles.input} />
 
-      <Text style={styles.label}>Lien dossier Photo OneDrive :</Text>
+      <Text style={styles.label}>{t('buildingEdit.linkLabel')}</Text>
       <TextInput
         value={link}
         onChangeText={setLink}
-        placeholder="https://...-my.sharepoint.com/... ou https://1drv.ms/..."
+        placeholder={t('buildingEdit.linkPlaceholder')}
         style={styles.input}
         autoCapitalize="none"
         autoCorrect={false}
@@ -83,11 +90,17 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
 
       {building.photoFolder.itemId && (
         <View style={styles.infoBox}>
-          <Text style={styles.infoLine}>Drive ID : {building.photoFolder.driveId}</Text>
-          <Text style={styles.infoLine}>Item ID : {building.photoFolder.itemId}</Text>
+          <Text style={styles.infoLine}>
+            {t('buildingEdit.driveId', { value: building.photoFolder.driveId ?? '' })}
+          </Text>
+          <Text style={styles.infoLine}>
+            {t('buildingEdit.itemId', { value: building.photoFolder.itemId ?? '' })}
+          </Text>
           {building.photoFolder.verifiedAt && (
             <Text style={styles.infoLine}>
-              Vérifié le : {new Date(building.photoFolder.verifiedAt).toLocaleString('fr-CA')}
+              {t('buildingEdit.verifiedOn', {
+                when: new Date(building.photoFolder.verifiedAt).toLocaleString(LOCALES[language]),
+              })}
             </Text>
           )}
         </View>
@@ -97,13 +110,13 @@ export default function AdminBuildingEditScreen({ route, navigation }: Props) {
         onPress={() => navigation.navigate('AdminApartments', { buildingId })}
         style={styles.apartmentsLink}
       >
-        Gérer les appartements ({apartmentCount})
+        {t('buildingEdit.manageApartments', { count: apartmentCount })}
       </Text>
 
       {saving ? (
         <ActivityIndicator style={{ marginTop: 24 }} color={colors.primary} />
       ) : (
-        <PrimaryButton label="Enregistrer" onPress={onSave} style={{ marginTop: 24 }} />
+        <PrimaryButton label={t('common.save')} onPress={onSave} style={{ marginTop: 24 }} />
       )}
     </View>
   );

@@ -4,6 +4,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
+import { LOCALES } from '@/i18n/languages';
+import { userMessage } from '@/utils/errorMessages';
 import { useAdminPinGate } from '@/components/AdminPinGate';
 import PrimaryButton from '@/components/PrimaryButton';
 import { deleteBuilding, listBuildings } from '@/database/projectsRepository';
@@ -34,6 +37,7 @@ function BuildingRow({
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const configured = !!building.photoFolder.itemId;
   const hasError = !!building.photoFolder.lastError;
   const ok = configured && !hasError;
@@ -46,17 +50,17 @@ function BuildingRow({
         </View>
         <Text style={[styles.status, { color: ok ? colors.success : colors.warning }]}>
           {ok
-            ? 'OneDrive connecté'
+            ? t('admin.building.connected')
             : hasError
-              ? building.photoFolder.lastError
-              : 'Dossier non configuré'}
+              ? userMessage(building.photoFolder.lastError!)
+              : t('admin.building.notConfigured')}
         </Text>
       </View>
       <Text onPress={onEdit} style={styles.link}>
-        Modifier
+        {t('admin.edit')}
       </Text>
       <Text onPress={onDelete} style={[styles.link, { color: colors.danger }]}>
-        Suppr.
+        {t('admin.deleteShort')}
       </Text>
     </View>
   );
@@ -65,6 +69,7 @@ function BuildingRow({
 export default function AdminScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t, language } = useTranslation();
   const { projects, renameProject, removeProject, refresh: refreshProjects } = useProjects();
   const { account } = useAuth();
   const { requireAdmin, promptPinChange, promptElement } = useAdminPinGate();
@@ -88,7 +93,7 @@ export default function AdminScreen({ navigation }: Props) {
     <>
       <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
         <PrimaryButton
-          label="+ Ajouter un projet"
+          label={t('admin.addProject')}
           onPress={() => requireAdmin(() => navigation.navigate('AdminNewProject'))}
           style={{ marginBottom: 24 }}
         />
@@ -108,10 +113,13 @@ export default function AdminScreen({ navigation }: Props) {
               navigation.navigate('AdminBuildingEdit', { buildingId, projectId: project.id })
             }
             onDeleteProject={() =>
-              Alert.alert('Supprimer le projet', `Supprimer "${project.name}" et tous ses bâtiments ?`, [
-                { text: 'Annuler', style: 'cancel' },
+              Alert.alert(
+                t('admin.deleteProject.title'),
+                t('admin.deleteProject.body', { name: project.name }),
+                [
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                  text: 'Supprimer',
+                  text: t('common.delete'),
                   style: 'destructive',
                   onPress: () =>
                     requireAdmin(() => {
@@ -119,16 +127,17 @@ export default function AdminScreen({ navigation }: Props) {
                       syncSoon(true);
                     }),
                 },
-              ])
+                ]
+              )
             }
           />
         ))}
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={typography.h2}>ESPACE PARTAGÉ</Text>
+            <Text style={typography.h2}>{t('admin.workspace.section')}</Text>
             <Text onPress={() => requireAdmin(() => navigation.navigate('AdminWorkspace'))} style={styles.link}>
-              Configurer
+              {t('admin.workspace.configure')}
             </Text>
           </View>
           <View style={styles.securityRow}>
@@ -139,39 +148,42 @@ export default function AdminScreen({ navigation }: Props) {
             />
             <Text style={styles.securityText} numberOfLines={1}>
               {workspace.folder?.itemId
-                ? `Dossier « ${workspace.folder.itemName} »`
-                : 'Non configuré — cet appareil ne partage rien'}
+                ? t('admin.workspace.folder', { name: workspace.folder.itemName ?? '' })
+                : t('admin.workspace.none')}
             </Text>
           </View>
           {workspace.folder?.itemId && (
             <Text style={styles.securityText}>
-              Dernière synchronisation :{' '}
-              {workspace.state.lastSyncedAt
-                ? new Date(workspace.state.lastSyncedAt).toLocaleString('fr-CA')
-                : 'jamais'}
+              {t('admin.workspace.lastSync', {
+                when: workspace.state.lastSyncedAt
+                  ? new Date(workspace.state.lastSyncedAt).toLocaleString(LOCALES[language])
+                  : t('admin.workspace.never'),
+              })}
             </Text>
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={typography.h2}>SÉCURITÉ</Text>
+          <Text style={typography.h2}>{t('admin.security.section')}</Text>
           <View style={styles.securityRow}>
             <Ionicons name="person-circle-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.securityText} numberOfLines={1}>
-              {account ? `Connecté : ${account.username}` : 'Aucun compte Microsoft connecté'}
+              {account
+                ? t('admin.security.signedIn', { user: account.username })
+                : t('admin.security.noAccount')}
             </Text>
           </View>
           <Text onPress={promptPinChange} style={[styles.link, { marginTop: 12 }]}>
-            Changer le code PIN administrateur
+            {t('admin.security.changePin')}
           </Text>
         </View>
 
         <Text onPress={() => navigation.navigate('Diagnostics')} style={styles.diagnosticsLink}>
-          <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> Diagnostic technique
+          <Ionicons name="construct-outline" size={14} color={colors.textSecondary} /> {t('admin.diagnosticsLink')}
         </Text>
 
         <Text onPress={() => navigation.navigate('About')} style={styles.credit}>
-          MA2D Construction — Application développée par Pierre NGALAHA
+          {t('admin.credit')}
         </Text>
       </ScrollView>
       {promptElement}
@@ -198,15 +210,16 @@ function ProjectSection({
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const { buildings, refresh } = useProjectBuildings(projectId);
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState(projectName);
 
   const onDeleteBuilding = (buildingId: string, name: string) => {
-    Alert.alert('Supprimer', `Supprimer ${name} ?`, [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('admin.deleteBuilding.title'), t('admin.deleteBuilding.body', { name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () =>
           requireAdmin(() => {
@@ -245,7 +258,7 @@ function ProjectSection({
         <View style={{ flexDirection: 'row', gap: 16 }}>
           {renaming ? (
             <Text onPress={saveRename} style={styles.link}>
-              Enregistrer
+              {t('common.save')}
             </Text>
           ) : (
             <Text
@@ -255,11 +268,11 @@ function ProjectSection({
               }}
               style={styles.link}
             >
-              Renommer
+              {t('admin.rename')}
             </Text>
           )}
           <Text onPress={onDeleteProject} style={[styles.link, { color: colors.danger }]}>
-            Supprimer
+            {t('common.delete')}
           </Text>
         </View>
       </View>
@@ -272,7 +285,7 @@ function ProjectSection({
         />
       ))}
       <Text onPress={() => requireAdmin(onAddBuilding)} style={styles.addBuilding}>
-        + Ajouter un bâtiment
+        {t('admin.addBuilding')}
       </Text>
     </View>
   );

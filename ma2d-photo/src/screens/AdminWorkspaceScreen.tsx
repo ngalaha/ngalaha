@@ -3,6 +3,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
+import { LOCALES, Language } from '@/i18n/languages';
+import { translate } from '@/i18n/translate';
 import PrimaryButton from '@/components/PrimaryButton';
 import { RootStackParamList } from '@/navigation/types';
 import {
@@ -16,14 +19,14 @@ import {
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
-import { AppError } from '@/utils/errorMessages';
+import { AppError, userMessage } from '@/utils/errorMessages';
 import { OneDriveFolderRef } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminWorkspace'>;
 
-function formatDate(iso: string | null): string {
-  if (!iso) return 'jamais';
-  return new Date(iso).toLocaleString('fr-CA');
+function formatDate(iso: string | null, language: Language): string {
+  if (!iso) return translate('admin.workspace.never', undefined, language);
+  return new Date(iso).toLocaleString(LOCALES[language]);
 }
 
 /**
@@ -34,6 +37,7 @@ function formatDate(iso: string | null): string {
 export default function AdminWorkspaceScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t, language } = useTranslation();
   const [folder, setFolder] = useState<OneDriveFolderRef | null>(getWorkspaceFolder);
   const [state, setState] = useState(getSyncState);
   const [link, setLink] = useState('');
@@ -53,24 +57,26 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
     try {
       const resolved = await setWorkspaceFromShareLink(trimmed);
       if (resolved.lastError) {
-        Alert.alert('Lien non vérifié', resolved.lastError);
+        Alert.alert(t('buildingEdit.linkUnverified.title'), userMessage(resolved.lastError));
         return;
       }
       const result = await syncNow();
       refresh();
       setLink('');
       if (result.status === 'error') {
-        Alert.alert('Synchronisation impossible', result.message ?? '');
+        Alert.alert(t('workspace.syncFailed.title'), result.message ? userMessage(result.message) : '');
         return;
       }
       Alert.alert(
-        'Espace partagé connecté',
-        `Dossier « ${resolved.itemName} ». La configuration de l'équipe est maintenant sur cet appareil.`
+        t('workspace.connected.title'),
+        t('workspace.connected.body', { name: resolved.itemName ?? '' })
       );
       navigation.goBack();
     } catch (e) {
-      const message = e instanceof AppError ? e.userMessage : "Le lien n'a pas pu être utilisé.";
-      Alert.alert('Erreur', message);
+      const message = userMessage(
+        e instanceof AppError ? e.userMessage : 'workspace.linkUnusable'
+      );
+      Alert.alert(t('common.error'), message);
     } finally {
       setBusy(false);
     }
@@ -82,9 +88,9 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
       const result = await syncNow();
       refresh();
       if (result.status === 'error') {
-        Alert.alert('Synchronisation impossible', result.message ?? '');
+        Alert.alert(t('workspace.syncFailed.title'), result.message ? userMessage(result.message) : '');
       } else {
-        Alert.alert('Synchronisation terminée', 'La configuration est à jour sur cet appareil.');
+        Alert.alert(t('workspace.synced.title'), t('workspace.synced.body'));
       }
     } finally {
       setBusy(false);
@@ -93,12 +99,12 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
 
   const disconnect = () => {
     Alert.alert(
-      "Retirer l'espace partagé",
-      "Cet appareil cessera de recevoir et de publier la configuration de l'équipe. Les projets, bâtiments et appartements déjà présents restent sur le téléphone.",
+      t('workspace.disconnect.title'),
+      t('workspace.disconnect.body'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Retirer',
+          text: t('photo.discard'),
           style: 'destructive',
           onPress: () => {
             clearWorkspace();
@@ -113,12 +119,7 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.intro}>
-        L'espace partagé est un dossier OneDrive commun à l'équipe. L'application y garde la liste
-        des projets, des bâtiments et des appartements : ce que vous créez ici apparaît sur les
-        téléphones des collègues, et ce qu'ils créent apparaît ici. Un seul lien à coller par
-        appareil.
-      </Text>
+      <Text style={styles.intro}>{t('workspace.intro')}</Text>
 
       <View style={styles.card}>
         <View style={styles.statusRow}>
@@ -128,24 +129,30 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
             color={connected ? colors.success : colors.warning}
           />
           <Text style={typography.bodyBold}>
-            {connected ? `Dossier « ${folder?.itemName} »` : 'Aucun espace partagé'}
+            {connected
+              ? t('admin.workspace.folder', { name: folder?.itemName ?? '' })
+              : t('workspace.none')}
           </Text>
         </View>
         {connected && (
           <>
-            <Text style={styles.detail}>Dernière synchronisation : {formatDate(state.lastSyncedAt)}</Text>
-            {state.lastError && <Text style={styles.error}>{state.lastError}</Text>}
+            <Text style={styles.detail}>
+              {t('workspace.lastSync', { when: formatDate(state.lastSyncedAt, language) })}
+            </Text>
+            {state.lastError && (
+              <Text style={styles.error}>{userMessage(state.lastError)}</Text>
+            )}
           </>
         )}
       </View>
 
       <Text style={styles.label}>
-        {connected ? 'Remplacer par un autre dossier partagé :' : 'Lien du dossier partagé OneDrive :'}
+        {connected ? t('workspace.label.replace') : t('workspace.label.connect')}
       </Text>
       <TextInput
         value={link}
         onChangeText={setLink}
-        placeholder="https://...-my.sharepoint.com/... ou https://1drv.ms/..."
+        placeholder={t('buildingEdit.linkPlaceholder')}
         style={styles.input}
         autoCapitalize="none"
         autoCorrect={false}
@@ -156,7 +163,7 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
       ) : (
         <>
           <PrimaryButton
-            label={connected ? 'Remplacer' : 'Connecter'}
+            label={connected ? t('workspace.action.replace') : t('workspace.action.connect')}
             icon="link-outline"
             onPress={connect}
             style={{ marginTop: 16 }}
@@ -164,14 +171,14 @@ export default function AdminWorkspaceScreen({ navigation }: Props) {
           {connected && (
             <>
               <PrimaryButton
-                label="Synchroniser maintenant"
+                label={t('workspace.action.syncNow')}
                 icon="sync-outline"
                 variant="secondary"
                 onPress={runSyncNow}
                 style={{ marginTop: 12 }}
               />
               <Text onPress={disconnect} style={styles.disconnect}>
-                Retirer l'espace partagé de cet appareil
+                {t('workspace.action.disconnect')}
               </Text>
             </>
           )}

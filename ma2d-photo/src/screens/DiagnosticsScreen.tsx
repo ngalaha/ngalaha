@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Share, StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import PrimaryButton from '@/components/PrimaryButton';
 import { logger, LogEntry } from '@/services/logging/logger';
 import { runSync } from '@/services/upload/uploadQueueService';
@@ -14,6 +15,7 @@ function levelColor(colors: ThemeColors): Record<LogEntry['level'], string> {
 
 export default function DiagnosticsScreen() {
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [entries, setEntries] = useState<LogEntry[]>(logger.getEntries());
 
@@ -39,10 +41,10 @@ export default function DiagnosticsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.actions}>
-        <PrimaryButton label="Forcer la synchronisation" onPress={() => runSync()} />
+        <PrimaryButton label={t('diagnostics.forceSync')} onPress={() => runSync()} />
         <View style={styles.actionsRow}>
-          <PrimaryButton label="Partager" variant="secondary" onPress={shareLog} style={{ flex: 1 }} />
-          <PrimaryButton label="Effacer" variant="secondary" onPress={() => logger.clear()} style={{ flex: 1 }} />
+          <PrimaryButton label={t('diagnostics.share')} variant="secondary" onPress={shareLog} style={{ flex: 1 }} />
+          <PrimaryButton label={t('diagnostics.clear')} variant="secondary" onPress={() => logger.clear()} style={{ flex: 1 }} />
         </View>
       </View>
       <FlatList
@@ -55,7 +57,7 @@ export default function DiagnosticsScreen() {
             {item.data && <Text style={styles.data}>{JSON.stringify(item.data)}</Text>}
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Aucun journal pour le moment.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('diagnostics.empty')}</Text>}
         contentContainerStyle={{ padding: 16 }}
       />
     </View>

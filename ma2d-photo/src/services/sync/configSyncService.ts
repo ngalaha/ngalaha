@@ -31,6 +31,7 @@ export type SyncStatus = 'not-configured' | 'synced' | 'unchanged' | 'error';
 
 export interface SyncResult {
   status: SyncStatus;
+  /** A translation key — pass it through userMessage() before showing it. */
   message?: string;
 }
 
@@ -122,8 +123,9 @@ async function syncOnce(driveId: string, itemId: string): Promise<SyncResult> {
   if ((remoteConfig.version ?? 0) > CONFIG_VERSION) {
     // Written by a newer version of the app: reading it could silently drop
     // fields this build knows nothing about, so leave it alone.
-    const message =
-      "L'espace partagé a été écrit par une version plus récente de l'application. Mettez l'application à jour avant de synchroniser.";
+    // A key, not a sentence: this message is stored in the sync state and
+    // read back later, possibly with the phone set to another language.
+    const message = 'sync.tooRecent';
     logger.warn('Configuration partagée trop récente', {
       remoteVersion: remoteConfig.version,
       appVersion: CONFIG_VERSION,
@@ -199,7 +201,7 @@ function markSynced(): void {
 }
 
 function recordFailure(error: unknown): SyncResult {
-  const message = error instanceof AppError ? error.userMessage : 'Synchronisation impossible.';
+  const message = error instanceof AppError ? error.userMessage : 'sync.failed';
   logger.error('Échec de la synchronisation de la configuration', { error: String(error) });
   lastError = message;
   return { status: 'error', message };

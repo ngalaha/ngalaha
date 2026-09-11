@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
@@ -14,6 +15,7 @@ interface Props {
 export default function BigCameraButton({ onPress, disabled }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const scale = useRef(new Animated.Value(1)).current;
 
   const animateTo = (value: number) => {
@@ -31,7 +33,7 @@ export default function BigCameraButton({ onPress, disabled }: Props) {
         style={[styles.circle, { opacity: disabled ? 0.5 : 1 }]}
       >
         <Ionicons name="camera" size={64} color={colors.textOnPrimary} />
-        <Text style={styles.label}>PRENDRE UNE PHOTO</Text>
+        <Text style={styles.label}>{t('camera.bigButton')}</Text>
       </Pressable>
     </Animated.View>
   );

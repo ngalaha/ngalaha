@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
@@ -16,6 +17,7 @@ interface Props {
 export default function PendingUploadsBanner({ pendingCount, syncing, isOnline, onPress }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -46,8 +48,12 @@ export default function PendingUploadsBanner({ pendingCount, syncing, isOnline, 
           <Ionicons name="cloud-upload-outline" size={18} color={colors.textOnPrimary} style={styles.icon} />
         )}
         <Text style={styles.text}>
-          {pendingCount} photo{pendingCount > 1 ? 's' : ''} en attente
-          {!isOnline ? ' (hors ligne)' : canSend ? ' — envoyer maintenant' : ''}
+          {/* One key per form rather than a suffix: the plural is not built
+              the same way in every language the app offers. */}
+          {pendingCount > 1
+            ? t('banner.pending.many', { count: pendingCount })
+            : t('banner.pending.one', { count: pendingCount })}
+          {!isOnline ? t('banner.offlineSuffix') : canSend ? t('banner.sendNow') : ''}
         </Text>
       </Pressable>
     </Animated.View>

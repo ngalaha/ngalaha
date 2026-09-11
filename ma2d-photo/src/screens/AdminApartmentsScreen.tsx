@@ -3,6 +3,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { useAdminPinGate } from '@/components/AdminPinGate';
 import PrimaryButton from '@/components/PrimaryButton';
 import { createApartments, deleteApartment, listApartments } from '@/database/apartmentsRepository';
@@ -19,6 +20,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AdminApartments'>;
 
 export default function AdminApartmentsScreen({ route }: Props) {
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const { buildingId } = route.params;
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [bulkText, setBulkText] = useState('');
@@ -42,18 +44,21 @@ export default function AdminApartmentsScreen({ route }: Props) {
       syncSoon(true);
       const skipped = names.length - createdCount;
       Alert.alert(
-        'Appartements ajoutés',
-        `${createdCount} appartement(s) ajouté(s).` +
-          (skipped > 0 ? `\n${skipped} ignoré(s) (déjà existant(s)).` : '')
+        t('apartments.added.title'),
+        t('apartments.added.body', { count: createdCount }) +
+          (skipped > 0 ? t('apartments.added.skipped', { count: skipped }) : '')
       );
     });
   };
 
   const onDelete = (apartment: Apartment) => {
-    Alert.alert('Supprimer', `Supprimer l'appartement "${apartment.name}" ?`, [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(
+      t('admin.deleteBuilding.title'),
+      t('apartments.delete.body', { name: apartment.name }),
+      [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () =>
           requireAdmin(() => {
@@ -62,7 +67,8 @@ export default function AdminApartmentsScreen({ route }: Props) {
             syncSoon(true);
           }),
       },
-    ]);
+      ]
+    );
   };
 
   return (
@@ -75,26 +81,22 @@ export default function AdminApartmentsScreen({ route }: Props) {
         ListHeaderComponent={
           <View>
             <Text style={typography.h2}>{building?.name ?? ''}</Text>
-            <Text style={styles.hint}>
-              Ajoutez les noms des appartements de ce bâtiment : un par ligne ou séparés par des virgules.
-              Pour une série complète, écrivez simplement la plage — « 101-127 » crée les 27 appartements
-              d'un coup, et « A-1 - A-5 » fonctionne aussi. Le dossier OneDrive de chaque appartement est
-              créé automatiquement dans le dossier Photo du bâtiment dès la première photo prise pour cet
-              appartement — rien d'autre à configurer ici.
-            </Text>
+            <Text style={styles.hint}>{t('apartments.hint')}</Text>
             <TextInput
               value={bulkText}
               onChangeText={setBulkText}
-              placeholder={'101-127\nZone commune'}
+              placeholder={`101-127\n${t('picker.commonArea')}`}
               style={styles.textarea}
               multiline
               numberOfLines={5}
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <PrimaryButton label="Ajouter" onPress={onAdd} style={{ marginTop: 12, marginBottom: 24 }} />
+            <PrimaryButton label={t('apartments.add')} onPress={onAdd} style={{ marginTop: 12, marginBottom: 24 }} />
             <Text style={styles.count}>
-              {apartments.length} appartement{apartments.length > 1 ? 's' : ''}
+              {apartments.length > 1
+                ? t('apartments.count.many', { count: apartments.length })
+                : t('apartments.count.one', { count: apartments.length })}
             </Text>
           </View>
         }
@@ -102,11 +104,11 @@ export default function AdminApartmentsScreen({ route }: Props) {
           <View style={styles.row}>
             <Text style={typography.body}>{item.name}</Text>
             <Text onPress={() => onDelete(item)} style={styles.delete}>
-              Suppr.
+              {t('admin.deleteShort')}
             </Text>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Aucun appartement pour le moment.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('apartments.empty')}</Text>}
       />
       {promptElement}
     </>

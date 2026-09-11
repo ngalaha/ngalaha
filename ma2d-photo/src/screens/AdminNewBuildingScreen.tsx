@@ -2,6 +2,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
+import { userMessage } from '@/utils/errorMessages';
 import PrimaryButton from '@/components/PrimaryButton';
 import { createBuilding, updateBuildingFolder } from '@/database/projectsRepository';
 import { RootStackParamList } from '@/navigation/types';
@@ -16,6 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AdminNewBuilding'>;
 export default function AdminNewBuildingScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const { projectId } = route.params;
   const [name, setName] = useState('');
   const [link, setLink] = useState('');
@@ -23,7 +26,7 @@ export default function AdminNewBuildingScreen({ route, navigation }: Props) {
 
   const onSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Nom requis', 'Indiquez le nom du bâtiment.');
+      Alert.alert(t('newProject.nameRequired.title'), t('newBuilding.nameRequired.body'));
       return;
     }
     setSaving(true);
@@ -34,8 +37,8 @@ export default function AdminNewBuildingScreen({ route, navigation }: Props) {
         updateBuildingFolder(building.id, resolved);
         if (resolved.lastError) {
           Alert.alert(
-            'Bâtiment créé',
-            `Le bâtiment a été créé, mais le lien OneDrive n'a pas pu être vérifié : ${resolved.lastError}\nVous pourrez le corriger depuis Administration.`
+            t('newBuilding.created.title'),
+            t('newBuilding.created.unverified', { error: userMessage(resolved.lastError) })
           );
         }
       }
@@ -48,16 +51,16 @@ export default function AdminNewBuildingScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={typography.h2}>Nouveau bâtiment</Text>
+      <Text style={typography.h2}>{t('newBuilding.title')}</Text>
 
-      <Text style={styles.label}>Nom du bâtiment :</Text>
-      <TextInput value={name} onChangeText={setName} placeholder="Ex : Bâtiment G" style={styles.input} />
+      <Text style={styles.label}>{t('newBuilding.nameLabel')}</Text>
+      <TextInput value={name} onChangeText={setName} placeholder={t('newBuilding.namePlaceholder')} style={styles.input} />
 
-      <Text style={styles.label}>Lien dossier Photo OneDrive (optionnel maintenant) :</Text>
+      <Text style={styles.label}>{t('newBuilding.linkLabel')}</Text>
       <TextInput
         value={link}
         onChangeText={setLink}
-        placeholder="https://...-my.sharepoint.com/... ou https://1drv.ms/..."
+        placeholder={t('buildingEdit.linkPlaceholder')}
         style={styles.input}
         autoCapitalize="none"
         autoCorrect={false}
@@ -70,7 +73,7 @@ export default function AdminNewBuildingScreen({ route, navigation }: Props) {
       {saving ? (
         <ActivityIndicator style={{ marginTop: 24 }} color={colors.primary} />
       ) : (
-        <PrimaryButton label="Enregistrer" onPress={onSave} style={{ marginTop: 24 }} />
+        <PrimaryButton label={t('common.save')} onPress={onSave} style={{ marginTop: 24 }} />
       )}
     </View>
   );

@@ -8,6 +8,8 @@ import {
   setAdminPin,
   verifyAdminPin,
 } from '@/services/security/adminPin';
+import { useTranslation } from '@/i18n/I18nContext';
+import { translate } from '@/i18n/translate';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -28,6 +30,7 @@ type Mode = 'verify' | 'create' | 'change';
  */
 export function useAdminPinGate() {
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [mode, setMode] = useState<Mode>('verify');
   const [currentPin, setCurrentPin] = useState('');
@@ -67,7 +70,7 @@ export function useAdminPinGate() {
    * real administrator out by setting a PIN only they know.
    */
   const promptPinChange = useCallback(() => {
-    actionRef.current = () => Alert.alert('Code PIN modifié', 'Le nouveau code PIN est actif.');
+    actionRef.current = () => Alert.alert(translate('pin.changed.title'), translate('pin.changed.body'));
     reset();
     hasAdminPin().then((exists) => {
       setMode(exists ? 'change' : 'create');
@@ -84,13 +87,13 @@ export function useAdminPinGate() {
     try {
       if (mode === 'verify') {
         if (!(await verifyAdminPin(pin))) {
-          setError('Code PIN incorrect.');
+          setError(translate('pin.wrong'));
           setPin('');
           return;
         }
       } else {
         if (mode === 'change' && !(await verifyAdminPin(currentPin))) {
-          setError('Code PIN actuel incorrect.');
+          setError(translate('pin.wrongCurrent'));
           setCurrentPin('');
           return;
         }
@@ -99,7 +102,7 @@ export function useAdminPinGate() {
           return;
         }
         if (pin !== confirmPin) {
-          setError('Les deux codes ne correspondent pas.');
+          setError(translate('pin.mismatch'));
           return;
         }
         await setAdminPin(pin);
@@ -107,7 +110,7 @@ export function useAdminPinGate() {
     } catch {
       // Reading/writing the secure store can fail on a locked or unusual
       // device — surface it here instead of silently doing nothing.
-      setError('Le code PIN n’a pas pu être vérifié. Réessayez.');
+      setError(translate('pin.checkFailed'));
       return;
     }
     markAdminVerified();
@@ -119,17 +122,17 @@ export function useAdminPinGate() {
 
   const title =
     mode === 'create'
-      ? 'Créer un code PIN admin'
+      ? t('pin.title.create')
       : mode === 'change'
-        ? 'Changer le code PIN admin'
-        : 'Code PIN admin requis';
+        ? t('pin.title.change')
+        : t('pin.title.verify');
 
   const hint =
     mode === 'create'
-      ? `Aucun code PIN n'est encore défini. Choisissez-en un (au moins ${MIN_PIN_LENGTH} chiffres) pour protéger la création et la suppression des projets, bâtiments et appartements.`
+      ? t('pin.body.create', { min: MIN_PIN_LENGTH })
       : mode === 'change'
-        ? 'Entrez le code PIN actuel, puis le nouveau code.'
-        : 'Entrez le code PIN administrateur pour continuer.';
+        ? t('pin.body.change')
+        : t('pin.body.verify');
 
   const promptElement = (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
@@ -142,7 +145,7 @@ export function useAdminPinGate() {
             <TextInput
               value={currentPin}
               onChangeText={setCurrentPin}
-              placeholder="Code PIN actuel"
+              placeholder={t('pin.placeholder.current')}
               keyboardType="number-pad"
               secureTextEntry
               maxLength={6}
@@ -154,7 +157,9 @@ export function useAdminPinGate() {
           <TextInput
             value={pin}
             onChangeText={setPin}
-            placeholder={mode === 'verify' ? 'Code PIN' : 'Nouveau code PIN'}
+            placeholder={
+              mode === 'verify' ? t('pin.placeholder.pin') : t('pin.placeholder.new')
+            }
             keyboardType="number-pad"
             secureTextEntry
             maxLength={6}
@@ -166,7 +171,7 @@ export function useAdminPinGate() {
             <TextInput
               value={confirmPin}
               onChangeText={setConfirmPin}
-              placeholder="Confirmer le code PIN"
+              placeholder={t('pin.placeholder.confirm')}
               keyboardType="number-pad"
               secureTextEntry
               maxLength={6}
@@ -177,10 +182,16 @@ export function useAdminPinGate() {
           {error && <Text style={styles.error}>{error}</Text>}
           <View style={styles.row}>
             <Pressable onPress={close} style={styles.cancel}>
-              <Text style={styles.cancelText}>Annuler</Text>
+              <Text style={styles.cancelText}>{t('common.cancel')}</Text>
             </Pressable>
             <PrimaryButton
-              label={mode === 'verify' ? 'Valider' : mode === 'change' ? 'Changer' : 'Créer et continuer'}
+              label={
+                mode === 'verify'
+                  ? t('pin.action.verify')
+                  : mode === 'change'
+                    ? t('pin.action.change')
+                    : t('pin.action.create')
+              }
               onPress={onSubmit}
               style={styles.confirmButton}
             />

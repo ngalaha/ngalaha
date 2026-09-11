@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -18,24 +19,25 @@ interface Props {
 export default function ProjectPicker({ projects, selectedProject, onSelect }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
     <View>
-      <Text style={[typography.caption, styles.label]}>Projet</Text>
+      <Text style={[typography.caption, styles.label]}>{t('picker.project.label')}</Text>
       <Pressable
         style={styles.trigger}
         onPress={() => setOpen(true)}
         android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
       >
         <Text style={styles.triggerText}>
-          {selectedProject ? selectedProject.name.toUpperCase() : 'Sélectionner un projet'}
+          {selectedProject ? selectedProject.name.toUpperCase() : t('picker.selectProject')}
         </Text>
         <Ionicons name="chevron-down" size={18} color={colors.primary} />
       </Pressable>
 
       <BottomSheet visible={open} onClose={() => setOpen(false)} maxHeight="60%">
-        <Text style={[typography.h2, styles.sheetTitle]}>Choisir un projet</Text>
+        <Text style={[typography.h2, styles.sheetTitle]}>{t('picker.project.title')}</Text>
         <FlatList
           data={projects}
           keyExtractor={(p) => p.id}
