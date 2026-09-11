@@ -16,6 +16,17 @@
 # file already in place and skip the download: its Download task is declared
 # with overwrite(false).
 #
+# Note: do NOT try to solve this by setting _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+# in eas.json. That variable applies to every JVM the build starts, and each one
+# then prints "Picked up _JAVA_OPTIONS: ..." into its output. The prefab step of
+# the Android Gradle plugin reads the output of a JVM it launches while
+# configuring CMake, and that extra line makes it fail:
+#
+#   Execution failed for task ':expo-modules-core:configureCMakeRelWithDebInfo[arm64-v8a]'
+#   [CXX1210] .../expo-modules-core/android/CMakeLists.txt release|arm64-v8a : No compatible library found
+#
+# curl -4 below solves the download without touching any other process.
+
 # This never fails the build. If anything here does not work, Gradle simply
 # attempts the download itself, exactly as before.
 

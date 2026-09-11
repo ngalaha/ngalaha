@@ -11,7 +11,6 @@
         "buildType": "apk"
       },
       "env": {
-        "_JAVA_OPTIONS": "-Djava.net.preferIPv4Stack=true",
         "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     },
@@ -24,7 +23,6 @@
         "simulator": false
       },
       "env": {
-        "_JAVA_OPTIONS": "-Djava.net.preferIPv4Stack=true",
         "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     },
@@ -36,7 +34,6 @@
         "autoIncrement": true
       },
       "env": {
-        "_JAVA_OPTIONS": "-Djava.net.preferIPv4Stack=true",
         "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     }
