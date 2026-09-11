@@ -16,6 +16,9 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "bundleIdentifier": "com.ma2dconstruction.photo",
       "buildNumber": "1",
       "infoPlist": {
