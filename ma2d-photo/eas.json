@@ -9,6 +9,10 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "_JAVA_OPTIONS": "-Djava.net.preferIPv4Stack=true",
+        "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     },
     "preview": {
@@ -18,6 +22,10 @@
       },
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "_JAVA_OPTIONS": "-Djava.net.preferIPv4Stack=true",
+        "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     },
     "production": {
@@ -26,6 +34,10 @@
       },
       "ios": {
         "autoIncrement": true
+      },
+      "env": {
+        "_JAVA_OPTIONS": "-Djava.net.preferIPv4Stack=true",
+        "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     }
   },
