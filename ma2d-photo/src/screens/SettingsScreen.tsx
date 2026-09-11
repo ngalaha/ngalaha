@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
+import { LANGUAGES } from '@/i18n/languages';
 import {
   AppSettings,
   PhotoQuality,
@@ -14,21 +16,8 @@ import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
 
-const QUALITY_LABELS: Record<PhotoQuality, { title: string; detail: string }> = {
-  high: { title: 'Haute', detail: 'Plus de détail, fichiers plus lourds' },
-  balanced: { title: 'Équilibrée', detail: 'Recommandé pour le chantier' },
-  light: { title: 'Légère', detail: 'Fichiers légers, forfait limité' },
-};
-
-const THEME_LABELS: Record<ThemePreference, string> = {
-  light: 'Clair',
-  dark: 'Sombre',
-  system: 'Système',
-};
-
-function formatDuration(seconds: number): string {
-  return seconds >= 60 ? `${seconds / 60} min` : `${seconds} s`;
-}
+const QUALITIES: PhotoQuality[] = ['high', 'balanced', 'light'];
+const THEMES: ThemePreference[] = ['light', 'dark', 'system'];
 
 function Section({ title, icon, children }: { title: string; icon: keyof typeof Ionicons.glyphMap; children: React.ReactNode }) {
   const { colors } = useTheme();
@@ -103,44 +92,65 @@ function Toggle({
  */
 export default function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
+  const { t, language } = useTranslation();
   const [settings, setSettings] = useState<AppSettings>(getSettings);
 
   const apply = (patch: Partial<AppSettings>) => setSettings(updateSettings(patch));
 
+  const formatDuration = (seconds: number) =>
+    seconds >= 60
+      ? t('settings.duration.minutes', { count: seconds / 60 })
+      : t('settings.duration.seconds', { count: seconds });
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Section title="APPARENCE" icon="color-palette-outline">
-        <Text style={styles.label}>Fond de l'application</Text>
+      <Section title={t('settings.section.language')} icon="language-outline">
+        <Text style={styles.label}>{t('settings.language.label')}</Text>
         <View style={styles.choiceRow}>
-          {(Object.keys(THEME_LABELS) as ThemePreference[]).map((theme) => (
+          {LANGUAGES.map((entry) => (
+            <Choice
+              key={entry.code}
+              // Each language names itself, so this list stays readable to
+              // someone who cannot read the language currently in use.
+              label={entry.label}
+              selected={language === entry.code}
+              onPress={() => apply({ language: entry.code })}
+            />
+          ))}
+        </View>
+        <Text style={styles.hint}>{t('settings.language.hint')}</Text>
+      </Section>
+
+      <Section title={t('settings.section.appearance')} icon="color-palette-outline">
+        <Text style={styles.label}>{t('settings.theme.label')}</Text>
+        <View style={styles.choiceRow}>
+          {THEMES.map((theme) => (
             <Choice
               key={theme}
-              label={THEME_LABELS[theme]}
+              label={t(`settings.theme.${theme}`)}
               selected={settings.theme === theme}
               onPress={() => apply({ theme })}
             />
           ))}
         </View>
-        <Text style={styles.hint}>
-          « Système » suit le réglage du téléphone. Le fond clair reste conseillé en plein soleil.
-        </Text>
+        <Text style={styles.hint}>{t('settings.theme.hint')}</Text>
       </Section>
 
-      <Section title="PRISE DE VUE" icon="camera-outline">
-        <Text style={styles.label}>Qualité des photos</Text>
+      <Section title={t('settings.section.capture')} icon="camera-outline">
+        <Text style={styles.label}>{t('settings.quality.label')}</Text>
         <View style={styles.choiceRow}>
-          {(Object.keys(QUALITY_LABELS) as PhotoQuality[]).map((quality) => (
+          {QUALITIES.map((quality) => (
             <Choice
               key={quality}
-              label={QUALITY_LABELS[quality].title}
-              detail={QUALITY_LABELS[quality].detail}
+              label={t(`settings.quality.${quality}`)}
+              detail={t(`settings.quality.${quality}.detail`)}
               selected={settings.photoQuality === quality}
               onPress={() => apply({ photoQuality: quality })}
             />
           ))}
         </View>
 
-        <Text style={styles.label}>Durée maximale des vidéos</Text>
+        <Text style={styles.label}>{t('settings.video.label')}</Text>
         <View style={styles.choiceRow}>
           {VIDEO_DURATION_CHOICES.map((seconds) => (
             <Choice
@@ -153,25 +163,22 @@ export default function SettingsScreen() {
         </View>
       </Section>
 
-      <Section title="ENVOI" icon="cloud-upload-outline">
+      <Section title={t('settings.section.upload')} icon="cloud-upload-outline">
         <Toggle
-          label="Envoyer uniquement en Wi-Fi"
-          detail="Les photos attendent le Wi-Fi au lieu de consommer les données mobiles. Rien n'est perdu : la file part toute seule."
+          label={t('settings.wifiOnly.label')}
+          detail={t('settings.wifiOnly.detail')}
           value={settings.wifiOnlyUploads}
           onChange={(wifiOnlyUploads) => apply({ wifiOnlyUploads })}
         />
         <Toggle
-          label="Conserver une copie sur le téléphone"
-          detail="Après l'envoi, la copie locale est gardée au lieu d'être supprimée. Utile pour vérifier, mais occupe la mémoire du téléphone."
+          label={t('settings.keepLocal.label')}
+          detail={t('settings.keepLocal.detail')}
           value={settings.keepLocalAfterUpload}
           onChange={(keepLocalAfterUpload) => apply({ keepLocalAfterUpload })}
         />
       </Section>
 
-      <Text style={styles.footnote}>
-        Ces réglages ne concernent que cet appareil. Ils ne sont pas partagés avec les autres
-        téléphones de l'équipe.
-      </Text>
+      <Text style={styles.footnote}>{t('settings.footnote')}</Text>
     </ScrollView>
   );
 }

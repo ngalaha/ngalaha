@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import React from 'react';
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -12,65 +13,53 @@ const MA2D_WEBSITE_URL = 'https://www.ma2d.com/fr/entrepreneur-general-ma2d-cons
 
 export default function AboutScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.brandHeader}>
         <Image source={require('../../assets/ma2d-logo.jpg')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.appName}>MA2D Photo</Text>
-        <Text style={styles.appTagline}>Gestion automatique des photos de chantier</Text>
+        <Text style={styles.appTagline}>{t('about.tagline')}</Text>
         <View style={styles.versionPill}>
-          <Text style={styles.versionText}>Version {APP_VERSION}</Text>
+          <Text style={styles.versionText}>{t('about.version', { version: APP_VERSION })}</Text>
         </View>
       </View>
 
       <View style={styles.card}>
         <View style={styles.sectionHeaderRow}>
           <Ionicons name="business-outline" size={18} color={colors.primary} />
-          <Text style={styles.sectionTitle}>À propos de MA2D Construction</Text>
+          <Text style={styles.sectionTitle}>{t('about.company.title')}</Text>
         </View>
-        <Text style={styles.paragraph}>
-          MA2D Construction est un entrepreneur général fondé en 2010, spécialisé dans les projets de
-          développement immobilier résidentiel, commercial et industriel dans la région métropolitaine.
-        </Text>
-        <Text style={styles.paragraph}>
-          Cette application permet aux équipes de chantier de photographier l'avancement des travaux et
-          de les classer automatiquement dans OneDrive, par projet, bâtiment et appartement — sans
-          manipulation manuelle sur le terrain.
-        </Text>
+        <Text style={styles.paragraph}>{t('about.company.p1')}</Text>
+        <Text style={styles.paragraph}>{t('about.company.p2')}</Text>
         <Pressable onPress={() => Linking.openURL(MA2D_WEBSITE_URL)} style={styles.linkRow}>
           <Ionicons name="globe-outline" size={16} color={colors.primary} />
-          <Text style={styles.link}>Visiter le site de MA2D</Text>
+          <Text style={styles.link}>{t('about.company.link')}</Text>
         </Pressable>
       </View>
 
       <View style={styles.card}>
         <View style={styles.sectionHeaderRow}>
           <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
-          <Text style={styles.sectionTitle}>Sécurité</Text>
+          <Text style={styles.sectionTitle}>{t('about.security.title')}</Text>
         </View>
-        <Text style={styles.paragraph}>
-          Connexion via Microsoft Entra ID. Aucun mot de passe ni identifiant Microsoft n'est
-          stocké dans l'application — uniquement une session sécurisée gérée par Microsoft.
-        </Text>
+        <Text style={styles.paragraph}>{t('about.security.body')}</Text>
       </View>
 
       <View style={styles.card}>
         <View style={styles.sectionHeaderRow}>
           <Ionicons name="person-circle-outline" size={18} color={colors.primary} />
-          <Text style={styles.sectionTitle}>Conception et développement</Text>
+          <Text style={styles.sectionTitle}>{t('about.author.title')}</Text>
         </View>
         <View style={styles.profileRow}>
           <Image source={require('../../assets/pierre-ngalaha.jpg')} style={styles.avatar} />
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>Pierre NGALAHA</Text>
-            <Text style={styles.profileTitle}>Adjoint de chantier — MA2D Construction</Text>
+            <Text style={styles.profileTitle}>{t('about.author.role')}</Text>
           </View>
         </View>
-        <Text style={styles.paragraph}>
-          Application conçue et développée en interne pour répondre aux besoins réels des
-          équipes de chantier de MA2D Construction.
-        </Text>
+        <Text style={styles.paragraph}>{t('about.author.body')}</Text>
       </View>
 
       <Text style={styles.footer}>© {new Date().getFullYear()} MA2D Construction</Text>

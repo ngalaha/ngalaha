@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { initDatabase } from '@/database/db';
 import { ensureSeeded } from '@/database/projectsRepository';
+import { I18nProvider } from '@/i18n/I18nContext';
 import RootNavigator from '@/navigation/RootNavigator';
 import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
 import { registerBackgroundSync } from '@/services/upload/backgroundSyncTask';
@@ -36,9 +37,11 @@ export default function App() {
   if (!ready) return null;
 
   return (
-    <ThemeProvider>
-      <ThemedApp />
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <ThemedApp />
+      </ThemeProvider>
+    </I18nProvider>
   );
 }
 

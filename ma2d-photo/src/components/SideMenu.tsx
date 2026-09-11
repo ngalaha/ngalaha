@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { navigationRef } from '@/navigation/navigationRef';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
@@ -21,6 +22,7 @@ interface Props {
  */
 export default function SideMenu({ visible, onClose }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
   const translateX = useRef(new Animated.Value(PANEL_WIDTH)).current;
 
@@ -42,7 +44,7 @@ export default function SideMenu({ visible, onClose }: Props) {
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View style={[styles.panel, { width: PANEL_WIDTH, transform: [{ translateX }] }]}>
           <View style={styles.header}>
-            <Text style={typography.h2}>Menu</Text>
+            <Text style={typography.h2}>{t('menu.title')}</Text>
             <Pressable onPress={onClose} hitSlop={10} style={styles.closeButton}>
               <Ionicons name="close" size={24} color={colors.primary} />
             </Pressable>
@@ -54,7 +56,7 @@ export default function SideMenu({ visible, onClose }: Props) {
             android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
           >
             <Ionicons name="options-outline" size={22} color={colors.primary} />
-            <Text style={styles.menuItemText}>Paramètres</Text>
+            <Text style={styles.menuItemText}>{t('nav.settings')}</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </Pressable>
 
@@ -64,7 +66,7 @@ export default function SideMenu({ visible, onClose }: Props) {
             android_ripple={{ color: 'rgba(15, 42, 67, 0.08)' }}
           >
             <Ionicons name="information-circle-outline" size={22} color={colors.primary} />
-            <Text style={styles.menuItemText}>À propos</Text>
+            <Text style={styles.menuItemText}>{t('nav.about')}</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </Pressable>
         </Animated.View>

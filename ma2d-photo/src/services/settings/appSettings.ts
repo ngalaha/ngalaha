@@ -1,4 +1,5 @@
 import { SETTINGS_KEYS, getJsonSetting, setJsonSetting } from '@/database/settingsRepository';
+import { DEFAULT_LANGUAGE, Language, isLanguage } from '@/i18n/languages';
 import { logger } from '@/services/logging/logger';
 
 /**
@@ -12,6 +13,8 @@ export type PhotoQuality = 'high' | 'balanced' | 'light';
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 export interface AppSettings {
+  /** Interface language. Not published either: one crew, several languages. */
+  language: Language;
   /** Light stays the default: it is the readable one in direct sunlight. */
   theme: ThemePreference;
   /** Trade-off between legible detail on site and file size on a data plan. */
@@ -37,6 +40,7 @@ export const PHOTO_QUALITY_PRESETS: Record<
 export const VIDEO_DURATION_CHOICES = [60, 180, 300] as const;
 
 const DEFAULTS: AppSettings = {
+  language: DEFAULT_LANGUAGE,
   theme: 'light',
   photoQuality: 'balanced',
   wifiOnlyUploads: false,
@@ -53,6 +57,11 @@ export function getSettings(): AppSettings {
     // Merged over the defaults, so a setting added in a later version has a
     // sensible value on a device that was configured before it existed.
     cached = { ...DEFAULTS, ...(stored ?? {}) };
+    // A language that no longer exists in the app would leave every screen
+    // falling back key by key; better to notice it here, once.
+    if (!isLanguage(cached.language)) {
+      cached.language = DEFAULT_LANGUAGE;
+    }
   }
   return cached;
 }

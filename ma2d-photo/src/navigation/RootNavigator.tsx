@@ -6,6 +6,7 @@ import { Pressable } from 'react-native';
 
 import SideMenu from '@/components/SideMenu';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/i18n/I18nContext';
 import AboutScreen from '@/screens/AboutScreen';
 import AdminApartmentsScreen from '@/screens/AdminApartmentsScreen';
 import AdminBuildingEditScreen from '@/screens/AdminBuildingEditScreen';
@@ -28,6 +29,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
   const { isSignedIn, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -67,7 +69,7 @@ export default function RootNavigator() {
               name="Home"
               component={HomeScreen}
               options={{
-                title: 'MA2D Photo',
+                title: t('nav.home'),
                 headerRight: () => (
                   <Pressable onPress={() => setMenuOpen(true)} hitSlop={10} style={{ paddingHorizontal: 4 }}>
                     <Ionicons name="menu" size={26} color={colors.primary} />
@@ -80,35 +82,35 @@ export default function RootNavigator() {
               component={CameraScreen}
               options={{ headerShown: false, animation: 'fade' }}
             />
-            <Stack.Screen name="Admin" component={AdminScreen} options={{ title: 'Administration' }} />
+            <Stack.Screen name="Admin" component={AdminScreen} options={{ title: t('nav.admin') }} />
             <Stack.Screen
               name="AdminNewProject"
               component={AdminNewProjectScreen}
-              options={{ title: 'Nouveau projet' }}
+              options={{ title: t('nav.newProject') }}
             />
             <Stack.Screen
               name="AdminNewBuilding"
               component={AdminNewBuildingScreen}
-              options={{ title: 'Nouveau bâtiment' }}
+              options={{ title: t('nav.newBuilding') }}
             />
             <Stack.Screen
               name="AdminBuildingEdit"
               component={AdminBuildingEditScreen}
-              options={{ title: 'Dossier OneDrive' }}
+              options={{ title: t('nav.buildingFolder') }}
             />
             <Stack.Screen
               name="AdminApartments"
               component={AdminApartmentsScreen}
-              options={{ title: 'Appartements' }}
+              options={{ title: t('nav.apartments') }}
             />
             <Stack.Screen
               name="AdminWorkspace"
               component={AdminWorkspaceScreen}
-              options={{ title: 'Espace partagé' }}
+              options={{ title: t('nav.workspace') }}
             />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Paramètres' }} />
-            <Stack.Screen name="Diagnostics" component={DiagnosticsScreen} options={{ title: 'Diagnostic' }} />
-            <Stack.Screen name="About" component={AboutScreen} options={{ title: 'À propos' }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('nav.settings') }} />
+            <Stack.Screen name="Diagnostics" component={DiagnosticsScreen} options={{ title: t('nav.diagnostics') }} />
+            <Stack.Screen name="About" component={AboutScreen} options={{ title: t('nav.about') }} />
           </>
         )}
       </Stack.Navigator>

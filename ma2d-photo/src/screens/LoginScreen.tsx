@@ -5,6 +5,7 @@ import { Animated, Image, SafeAreaView, StyleSheet, Text, View } from 'react-nat
 import PrimaryButton from '@/components/PrimaryButton';
 import { useAuth } from '@/hooks/useAuth';
 import { isMicrosoftAuthConfigured } from '@/config/env';
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -12,6 +13,7 @@ import { typography } from '@/theme/typography';
 export default function LoginScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { t } = useTranslation();
   const { signIn, loading, error } = useAuth();
   const configured = isMicrosoftAuthConfigured();
 
@@ -33,17 +35,12 @@ export default function LoginScreen() {
         </Animated.View>
         <Text style={styles.logo}>MA2D PHOTO</Text>
         <Text style={styles.subtitle}>CONSTRUCTION</Text>
-        <Text style={[typography.body, styles.tagline]}>
-          Photos de chantier, classées automatiquement dans OneDrive.
-        </Text>
+        <Text style={[typography.body, styles.tagline]}>{t('login.tagline')}</Text>
 
         {!configured && (
           <View style={styles.warningRow}>
             <Ionicons name="warning" size={16} color={colors.warning} />
-            <Text style={styles.warning}>
-              Configuration Microsoft manquante. Voir docs/ENTRA_ID_SETUP.md pour renseigner
-              MICROSOFT_CLIENT_ID.
-            </Text>
+            <Text style={styles.warning}>{t('login.notConfigured')}</Text>
           </View>
         )}
         {error && (
@@ -54,7 +51,7 @@ export default function LoginScreen() {
         )}
 
         <PrimaryButton
-          label="Se connecter avec Microsoft"
+          label={t('login.signIn')}
           icon="log-in-outline"
           onPress={signIn}
           loading={loading}
@@ -63,7 +60,7 @@ export default function LoginScreen() {
         />
       </View>
 
-      <Text style={styles.credit}>Développé par Pierre NGALAHA</Text>
+      <Text style={styles.credit}>{t('login.credit')}</Text>
     </SafeAreaView>
   );
 }
