@@ -7,7 +7,7 @@ import {
 } from '@/services/microsoftGraph/authService';
 import { getStoredAccount, subscribeAccount } from '@/services/microsoftGraph/authStore';
 import { logger } from '@/services/logging/logger';
-import { AppError } from '@/utils/errorMessages';
+import { AppError, userMessage } from '@/utils/errorMessages';
 import { MicrosoftAccount } from '@/types';
 
 /**
@@ -62,7 +62,8 @@ export function useAuth() {
       // no local setState needed here.
       await msSignIn();
     } catch (e) {
-      const message = e instanceof AppError ? e.userMessage : 'Connexion impossible.';
+      // AppError carries a key; anything else is an unexpected failure.
+      const message = userMessage(e instanceof AppError ? e.userMessage : 'auth.signInFailed');
       logger.error('Échec de connexion Microsoft', { error: String(e) });
       setError(message);
     } finally {

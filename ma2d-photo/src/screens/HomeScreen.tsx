@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useConnectivity } from '@/hooks/useConnectivity';
 import { usePhotoQueue } from '@/hooks/usePhotoQueue';
 import { useProjects } from '@/hooks/useProjects';
+import { useTranslation } from '@/i18n/I18nContext';
 import { RootStackParamList } from '@/navigation/types';
 import { CaptureContext, saveCapturedMedia } from '@/services/capture/saveCapturedMedia';
 import { logger } from '@/services/logging/logger';
@@ -94,6 +95,7 @@ function launchWithOpenWatchdog<T>(launch: Promise<T>, timeoutMessage: string): 
 
 export default function HomeScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
   const { signOut } = useAuth();
   const isOnline = useConnectivity();
@@ -183,7 +185,7 @@ export default function HomeScreen({ navigation }: Props) {
     (mediaType: MediaType) => {
       const context = captureContext();
       if (!context) {
-        Alert.alert('Bâtiment requis', 'Choisissez un bâtiment avant de continuer.');
+        Alert.alert(t('home.buildingRequired.title'), t('home.buildingRequired.body'));
         return;
       }
       navigation.navigate('Camera', {
@@ -198,7 +200,7 @@ export default function HomeScreen({ navigation }: Props) {
   const pickFromGallery = useCallback(async () => {
     const context = captureContext();
     if (!context) {
-      Alert.alert('Bâtiment requis', 'Choisissez un bâtiment avant de continuer.');
+      Alert.alert(t('home.buildingRequired.title'), t('home.buildingRequired.body'));
       return;
     }
 
@@ -218,7 +220,7 @@ export default function HomeScreen({ navigation }: Props) {
           );
       if (!permission.granted) {
         logger.warn('Permission galerie refusée', { permission });
-        Alert.alert('Permission refusée', "L'accès à la galerie est nécessaire.");
+        Alert.alert(t('home.permissionDenied.title'), t('home.permissionDenied.body'));
         return;
       }
 
@@ -267,22 +269,22 @@ export default function HomeScreen({ navigation }: Props) {
 
       if (failures.length) {
         Alert.alert(
-          'Certains fichiers ont échoué',
-          `${saved} fichier(s) ajouté(s), ${failures.length} en échec.`
+          t('home.someFilesFailed.title'),
+          t('home.someFilesFailed.body', { saved, failed: failures.length })
         );
       } else if (!selectedBuilding?.photoFolder.itemId) {
         Alert.alert(
-          assets.length > 1 ? `${saved} fichiers enregistrés` : 'Fichier enregistré',
-          USER_MESSAGES.FOLDER_NOT_CONFIGURED
+          assets.length > 1 ? t('home.filesSaved.title', { count: saved }) : t('home.fileSaved.title'),
+          t(USER_MESSAGES.FOLDER_NOT_CONFIGURED)
         );
       } else if (!isOnline) {
-        Alert.alert('Hors ligne', USER_MESSAGES.NO_INTERNET);
+        Alert.alert(t('home.offline.title'), t(USER_MESSAGES.NO_INTERNET));
       } else if (assets.length > 1) {
-        Alert.alert('Fichiers ajoutés', `${saved} fichiers ont été mis en file d'envoi.`);
+        Alert.alert(t('home.filesQueued.title'), t('home.filesQueued.body', { count: saved }));
       }
     } catch (e) {
       logger.error('Échec de la sélection/préparation du fichier', { error: String(e) });
-      Alert.alert('Erreur', "Le fichier n'a pas pu être préparé. Réessayez.");
+      Alert.alert(t('common.error'), t('home.filePrepFailed'));
     } finally {
       setProcessing('idle');
       setSavingProgress(null);
@@ -292,12 +294,12 @@ export default function HomeScreen({ navigation }: Props) {
   const confirmDiscard = useCallback(
     (photo: PhotoRecord) => {
       Alert.alert(
-        'Retirer le fichier',
-        `"${photo.fileName}" sera supprimé du téléphone sans être envoyé dans OneDrive. Cette action est définitive.`,
+        t('home.discard.title'),
+        t('home.discard.body', { name: photo.fileName }),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Retirer',
+            text: t('photo.discard'),
             style: 'destructive',
             onPress: () => {
               discardPhoto(photo.id).catch((e) =>
@@ -338,14 +340,17 @@ export default function HomeScreen({ navigation }: Props) {
               {processing !== 'idle' && (
                 <Text style={styles.processingText}>
                   {processing === 'opening'
-                    ? 'Ouverture...'
+                    ? t('home.opening')
                     : savingProgress && savingProgress.total > 1
-                      ? `Enregistrement ${savingProgress.done}/${savingProgress.total}...`
-                      : 'Enregistrement...'}
+                      ? t('home.savingProgress', {
+                          done: savingProgress.done,
+                          total: savingProgress.total,
+                        })
+                      : t('home.saving')}
                 </Text>
               )}
               <PrimaryButton
-                label="Prendre une vidéo"
+                label={t('home.takeVideo')}
                 icon="videocam-outline"
                 variant="secondary"
                 onPress={() => openCamera('video')}
@@ -353,7 +358,7 @@ export default function HomeScreen({ navigation }: Props) {
                 style={styles.galleryButton}
               />
               <PrimaryButton
-                label="Choisir dans la galerie"
+                label={t('home.pickGallery')}
                 icon="folder-open-outline"
                 variant="secondary"
                 onPress={pickFromGallery}
@@ -370,14 +375,14 @@ export default function HomeScreen({ navigation }: Props) {
             />
 
             <View style={styles.recentHeader}>
-              <Text style={typography.h2}>Photos et vidéos récentes</Text>
+              <Text style={typography.h2}>{t('home.recentTitle')}</Text>
               {/* Administration is PIN-protected as a whole, not just its
                   create/delete actions. */}
               <Text
                 onPress={() => requireAdmin(() => navigation.navigate('Admin'))}
                 style={styles.adminLink}
               >
-                <Ionicons name="settings-outline" size={15} color={colors.primary} /> Administration
+                <Ionicons name="settings-outline" size={15} color={colors.primary} /> {t('nav.admin')}
               </Text>
             </View>
           </View>
@@ -385,11 +390,11 @@ export default function HomeScreen({ navigation }: Props) {
         renderItem={({ item }) => (
           <RecentPhotoItem photo={item} onRetry={retryPhoto} onDiscard={confirmDiscard} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Aucun fichier pour le moment.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('home.empty')}</Text>}
         contentContainerStyle={styles.listContent}
         ListFooterComponent={
           <Text onPress={signOut} style={styles.signOut}>
-            Se déconnecter
+            {t('home.signOut')}
           </Text>
         }
       />

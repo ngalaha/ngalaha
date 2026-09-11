@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import { ThemeColors } from '@/theme/colors';
 import { useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { typography } from '@/theme/typography';
@@ -18,6 +19,7 @@ interface Props {
 
 export default function RecentPhotoItem({ photo, onRetry, onDiscard }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(8)).current;
@@ -58,7 +60,7 @@ export default function RecentPhotoItem({ photo, onRetry, onDiscard }: Props) {
           {onRetry && (
             <Pressable onPress={() => onRetry(photo.id)} style={styles.retryButton}>
               <Ionicons name="refresh" size={14} color={colors.danger} />
-              <Text style={styles.retryText}>Réessayer</Text>
+              <Text style={styles.retryText}>{t('photo.retry')}</Text>
             </Pressable>
           )}
           {/* Without this, a file that can never succeed — a folder that no
@@ -67,7 +69,7 @@ export default function RecentPhotoItem({ photo, onRetry, onDiscard }: Props) {
               reached OneDrive. */}
           {onDiscard && (
             <Text onPress={() => onDiscard(photo)} style={styles.discardText}>
-              Retirer
+              {t('photo.discard')}
             </Text>
           )}
         </View>

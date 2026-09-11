@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 
+import { useTranslation } from '@/i18n/I18nContext';
 import PrimaryButton from '@/components/PrimaryButton';
 import { RootStackParamList } from '@/navigation/types';
 import { logger } from '@/services/logging/logger';
@@ -61,6 +62,7 @@ function formatElapsed(seconds: number): string {
  */
 export default function CameraScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
   const { mode, folderConfigured, ...context } = route.params;
   const isVideo = mode === 'video';
@@ -101,12 +103,12 @@ export default function CameraScreen({ route, navigation }: Props) {
     try {
       await saveCapturedMedia(uri, mode, context);
       if (!folderConfigured) {
-        Alert.alert('Fichier enregistré', USER_MESSAGES.FOLDER_NOT_CONFIGURED);
+        Alert.alert(t('home.fileSaved.title'), t(USER_MESSAGES.FOLDER_NOT_CONFIGURED));
       }
       navigation.goBack();
     } catch (e) {
       logger.error("Échec de l'enregistrement du fichier capturé", { mode, error: String(e) });
-      Alert.alert('Erreur', "Le fichier n'a pas pu être enregistré. Réessayez.");
+      Alert.alert(t('common.error'), t('camera.saveFailed'));
     }
   };
 
@@ -119,7 +121,7 @@ export default function CameraScreen({ route, navigation }: Props) {
       await save(picture.uri);
     } catch (e) {
       logger.error('Échec de la prise de photo', { error: String(e) });
-      Alert.alert('Erreur', "La photo n'a pas pu être prise. Réessayez.");
+      Alert.alert(t('common.error'), t('camera.photoFailed'));
     } finally {
       setBusy(false);
     }
@@ -143,7 +145,7 @@ export default function CameraScreen({ route, navigation }: Props) {
     } catch (e) {
       setRecording(false);
       logger.error("Échec de l'enregistrement vidéo", { error: String(e) });
-      Alert.alert('Erreur', "La vidéo n'a pas pu être enregistrée. Réessayez.");
+      Alert.alert(t('common.error'), t('camera.videoFailed'));
     } finally {
       setBusy(false);
     }
@@ -206,14 +208,18 @@ export default function CameraScreen({ route, navigation }: Props) {
     return (
       <View style={styles.centered}>
         <Ionicons name="camera-outline" size={48} color={colors.textSecondary} />
-        <Text style={[typography.h2, styles.permissionTitle]}>Autorisation requise</Text>
+        <Text style={[typography.h2, styles.permissionTitle]}>{t('camera.permission.title')}</Text>
         <Text style={styles.permissionText}>
           {cameraPermission.canAskAgain
-            ? "L'accès à l'appareil photo est nécessaire pour documenter le chantier."
-            : "L'accès à l'appareil photo a été refusé. Activez-le dans les réglages du téléphone pour continuer."}
+            ? t('camera.permission.askable')
+            : t('camera.permission.denied')}
         </Text>
         <PrimaryButton
-          label={cameraPermission.canAskAgain ? 'Autoriser' : 'Ouvrir les réglages'}
+          label={
+            cameraPermission.canAskAgain
+              ? t('camera.permission.allow')
+              : t('camera.permission.openSettings')
+          }
           icon={cameraPermission.canAskAgain ? 'checkmark-circle-outline' : 'settings-outline'}
           onPress={() => {
             if (!cameraPermission.canAskAgain) {
@@ -325,11 +331,11 @@ export default function CameraScreen({ route, navigation }: Props) {
         <Text style={styles.hint}>
           {isVideo
             ? recording
-              ? 'Touchez pour arrêter'
-              : 'Touchez pour filmer'
-            : 'Touchez pour prendre la photo'}
+              ? t('camera.hint.stop')
+              : t('camera.hint.record')
+            : t('camera.hint.photo')}
         </Text>
-        <Text style={styles.zoomHint}>Pincez l'écran pour zoomer</Text>
+        <Text style={styles.zoomHint}>{t('camera.hint.zoom')}</Text>
       </View>
     </View>
   );

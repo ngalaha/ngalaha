@@ -1,22 +1,39 @@
+import { TranslationKey, translate } from '@/i18n/translate';
+
 /**
- * Centralized French, user-facing error messages (spec section 16).
+ * Translation keys for the errors a user actually sees (spec section 16).
  * Keep technical detail out of these — put it in the logger instead.
+ *
+ * These are keys rather than sentences because several of them are stored:
+ * a failed upload keeps its lastError in the database and shows it days
+ * later. Storing the key means the message follows whatever language the
+ * phone is set to at the moment it is read, not the one in use when it
+ * failed. It also makes the identity comparisons in oneDriveService compare
+ * something stable.
  */
 export const USER_MESSAGES = {
-  NO_INTERNET:
-    'Connexion Internet indisponible. La photo a été sauvegardée et sera envoyée automatiquement.',
-  UPLOAD_SUCCESS: '✅ Photo enregistrée dans OneDrive.',
-  ONEDRIVE_ACCESS_ERROR: "⚠️ Impossible d'accéder au dossier OneDrive.",
-  AUTHORIZATION_PENDING:
-    "🔒 Autorisation en attente : demandez à un administrateur MA2D d'approuver l'application dans Microsoft Entra ID (Administration > Diagnostic pour les détails). La photo reste en file d'attente et sera envoyée automatiquement dès que l'accès sera approuvé.",
-  SESSION_EXPIRED: '🔐 Votre session Microsoft doit être renouvelée.',
-  FOLDER_NOT_FOUND: '⚠️ Le dossier Photo du bâtiment est introuvable.',
-  FOLDER_NOT_CONFIGURED: "⚠️ Ce bâtiment n'a pas encore de dossier OneDrive configuré.",
-  GENERIC_UPLOAD_FAILURE: "⚠️ Échec de l'envoi. La photo restera en file d'attente.",
-  INVALID_SHARE_LINK: "⚠️ Ce lien OneDrive n'est pas valide ou n'est pas accessible avec ce compte.",
-} as const;
+  NO_INTERNET: 'error.noInternet',
+  UPLOAD_SUCCESS: 'error.uploadSuccess',
+  ONEDRIVE_ACCESS_ERROR: 'error.oneDriveAccess',
+  AUTHORIZATION_PENDING: 'error.authorizationPending',
+  SESSION_EXPIRED: 'error.sessionExpired',
+  FOLDER_NOT_FOUND: 'error.folderNotFound',
+  FOLDER_NOT_CONFIGURED: 'error.folderNotConfigured',
+  GENERIC_UPLOAD_FAILURE: 'error.genericUploadFailure',
+  INVALID_SHARE_LINK: 'error.invalidShareLink',
+} as const satisfies Record<string, TranslationKey>;
+
+/**
+ * Turns a stored message into something to show. Rows written by an earlier
+ * version hold a French sentence rather than a key; translate() falls back to
+ * what it was given, so those keep reading exactly as they did.
+ */
+export function userMessage(stored: string): string {
+  return translate(stored as TranslationKey);
+}
 
 export class AppError extends Error {
+  /** A key from USER_MESSAGES — translate it with userMessage() to show it. */
   readonly userMessage: string;
   readonly cause?: unknown;
   /** HTTP status when the error came from a Graph response, for callers
