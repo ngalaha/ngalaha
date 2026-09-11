@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "eas-build-pre-install": "bash ./scripts/eas-prefetch-sqlite.sh",
     "eas-build-post-install": "bash ./scripts/eas-prefetch-sqlite.sh",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",

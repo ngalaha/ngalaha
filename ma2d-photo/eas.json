@@ -9,6 +9,9 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     },
     "preview": {
@@ -18,6 +21,9 @@
       },
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     },
     "production": {
@@ -26,6 +32,9 @@
       },
       "ios": {
         "autoIncrement": true
+      },
+      "env": {
+        "REACT_NATIVE_DOWNLOADS_DIR": "/tmp/rn-downloads"
       }
     }
   },
