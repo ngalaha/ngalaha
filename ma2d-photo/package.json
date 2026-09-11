@@ -14,6 +14,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "build:android:apk": "eas build --platform android --profile preview",
     "build:android:aab": "eas build --platform android --profile production",
+    "build:ios:simulator": "eas build --platform ios --profile ios-simulator",
     "build:ios": "eas build --platform ios --profile production"
   },
   "dependencies": {
