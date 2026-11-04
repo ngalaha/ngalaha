@@ -140,6 +140,7 @@ async function startNight() {
   $('running').hidden = false;
   $('liveEvents').innerHTML = '';
   updateCounters();
+  if (window.Android) Android.nightStarted();
 }
 
 function pickMime() {
@@ -321,6 +322,7 @@ async function stopNight() {
   rec.stream.getTracks().forEach(t => t.stop());
   rec.ctx.close();
   try { rec.wakeLock && rec.wakeLock.release(); } catch {}
+  if (window.Android) Android.nightStopped();
   const s = rec.session;
   s.end = Date.now();
   s.status = 'done';
@@ -550,6 +552,11 @@ function drawNight() {
 }
 
 // ---------------------------------------------------------------- navigation & réglages
+function setDim(on) {
+  $('dimmer').hidden = !on;
+  if (window.Android) Android.setDim(on);
+}
+
 function show(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
   const tab = view === 'detail' ? 'history' : view;
@@ -598,14 +605,21 @@ function init() {
   $('btnStart').onclick = startNight;
   $('btnStop').onclick = stopNight;
   $('btnBack').onclick = () => show('history');
-  $('btnDim').onclick = () => { $('dimmer').hidden = false; };
-  $('dimmer').ondblclick = () => { $('dimmer').hidden = true; };
+  $('btnDim').onclick = () => setDim(true);
+  $('dimmer').ondblclick = () => setDim(false);
   let lastTap = 0;
   $('dimmer').addEventListener('touchend', e => {
     const n = Date.now();
-    if (n - lastTap < 400) { $('dimmer').hidden = true; e.preventDefault(); }
+    if (n - lastTap < 400) { setDim(false); e.preventDefault(); }
     lastTap = n;
   });
+  // Bouton « retour » d'Android (appli APK)
+  window.appBack = () => {
+    if (!$('dimmer').hidden) setDim(false);
+    else if ($('view-detail').classList.contains('active')) show('history');
+    else if (!$('view-night').classList.contains('active')) show('night');
+    else if (window.Android) Android.moveToBack();
+  };
   $('btnDelete').onclick = async () => {
     if (!current || !confirm('Supprimer cette nuit et ses enregistrements ?')) return;
     await db.deleteSession(current.id);
@@ -613,10 +627,17 @@ function init() {
   };
   $('btnExport').onclick = () => {
     if (!current) return;
-    const blob = new Blob([JSON.stringify({ ...current, summary: summarize(current) }, null, 2)], { type: 'application/json' });
+    const json = JSON.stringify({ ...current, summary: summarize(current) }, null, 2);
+    const name = `dodoscope-${new Date(current.start).toISOString().slice(0, 10)}.json`;
+    if (window.Android) {
+      const where = Android.saveFile(name, json);
+      alert(where ? 'Fichier enregistré dans ' + where : "Impossible d'enregistrer le fichier.");
+      return;
+    }
+    const blob = new Blob([json], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `dodoscope-${new Date(current.start).toISOString().slice(0, 10)}.json`;
+    a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
@@ -636,7 +657,7 @@ function init() {
     $('btnStart').textContent = 'Micro indisponible (ouvre la page en https)';
   }
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (!window.Android && 'serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   recoverSessions().catch(() => {});
 }
 

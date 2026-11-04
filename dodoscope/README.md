@@ -11,7 +11,22 @@ Chaque son est daté, mesuré (durée, niveau) et enregistré pour être rééco
 Un **indice de calme** sur 100 résume la nuit, avec un graphique du bruit heure par heure.
 Tout reste sur le téléphone (IndexedDB). Rien n'est envoyé sur Internet.
 
-## Utilisation
+## Application Android (APK)
+
+Le fichier **`DodoScope.apk`** s'installe directement sur Android 7 ou plus récent :
+
+1. Copier `DodoScope.apk` sur le téléphone (ou le télécharger depuis GitHub : bouton *Download raw file*).
+2. L'ouvrir, puis autoriser « Installer des applis inconnues » pour le navigateur ou le gestionnaire de fichiers.
+3. Au premier lancement, accepter le **micro** et les **notifications**.
+
+Pendant la nuit, l'appli affiche une notification « DodoScope écoute ta nuit » (service micro au premier plan),
+garde l'écran allumé et baisse la luminosité au minimum en *Mode sombre*. Laisse l'appli ouverte, téléphone branché.
+
+Reconstruire l'APK (Linux) : `sudo apt install aapt dalvik-exchange zipalign apksigner openjdk-17-jdk` puis `android/build.sh`.
+La clé de signature (`android/dodoscope.keystore`, hors du dépôt) est créée au premier build. Une mise à jour signée
+avec une autre clé oblige à désinstaller l'appli, ce qui efface les nuits enregistrées.
+
+## Version web (PWA)
 
 1. Ouvrir la page en **https** (le micro ne marche pas en http), par exemple via GitHub Pages.
 2. Dans Chrome sur Android : menu ⋮ → **Ajouter à l'écran d'accueil**.
@@ -30,5 +45,5 @@ Les niveaux en dB sont relatifs (micro non étalonné).
 
 ## Fichiers
 
-`index.html`, `styles.css`, `app.js` (analyse audio, détection, stockage, graphiques), `sw.js` (hors ligne), `manifest.webmanifest`, `icon.svg`.
+`android/` (projet Android : WebView + service micro, `build.sh`), `index.html`, `styles.css`, `app.js` (analyse audio, détection, stockage, graphiques), `sw.js` (hors ligne), `manifest.webmanifest`, `icon.svg`.
 Aucune dépendance, aucun build.
