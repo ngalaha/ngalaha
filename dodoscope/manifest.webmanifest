@@ -1,0 +1,15 @@
+{
+  "name": "DodoScope – Suivi du sommeil",
+  "short_name": "DodoScope",
+  "description": "Enregistre les ronflements et les bruits pendant la nuit.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0e2a",
+  "theme_color": "#0b0e2a",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

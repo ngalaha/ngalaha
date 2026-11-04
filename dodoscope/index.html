@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e2a">
+  <title>DodoScope</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <img src="icon.svg" alt="" class="logo">
+    <h1>DodoScope</h1>
+  </header>
+
+  <main>
+    <!-- ===== ÉCRAN NUIT ===== -->
+    <section id="view-night" class="view active">
+      <div id="idle">
+        <div class="moon-card">
+          <div class="clock" id="clockIdle">--:--</div>
+          <p class="muted">Pose ton téléphone près du lit, micro vers toi, branché sur le chargeur.</p>
+        </div>
+        <button id="btnStart" class="btn-big">🌙 Commencer la nuit</button>
+        <ul class="tips">
+          <li>L'écran doit rester allumé : l'appli le garde éveillé et l'assombrit.</li>
+          <li>Les premières secondes servent à mesurer le bruit de fond de la chambre.</li>
+          <li>Tout reste sur ton téléphone. Rien n'est envoyé sur Internet.</li>
+        </ul>
+      </div>
+
+      <div id="running" hidden>
+        <div class="clock" id="clockRun">--:--</div>
+        <div class="muted center" id="elapsed">0 min</div>
+        <div class="status" id="status">Calibrage du bruit de fond…</div>
+
+        <div class="meter"><div class="meter-fill" id="meterFill"></div><div class="meter-floor" id="meterFloor"></div></div>
+        <div class="meter-legend"><span id="levelTxt">— dB</span><span class="muted">fond : <b id="floorTxt">—</b> dB</span></div>
+
+        <canvas id="liveChart" height="140"></canvas>
+
+        <div class="counters">
+          <div><b id="cSnore">0</b><span>ronflements</span></div>
+          <div><b id="cTalk">0</b><span>paroles</span></div>
+          <div><b id="cCough">0</b><span>toux / chocs</span></div>
+          <div><b id="cNoise">0</b><span>autres bruits</span></div>
+        </div>
+
+        <h3>Derniers sons</h3>
+        <ul id="liveEvents" class="events"></ul>
+
+        <div class="row">
+          <button id="btnDim" class="btn">🌑 Mode sombre</button>
+          <button id="btnStop" class="btn danger">☀️ Je me réveille</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HISTORIQUE ===== -->
+    <section id="view-history" class="view">
+      <h2>Mes nuits</h2>
+      <ul id="sessionList" class="sessions"></ul>
+      <p id="noSessions" class="muted center">Aucune nuit enregistrée pour l'instant.</p>
+    </section>
+
+    <!-- ===== DÉTAIL D'UNE NUIT ===== -->
+    <section id="view-detail" class="view">
+      <button class="btn link" id="btnBack">← Retour</button>
+      <h2 id="dTitle"></h2>
+      <div class="score-wrap">
+        <div class="score" id="dScore">--</div>
+        <div>
+          <div class="score-label">Indice de calme</div>
+          <div class="muted" id="dScoreTxt"></div>
+        </div>
+      </div>
+      <div class="stats" id="dStats"></div>
+      <h3>Niveau sonore pendant la nuit</h3>
+      <canvas id="nightChart" height="200"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--snore)"></i>Ronflement</span>
+        <span><i style="background:var(--talk)"></i>Parole</span>
+        <span><i style="background:var(--cough)"></i>Toux / choc</span>
+        <span><i style="background:var(--noise)"></i>Bruit</span>
+      </div>
+      <h3>Sons détectés</h3>
+      <div class="filters" id="dFilters"></div>
+      <ul id="dEvents" class="events"></ul>
+      <div class="row">
+        <button class="btn" id="btnExport">⬇️ Exporter (JSON)</button>
+        <button class="btn danger" id="btnDelete">🗑️ Supprimer la nuit</button>
+      </div>
+    </section>
+
+    <!-- ===== RÉGLAGES ===== -->
+    <section id="view-settings" class="view">
+      <h2>Réglages</h2>
+      <label class="field">
+        <span>Sensibilité de détection : <b id="sensTxt"></b></span>
+        <input type="range" id="sens" min="4" max="20" step="1">
+        <small class="muted">À gauche = détecte les sons faibles. À droite = seulement les sons forts.</small>
+      </label>
+      <label class="field check">
+        <input type="checkbox" id="recordAudio">
+        <span>Enregistrer les sons pour les réécouter</span>
+      </label>
+      <label class="field">
+        <span>Durée max. d'un extrait : <b id="clipTxt"></b> s</span>
+        <input type="range" id="clipMax" min="5" max="60" step="5">
+      </label>
+      <label class="field">
+        <span>Attente avant de commencer : <b id="delayTxt"></b> min</span>
+        <input type="range" id="startDelay" min="0" max="30" step="5">
+        <small class="muted">Pour ne pas capter les bruits pendant que tu t'endors.</small>
+      </label>
+      <div class="field">
+        <span>Stockage utilisé : <b id="storageTxt">—</b></span>
+        <button class="btn danger" id="btnWipe">Tout effacer</button>
+      </div>
+      <p class="muted small">DodoScope estime le type de son à partir de ses fréquences et de son rythme. C'est une indication, pas un diagnostic médical. Si tu ronfles fort et souvent ou que tu fais des pauses respiratoires, parles-en à un médecin.</p>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button data-view="night" class="active">🌙<span>Nuit</span></button>
+    <button data-view="history">📊<span>Historique</span></button>
+    <button data-view="settings">⚙️<span>Réglages</span></button>
+  </nav>
+
+  <div id="dimmer" hidden>
+    <div class="dim-clock" id="dimClock">--:--</div>
+    <div class="dim-hint">Touchez deux fois pour rallumer</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
