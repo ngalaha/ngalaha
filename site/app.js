@@ -378,3 +378,162 @@
     }, { threshold: 0.3 }).observe(truss);
   }
 })();
+
+/* =====================================================================
+   Contenu piloté par config.js : réseaux sociaux, vidéos, contact
+   ===================================================================== */
+(() => {
+  "use strict";
+  const C = window.SITE || {};
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const socials = C.socials || {};
+  const videos = (C.videos || []).filter(v => v && v.lien);
+  const waNum = (C.whatsapp || "").replace(/\D/g, "");
+  const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* ---- éléments conditionnels (data-needs="videos" | "facebook|youtube" ...) ---- */
+  const has = key => key === "videos" ? videos.length > 0 : key === "email" ? !!C.email : !!socials[key];
+  $$("[data-needs]").forEach(el => {
+    const ok = el.dataset.needs.split("|").some(has);
+    el.hidden = !ok;
+    if (!ok && el.tagName === "A") el.remove();
+  });
+
+  /* ---- renumérote les sections visibles (§ 01, § 02...) ---- */
+  let n = 0;
+  $$(".section .kicker").forEach(k => {
+    if (k.closest("[hidden]") || !/^§ \d\d/.test(k.textContent)) return;
+    k.textContent = k.textContent.replace(/^§ \d\d/, `§ ${String(++n).padStart(2, "0")}`);
+  });
+
+  /* ---- réseaux sociaux ---- */
+  const ICONS = {
+    facebook: ['Facebook', '<path d="M14 8h3V4h-3c-3 0-4.5 1.9-4.5 4.6V11H7v4h2.5v7h4.2v-7h3l.6-4h-3.6V8.9c0-.6.3-.9.9-.9z"/>'],
+    youtube: ['YouTube', '<rect x="1.5" y="5" width="21" height="14" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" fill="var(--bg)"/>'],
+    tiktok: ['TikTok', '<path d="M16.2 2.5c.4 2.4 1.9 3.9 4.3 4.1v3.3c-1.6 0-3-.5-4.3-1.3v6.6a6.3 6.3 0 1 1-6.3-6.3h.4v3.3a3.1 3.1 0 1 0 2.6 3V2.5z"/>'],
+    instagram: ['Instagram', '<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3"/>'],
+    linkedin: ['LinkedIn', '<rect x="2" y="2" width="20" height="20" rx="3"/><g fill="var(--bg)"><rect x="5.8" y="9.6" width="2.8" height="8.4"/><circle cx="7.2" cy="6.6" r="1.6"/><path d="M10.8 9.6h2.7v1.2c.5-.8 1.5-1.4 2.8-1.4 2.3 0 3 1.5 3 3.6V18h-2.8v-4.5c0-1.1-.3-1.8-1.3-1.8-1.1 0-1.6.8-1.6 1.9V18h-2.8z"/></g>'],
+    telegram: ['Telegram', '<path d="M21.5 3.5 2.6 10.8c-1 .4-1 1.4 0 1.7l4.8 1.5 1.8 5.6c.2.7.9.8 1.4.4l2.7-2.2 4.9 3.6c.7.5 1.5.1 1.7-.7l3.1-15.6c.2-1-.6-1.6-1.5-1.1zM9.3 13.6l8.6-5.4-6.9 6.4-.3 3.1z"/>'],
+    x: ['X', '<path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.3L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.5z"/>'],
+    whatsapp: ['WhatsApp', '<path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.6 14.1c-.2.7-1.4 1.3-1.9 1.3-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5.1-4.5-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5-.4.9-.9.9-.6 1.4a7.5 7.5 0 0 0 3.5 3.1c.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.8.9c.3.1.4.2.5.3 0 .1 0 .6-.3 1.4z"/>'],
+  };
+  const links = Object.entries(socials).filter(([, url]) => url);
+  if (waNum) links.push(["whatsapp", `https://wa.me/${waNum}`]);
+  const socialHTML = links.map(([k, url]) => {
+    const [label, path] = ICONS[k] || [k, '<circle cx="12" cy="12" r="9"/>'];
+    return `<a class="social" href="${esc(url)}" target="_blank" rel="noopener" aria-label="${label}" title="${label}"><svg viewBox="0 0 24 24" aria-hidden="true">${path}</svg><span>${label}</span></a>`;
+  }).join("");
+  $$(".socials").forEach(el => { el.innerHTML = socialHTML; });
+  $$(".js-fb").forEach(a => socials.facebook && (a.href = socials.facebook));
+  $$(".js-yt").forEach(a => socials.youtube && (a.href = socials.youtube));
+
+  const more = $(".video-more");
+  if (more && !more.hidden) {
+    more.innerHTML = [
+      socials.youtube && `<a class="link" href="${esc(socials.youtube)}" target="_blank" rel="noopener">Toutes les vidéos sur YouTube →</a>`,
+      socials.facebook && `<a class="link" href="${esc(socials.facebook)}" target="_blank" rel="noopener">Suivre la page Facebook →</a>`,
+    ].filter(Boolean).join("");
+  }
+
+  /* ---- vidéos : vignette légère, le lecteur ne se charge qu'au clic ---- */
+  const parse = url => {
+    let m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/);
+    if (m) return { kind: "youtube", id: m[1],
+      thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`,
+      embed: `https://www.youtube-nocookie.com/embed/${m[1]}?autoplay=1&rel=0` };
+    if (/facebook\.com|fb\.watch/.test(url)) return { kind: "facebook",
+      embed: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=true` };
+    return { kind: "link" };
+  };
+  const grid = $(".video-grid");
+  const filters = $(".video-filters");
+  if (grid && videos.length) {
+    grid.innerHTML = videos.map((v, i) => {
+      const p = parse(v.lien);
+      const poster = p.thumb
+        ? `<img src="${p.thumb}" alt="" loading="lazy">`
+        : `<div class="v-poster" aria-hidden="true"><svg viewBox="0 0 160 90"><path d="M20 40h120M20 40Q80 72 140 40"/><path d="M20 40l-8 12h16zM140 40l-8 12h16z"/></svg></div>`;
+      return `<article class="video-card reveal in" data-cat="${esc(v.categorie || "Autres")}">
+        <button class="v-media" type="button" data-i="${i}" aria-label="Lire la vidéo : ${esc(v.titre)}">
+          ${poster}
+          <span class="v-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          ${v.duree ? `<span class="v-dur mono">${esc(v.duree)}</span>` : ""}
+          <span class="v-src mono">${p.kind === "facebook" ? "Facebook" : p.kind === "youtube" ? "YouTube" : "Vidéo"}</span>
+        </button>
+        <div class="v-body"><p class="mono kicker">${esc(v.categorie || "Vidéo")}</p><h3>${esc(v.titre)}</h3></div>
+      </article>`;
+    }).join("");
+
+    grid.addEventListener("click", e => {
+      const btn = e.target.closest(".v-media");
+      if (!btn) return;
+      const v = videos[+btn.dataset.i];
+      const p = parse(v.lien);
+      if (!p.embed) { window.open(v.lien, "_blank", "noopener"); return; }
+      const frame = document.createElement("iframe");
+      frame.src = p.embed;
+      frame.title = v.titre;
+      frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      frame.allowFullscreen = true;
+      const box = Object.assign(document.createElement("div"), { className: "v-media v-playing" });
+      box.appendChild(frame);
+      btn.replaceWith(box);
+    });
+
+    const cats = [...new Set(videos.map(v => v.categorie || "Autres"))];
+    if (cats.length > 1) {
+      filters.innerHTML = ["Toutes", ...cats].map((c, i) =>
+        `<button type="button" role="tab" aria-selected="${i === 0}" class="chip mono" data-cat="${esc(c)}">${esc(c)} <small>${i === 0 ? videos.length : videos.filter(v => (v.categorie || "Autres") === c).length}</small></button>`).join("");
+      filters.addEventListener("click", e => {
+        const b = e.target.closest(".chip");
+        if (!b) return;
+        $$(".chip", filters).forEach(x => x.setAttribute("aria-selected", x === b));
+        $$(".video-card", grid).forEach(card => {
+          card.hidden = b.dataset.cat !== "Toutes" && card.dataset.cat !== b.dataset.cat;
+        });
+      });
+    } else filters.hidden = true;
+  }
+
+  /* ---- contact ---- */
+  $$(".js-email").forEach(a => { if (C.email) { a.href = `mailto:${C.email}`; a.textContent = C.email; } });
+  $$(".js-wa").forEach(a => { if (waNum) a.href = `https://wa.me/${waNum}`; });
+
+  const form = $("#contactForm");
+  if (form) {
+    const status = $(".form-status", form);
+    const say = (msg, ok) => { status.textContent = msg; status.className = `form-status mono ${ok ? "ok" : "err"}`; };
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(form));
+      if (d._honey) return;                                   // robot
+      const bad = [...form.querySelectorAll("[required]")].find(f => !f.value.trim() || !f.checkValidity());
+      form.querySelectorAll("[required]").forEach(f => f.classList.toggle("invalid", !f.value.trim() || !f.checkValidity()));
+      if (bad) { say("Merci de remplir les champs obligatoires (un email valide est nécessaire).", false); bad.focus(); return; }
+
+      const text = `${d.sujet} — ${d.nom} (${d.profil})\n\n${d.message}\n\nRépondre à : ${d.email}`;
+      if (C.email) {
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true; say("Envoi en cours…", true);
+        try {
+          const r = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(C.email)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ _subject: `Génie Civil Pro — ${d.sujet}`, _template: "table", _replyto: d.email,
+              Nom: d.nom, Email: d.email, Profil: d.profil, Sujet: d.sujet, Message: d.message }),
+          });
+          if (!r.ok) throw new Error(r.status);
+          form.reset();
+          say("Message envoyé. Merci ! Tu recevras une réponse par email.", true);
+        } catch (_) {
+          say("L'envoi a échoué. Ta messagerie va s'ouvrir pour envoyer le message.", false);
+          location.href = `mailto:${C.email}?subject=${encodeURIComponent("Génie Civil Pro — " + d.sujet)}&body=${encodeURIComponent(text)}`;
+        } finally { btn.disabled = false; }
+      } else if (waNum) {
+        window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+        say("WhatsApp s'ouvre avec ton message, il ne reste qu'à l'envoyer.", true);
+      }
+    });
+  }
+})();

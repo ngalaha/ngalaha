@@ -28,11 +28,11 @@
     </a>
     <nav class="nav-links" aria-label="Navigation principale">
       <a href="#livres">Livres</a>
+      <a href="#videos" data-needs="videos">Vidéos</a>
       <a href="#beton">Béton armé</a>
-      <a href="#programme">Programme</a>
       <a href="#avis">Avis</a>
       <a href="#auteur">L'auteur</a>
-      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
     </nav>
     <a class="btn btn-sm" href="#livres">Voir les livres</a>
     <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false"><span></span><span></span></button>
@@ -223,10 +223,23 @@
     </ul>
   </section>
 
+  <!-- ============ VIDEOS ============ -->
+  <!-- Les vidéos se règlent dans config.js. Section masquée tant qu'aucune vidéo n'est renseignée. -->
+  <section class="section videos" id="videos" data-needs="videos" hidden>
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 02 — Les vidéos</p>
+      <h2>Épreuves corrigées <span class="muted">au tableau, pas à pas.</span></h2>
+      <p class="lead">Les cours en vidéo de <strong>Pierre Ngalaha</strong> : résolution d'épreuves d'examen, notions de RDM et de béton armé expliquées simplement. Gratuites, à regarder avant ou après les livres.</p>
+    </header>
+    <div class="video-filters reveal" role="tablist" aria-label="Filtrer les vidéos"></div>
+    <div class="video-grid"></div>
+    <p class="video-more reveal" data-needs="youtube|facebook"></p>
+  </section>
+
   <!-- ============ REINFORCED CONCRETE ============ -->
   <section class="section rc" id="beton">
     <header class="section-head reveal">
-      <p class="kicker mono">§ 02 — La méthode</p>
+      <p class="kicker mono">§ 03 — La méthode</p>
       <h2>Comprendre ce qui se passe <span class="accent">dans</span> la matière.</h2>
       <p class="lead">Le béton résiste à la compression, l'acier reprend la traction. Chaque notion est construite comme une poutre : couche par couche, avec un schéma, une formule et un exemple chiffré.</p>
     </header>
@@ -307,7 +320,7 @@
   <!-- ============ PROGRAM / TRUSS ============ -->
   <section class="section" id="programme">
     <header class="section-head reveal">
-      <p class="kicker mono">§ 03 — Le programme</p>
+      <p class="kicker mono">§ 04 — Le programme</p>
       <h2>Douze chapitres, <span class="muted">assemblés comme un treillis.</span></h2>
       <p class="lead">Chaque barre s'appuie sur la précédente. Du chapitre 0 de rappels jusqu'aux méthodes énergétiques, avec une fiche « Ce qu'il faut retenir » à la fin de chaque chapitre.</p>
     </header>
@@ -353,7 +366,7 @@
        N'afficher que des avis réels, avec l'accord du lecteur. -->
   <section class="section reviews" id="avis">
     <header class="section-head reveal">
-      <p class="kicker mono">§ 04 — Avis des lecteurs</p>
+      <p class="kicker mono">§ 05 — Avis des lecteurs</p>
       <h2>Ce qu'en disent <span class="muted">les lecteurs.</span></h2>
       <p class="lead">Avis vérifiés, laissés par des acheteurs sur la boutique officielle.</p>
     </header>
@@ -393,14 +406,15 @@
       <span class="initials">PN</span>
     </div>
     <div class="author-copy reveal">
-      <p class="kicker mono">§ 05 — L'auteur</p>
+      <p class="kicker mono">§ 06 — L'auteur</p>
       <h2>Pierre Ngalaha</h2>
       <p class="role mono">Ingénieur en génie civil</p>
       <p>Plus de 60 000 personnes suivent mes cours en vidéo sur Facebook. J'écris ces livres avec une idée simple : <strong>si tu bloques en RDM, ce n'est pas toi le problème, c'est la façon dont on te l'a expliquée.</strong></p>
       <p>Chaque chapitre suit la même logique : le principe physique, les formules démontrées, des exemples résolus, puis des exercices. Pour les étudiants (BTS, DUT, licence, école d'ingénieurs), les techniciens, les dessinateurs et les pros du BTP.</p>
       <p class="signature" aria-label="Signature : Pierre Ngalaha">Pierre Ngalaha</p>
       <div class="cta-row">
-        <a class="btn btn-ghost" href="https://www.facebook.com/search/top?q=Pierre%20Ngalaha" target="_blank" rel="noopener">Les cours vidéo sur Facebook</a>
+        <a class="btn btn-ghost js-fb" data-needs="facebook" href="#" target="_blank" rel="noopener">Les cours vidéo sur Facebook</a>
+        <a class="btn btn-ghost js-yt" data-needs="youtube" href="#" target="_blank" rel="noopener">La chaîne YouTube</a>
       </div>
     </div>
   </section>
@@ -408,7 +422,7 @@
   <!-- ============ COMING SOON ============ -->
   <section class="section" id="bientot">
     <header class="section-head reveal">
-      <p class="kicker mono">§ 06 — En chantier</p>
+      <p class="kicker mono">§ 07 — En chantier</p>
       <h2>Et ensuite ? <span class="muted">La suite se coule.</span></h2>
     </header>
     <div class="soon-grid">
@@ -422,7 +436,7 @@
   <!-- ============ FAQ ============ -->
   <section class="section faq" id="faq">
     <header class="section-head reveal">
-      <p class="kicker mono">§ 07 — Questions fréquentes</p>
+      <p class="kicker mono">§ 08 — Questions fréquentes</p>
       <h2>Avant d'acheter.</h2>
     </header>
     <div class="faq-list">
@@ -433,6 +447,48 @@
       <details class="reveal"><summary>Je peux le lire sur mon téléphone ?</summary><p>Oui. Les PDF sont mis en page pour être lisibles sur téléphone comme sur ordinateur.</p></details>
       <details class="reveal"><summary>Et si je bloque sur un exercice ?</summary><p>Écris-moi sur WhatsApp au +1 (263) 383-1075. Je réponds aux questions sur les exercices.</p></details>
     </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="section contact" id="contact">
+    <div class="contact-copy reveal">
+      <p class="kicker mono">§ 09 — Nous contacter</p>
+      <h2>Une question ? <span class="muted">Écris-moi.</span></h2>
+      <p class="lead">Un exercice qui bloque, un souci de paiement, une commande pour une classe ou une école : envoie ton message, je te réponds personnellement.</p>
+      <ul class="contact-ways">
+        <li data-needs="email"><span class="mono">Email</span><a class="js-email" href="#"></a></li>
+        <li><span class="mono">WhatsApp</span><a class="js-wa" href="#" target="_blank" rel="noopener">+1 (263) 383-1075</a></li>
+        <li><span class="mono">Réponse</span><b>sous 24 à 48 h</b></li>
+      </ul>
+      <div class="socials socials-lg" aria-label="Réseaux sociaux"></div>
+    </div>
+
+    <form class="contact-form reveal" id="contactForm" novalidate>
+      <div class="lab-head mono"><span>FORMULAIRE — DEMANDE</span><span>Champs * obligatoires</span></div>
+      <div class="field-row">
+        <label class="field"><span>Nom complet *</span><input name="nom" autocomplete="name" required></label>
+        <label class="field"><span>Email *</span><input name="email" type="email" autocomplete="email" required></label>
+      </div>
+      <div class="field-row">
+        <label class="field"><span>Tu es</span>
+          <select name="profil">
+            <option>Étudiant(e)</option><option>Élève</option><option>Enseignant(e)</option>
+            <option>Technicien / professionnel du BTP</option><option>Autre</option>
+          </select>
+        </label>
+        <label class="field"><span>Sujet</span>
+          <select name="sujet">
+            <option>Question sur un livre</option><option>Question sur un exercice</option>
+            <option>Problème de paiement</option><option>Commande groupée (classe, école)</option>
+            <option>Partenariat / autre</option>
+          </select>
+        </label>
+      </div>
+      <label class="field"><span>Message *</span><textarea name="message" rows="6" required></textarea></label>
+      <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn" type="submit">Envoyer le message <i aria-hidden="true">→</i></button>
+      <p class="form-status mono" role="status" aria-live="polite"></p>
+    </form>
   </section>
 
   <!-- ============ FINAL CTA ============ -->
@@ -453,9 +509,12 @@
       <p>Cours de génie civil et de RDM conçus et rédigés par <b>Pierre Ngalaha</b>, ingénieur en génie civil.</p>
     </div>
     <nav class="foot-links" aria-label="Liens de bas de page">
-      <a href="#livres">Livres</a><a href="#programme">Programme</a><a href="#faq">FAQ</a>
-      <a href="https://wa.me/12633831075" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="#livres">Livres</a><a href="#videos" data-needs="videos">Vidéos</a><a href="#programme">Programme</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
     </nav>
+    <div class="foot-social">
+      <p class="mono">Suivre Pierre Ngalaha</p>
+      <div class="socials" aria-label="Réseaux sociaux"></div>
+    </div>
     <p class="mono copy">© <span id="year">2026</span> Pierre Ngalaha · Génie Civil Pro · Paiement sécurisé via Chariow</p>
   </footer>
 
@@ -463,6 +522,7 @@
     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.6c-2 0-4-.5-5.6-1.5l-.4-.2-3.9 1 1-3.8-.3-.4A10.6 10.6 0 1 1 16 26.6zm5.8-7.9c-.3-.2-1.9-.9-2.2-1s-.5-.2-.7.2-.8 1-1 1.2-.4.2-.7 0a8.7 8.7 0 0 1-4.3-3.8c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.8 1.2 3.2 1.4 3.4 2.4 3.6 5.8 5c2.1.9 3 1 4 .8.7-.1 1.9-.8 2.2-1.5s.3-1.4.2-1.5-.3-.2-.6-.4z"/></svg>
   </a>
 
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
