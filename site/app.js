@@ -554,3 +554,36 @@
     });
   }
 })();
+
+/* =====================================================================
+   Consentement à la mesure d'audience (Metricool). Rien ne se charge avant "Accepter".
+   Le signal "Global Privacy Control" du navigateur est respecté comme un refus.
+   ===================================================================== */
+(() => {
+  "use strict";
+  const KEY = "gcp-consent";
+  const box = document.getElementById("consent");
+  const read = () => { try { return localStorage.getItem(KEY); } catch (_) { return null; } };
+  const write = v => { try { localStorage.setItem(KEY, v); } catch (_) { /* navigation privée */ } };
+  let loaded = false;
+  const load = () => {
+    const src = document.getElementById("metricool-tracker");
+    if (loaded || !src) return;
+    loaded = true;
+    const s = document.createElement("script");
+    s.textContent = src.textContent;
+    document.head.appendChild(s);
+  };
+  const apply = () => {
+    const v = navigator.globalPrivacyControl ? "no" : read();
+    if (v === "yes") { load(); if (box) box.hidden = true; }
+    else if (v === "no") { if (box) box.hidden = true; }
+    else if (box) box.hidden = false;
+  };
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-consent]");
+    if (b) { write(b.dataset.consent); apply(); return; }
+    if (e.target.closest("[data-consent-open]") && box) box.hidden = false;
+  });
+  apply();
+})();
