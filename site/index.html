@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Génie Civil Pro — Pierre Ngalaha | RDM & Béton armé</title>
+  <meta name="author" content="Pierre Ngalaha">
+  <meta name="description" content="Livres de résistance des matériaux et de béton armé par Pierre Ngalaha, ingénieur en génie civil. Cours clairs, exercices corrigés pas à pas, téléchargement immédiat.">
+  <meta property="og:title" content="Génie Civil Pro — La RDM sans détour">
+  <meta property="og:description" content="Cours de RDM et béton armé, plus de 110 exercices corrigés pas à pas. Téléchargement immédiat.">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://geniecivilpro.com/">
+  <meta property="og:url" content="https://geniecivilpro.com/">
+  <meta property="og:locale" content="fr_CA">
+  <meta property="og:site_name" content="Génie Civil Pro">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[
+    {"@type":"Person","name":"Pierre Ngalaha","jobTitle":"Ingénieur en génie civil","url":"https://geniecivilpro.com/","email":"np.ngalaha@gmail.com","telephone":"+1-581-781-1987",
+     "sameAs":["https://www.facebook.com/share/1TTpaNo5F3/","https://www.linkedin.com/in/pierre-ngalaha-421797405","https://www.youtube.com/channel/UC7PMl8XA_weEr8ogXugtCUw","https://www.tiktok.com/@np.construction_officiel"]},
+    {"@type":"WebSite","name":"Génie Civil Pro","url":"https://geniecivilpro.com/","inLanguage":"fr","author":{"@type":"Person","name":"Pierre Ngalaha"}}
+  ]}
+  </script>
+  <meta name="theme-color" content="#0d0f12">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d0f12'/%3E%3Cpath d='M10 22h44M10 42h44M32 22v20' stroke='%23ff6a1a' stroke-width='7'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"><span></span></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="top">
+    <a class="brand" href="#top" aria-label="Génie Civil Pro, accueil">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 9h32M4 31h32M20 9v22" /></svg>
+      <span>Génie Civil <b>Pro</b></span>
+    </a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="#livres">Livres</a>
+      <a href="#videos" data-needs="videos">Vidéos</a>
+      <a href="#beton">Béton armé</a>
+      <a href="#avis">Avis</a>
+      <a href="#auteur">L'auteur</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn btn-sm" href="#livres">Voir les livres</a>
+    <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false"><span></span><span></span></button>
+  </header>
+
+  <main>
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="blueprint" aria-hidden="true"></div>
+    <div class="hero-copy">
+      <p class="tag mono"><span class="dot"></span> Par <b class="tag-name">Pierre Ngalaha</b> · ingénieur génie civil</p>
+      <h1>
+        <span class="line"><span>La RDM,</span></span>
+        <span class="line"><span>calculée</span></span>
+        <span class="line"><span class="accent">sans détour.</span></span>
+      </h1>
+      <p class="lead">Des livres de <strong>résistance des matériaux</strong> et de <strong>béton armé</strong> écrits pour qu'on comprenne en lisant : un schéma, une formule encadrée, un exemple chiffré. Aucun calcul n'est sauté.</p>
+      <div class="cta-row">
+        <a class="btn" href="#livres">Découvrir les livres <i aria-hidden="true">→</i></a>
+        <a class="btn btn-ghost" href="#beton">Voir la méthode</a>
+      </div>
+      <ul class="hero-facts mono">
+        <li><b data-count="307">0</b> pages</li>
+        <li><b data-count="110" data-suffix="+">0</b> exercices corrigés</li>
+        <li><b data-count="83">0</b> lecteurs</li>
+      </ul>
+    </div>
+
+    <!-- Interactive beam -->
+    <figure class="beam-lab" aria-label="Poutre interactive : déplacez la charge pour voir le moment fléchissant">
+      <div class="lab-head mono">
+        <span>FIG. 01 — POUTRE ISOSTATIQUE</span>
+        <span class="live"><span class="dot"></span>CALCUL EN DIRECT</span>
+      </div>
+      <svg id="beam" viewBox="0 0 640 430" role="img" aria-labelledby="beamTitle">
+        <title id="beamTitle">Poutre sur deux appuis avec charge répartie et charge ponctuelle mobile, diagramme du moment fléchissant</title>
+        <defs>
+          <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="1.5" />
+          </pattern>
+          <linearGradient id="mgrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ff6a1a" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#ff6a1a" stop-opacity=".05"/>
+          </linearGradient>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g id="qArrows" class="q-arrows"></g>
+        <path id="qLine" class="q-line" />
+        <text id="qLabel" class="svg-label" x="320" y="38" text-anchor="middle">q = 12 kN/m</text>
+
+        <g id="pLoad" class="p-load" tabindex="0" role="slider" aria-label="Position de la charge P" aria-valuemin="0" aria-valuemax="6" aria-valuenow="3">
+          <rect class="p-hit" x="-28" y="0" width="56" height="150" />
+          <line class="p-arrow" x1="0" y1="18" x2="0" y2="100" marker-end="url(#arr)"/>
+          <circle class="p-knob" cx="0" cy="14" r="9"/>
+          <text class="svg-label p-text" x="0" y="0" text-anchor="middle">P = 40 kN</text>
+        </g>
+
+        <path id="beamShadow" class="beam-ghost" />
+        <path id="beamPath" class="beam" />
+        <g class="supports">
+          <g id="supA"><path d="M0 0 L-16 26 L16 26 Z" class="sup"/><rect x="-22" y="26" width="44" height="7" fill="url(#hatch)" class="sup-hatch"/></g>
+          <g id="supB"><path d="M0 0 L-16 22 L16 22 Z" class="sup"/><circle cx="-8" cy="26" r="4" class="sup"/><circle cx="8" cy="26" r="4" class="sup"/><rect x="-22" y="30" width="44" height="7" fill="url(#hatch)" class="sup-hatch"/></g>
+        </g>
+        <g class="reactions">
+          <line id="rA" class="r-arrow" marker-end="url(#arr)"/>
+          <line id="rB" class="r-arrow" marker-end="url(#arr)"/>
+          <text id="rAt" class="svg-label r-text" text-anchor="middle"></text>
+          <text id="rBt" class="svg-label r-text" text-anchor="middle"></text>
+        </g>
+
+        <!-- Moment diagram -->
+        <line class="axis" x1="60" x2="580" y1="300" y2="300"/>
+        <text class="svg-label dim" x="40" y="304" text-anchor="end">M</text>
+        <path id="mFill" fill="url(#mgrad)"/>
+        <path id="mPath" class="m-line"/>
+        <line id="mMaxLine" class="m-max-line"/>
+        <circle id="mMaxDot" class="m-dot" r="4.5"/>
+        <text id="mMaxText" class="svg-label m-text" text-anchor="middle"></text>
+        <!-- span dimension -->
+        <g class="dim-line">
+          <line x1="60" x2="580" y1="410" y2="410"/>
+          <line x1="60" x2="60" y1="402" y2="418"/><line x1="580" x2="580" y1="402" y2="418"/>
+          <text class="svg-label dim" x="320" y="402" text-anchor="middle">L = 6,00 m</text>
+        </g>
+      </svg>
+      <figcaption class="mono">↔ Faites glisser la charge <b>P</b> : réactions, déformée et moment se recalculent.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee mono" aria-hidden="true">
+    <div class="track">
+      <span>Réactions d'appui</span><i>◆</i><span>Diagrammes N · T · M</span><i>◆</i><span>Moment d'inertie</span><i>◆</i><span>Treillis · Ritter · Cremona</span><i>◆</i><span>Théorème des trois moments</span><i>◆</i><span>Flambement d'Euler</span><i>◆</i><span>Torsion</span><i>◆</i><span>Castigliano</span><i>◆</i><span>Lignes d'influence</span><i>◆</i>
+      <span>Réactions d'appui</span><i>◆</i><span>Diagrammes N · T · M</span><i>◆</i><span>Moment d'inertie</span><i>◆</i><span>Treillis · Ritter · Cremona</span><i>◆</i><span>Théorème des trois moments</span><i>◆</i><span>Flambement d'Euler</span><i>◆</i><span>Torsion</span><i>◆</i><span>Castigliano</span><i>◆</i><span>Lignes d'influence</span><i>◆</i>
+    </div>
+  </div>
+
+  <!-- ============ BOOKS ============ -->
+  <section class="section" id="livres">
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 01 — La collection</p>
+      <h2>Deux tomes. <span class="muted">Tout le cours de RDM.</span></h2>
+    </header>
+
+    <div class="books">
+      <!-- Tome 1 -->
+      <article class="book-card reveal">
+        <div class="book-stage">
+          <div class="book" data-tilt>
+            <div class="book-front">
+              <img src="https://images.chariowcdn.com/cdn-cgi/image/format=auto,quality=medium-high/https://assets.chariowcdn.com/assets/store_c10wgplod537/IkrpRlOtJrHYv1YQyXfXS7FJD1BrDHEzHhS63Mdd.jpg" alt="Couverture du livre RDM expliquée simplement, Tome 1" loading="lazy" onerror="this.remove()">
+              <div class="cover-fallback">
+                <span class="mono">TOME 1</span>
+                <strong>RDM<br>expliquée<br>simplement</strong>
+                <svg viewBox="0 0 120 50" aria-hidden="true"><path d="M5 10h110M5 10 Q60 48 115 10" /></svg>
+                <em>Pierre Ngalaha</em>
+              </div>
+            </div>
+            <div class="book-spine"></div>
+            <div class="book-pages"></div>
+          </div>
+          <span class="badge mono">−33 %</span>
+        </div>
+        <div class="book-info">
+          <p class="mono kicker">Tome 1 · PDF 133 pages</p>
+          <h3>RDM expliquée simplement</h3>
+          <p class="sub">Cours + 60 exercices corrigés</p>
+          <p class="byline mono">par <b>Pierre Ngalaha</b></p>
+          <ul class="checks">
+            <li>Réactions d'appui de n'importe quelle poutre isostatique</li>
+            <li>Diagrammes N, T et M sans erreur de signe</li>
+            <li>Centre de gravité et moment d'inertie (Huygens)</li>
+            <li>Traction, compression, cisaillement, flexion simple</li>
+            <li>Cas de chantier : plancher, console de balcon, mur-poids</li>
+          </ul>
+          <div class="buy-row">
+            <p class="price"><span class="old">15 $</span><b>10 $</b></p>
+            <a class="btn" href="https://vgrisohd.mychariow.store/prd_xlqjp915" target="_blank" rel="noopener">Acheter le Tome 1 <i aria-hidden="true">→</i></a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Tome 2 -->
+      <article class="book-card reveal">
+        <div class="book-stage">
+          <div class="book" data-tilt>
+            <div class="book-front t2">
+              <img src="https://images.chariowcdn.com/cdn-cgi/image/format=auto,quality=medium-high/https://assets.chariowcdn.com/assets/store_c10wgplod537/IUpCIe3TwiajkhMQ6hUXlpc6vo41z8frrL9Hjgc4.jpg" alt="Couverture du livre La RDM sans détour, Tome 2" loading="lazy" onerror="this.remove()">
+              <div class="cover-fallback">
+                <span class="mono">TOME 2</span>
+                <strong>La RDM<br>sans<br>détour</strong>
+                <svg viewBox="0 0 120 50" aria-hidden="true"><path d="M5 45 L35 8 L65 45 L95 8 L115 45 M5 45h110 M35 8h60" /></svg>
+                <em>Pierre Ngalaha</em>
+              </div>
+            </div>
+            <div class="book-spine"></div>
+            <div class="book-pages"></div>
+          </div>
+          <span class="badge badge-new mono">Nouveau</span>
+        </div>
+        <div class="book-info">
+          <p class="mono kicker">Tome 2 · PDF 174 pages</p>
+          <h3>La RDM sans détour</h3>
+          <p class="sub">Treillis, hyperstatique, torsion, flambement</p>
+          <p class="byline mono">par <b>Pierre Ngalaha</b></p>
+          <ul class="checks">
+            <li>Treillis : méthode des nœuds, Ritter, Cremona</li>
+            <li>Flèches et rotations : double intégration, poutre conjuguée</li>
+            <li>Poutres continues : théorème des trois moments</li>
+            <li>Flexion composée, torsion, flambement d'Euler</li>
+            <li>Lignes d'influence, Castigliano, Maxwell–Betti</li>
+          </ul>
+          <div class="buy-row">
+            <p class="price"><b>10 $</b></p>
+            <a class="btn" href="https://vgrisohd.mychariow.store/prd_mxqf02ox" target="_blank" rel="noopener">Acheter le Tome 2 <i aria-hidden="true">→</i></a>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <ul class="perks reveal">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg><div><b>Téléchargement immédiat</b><span>Lien aussi envoyé par email, sans code d'accès.</span></div></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg><div><b>Carte ou Mobile Money</b><span>Paiement sécurisé, partout dans le monde.</span></div></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><div><b>Lisible sur téléphone</b><span>Mise en page pensée pour réviser partout.</span></div></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.9A8 8 0 1 1 21 12z"/></svg><div><b>Questions sur WhatsApp</b><span>Un exercice bloque ? Écris-moi directement.</span></div></li>
+    </ul>
+  </section>
+
+  <!-- ============ VIDEOS ============ -->
+  <!-- Les vidéos se règlent dans config.js. Section masquée tant qu'aucune vidéo n'est renseignée. -->
+  <section class="section videos" id="videos" data-needs="videos" hidden>
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 02 — Les vidéos</p>
+      <h2>Épreuves corrigées <span class="muted">au tableau, pas à pas.</span></h2>
+      <p class="lead">Les cours en vidéo de <strong>Pierre Ngalaha</strong> : résolution d'épreuves d'examen, notions de RDM et de béton armé expliquées simplement. Gratuites, à regarder avant ou après les livres.</p>
+    </header>
+    <div class="video-filters reveal" role="tablist" aria-label="Filtrer les vidéos"></div>
+    <div class="video-grid"></div>
+    <p class="video-more reveal" data-needs="youtube|facebook"></p>
+  </section>
+
+  <!-- ============ REINFORCED CONCRETE ============ -->
+  <section class="section rc" id="beton">
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 03 — La méthode</p>
+      <h2>Comprendre ce qui se passe <span class="accent">dans</span> la matière.</h2>
+      <p class="lead">Le béton résiste à la compression, l'acier reprend la traction. Chaque notion est construite comme une poutre : couche par couche, avec un schéma, une formule et un exemple chiffré.</p>
+    </header>
+
+    <div class="rc-grid">
+      <figure class="rc-section" id="rcSection">
+        <div class="lab-head mono"><span>FIG. 02 — COUPE A-A</span><span>ELU · FLEXION SIMPLE</span></div>
+        <svg viewBox="0 0 520 470" role="img" aria-label="Coupe d'une poutre en béton armé avec diagramme des contraintes">
+          <defs>
+            <pattern id="concrete" width="40" height="40" patternUnits="userSpaceOnUse">
+              <rect width="40" height="40" fill="#2a2d31"/>
+              <circle cx="7" cy="9" r="1.6" fill="#3b3f44"/><circle cx="28" cy="6" r="1" fill="#44484e"/>
+              <circle cx="18" cy="24" r="2.2" fill="#363a3f"/><circle cx="34" cy="31" r="1.3" fill="#3f4348"/>
+              <circle cx="6" cy="34" r="1" fill="#474b51"/><path d="M24 14 l3 -2 l2 3 z" fill="#3a3e43"/>
+            </pattern>
+          </defs>
+          <!-- section -->
+          <g class="rc-step s1"><rect x="60" y="40" width="200" height="360" fill="url(#concrete)" stroke="#8a9099" stroke-width="2"/></g>
+          <!-- stirrup -->
+          <g class="rc-step s2"><rect class="draw stirrup" x="82" y="62" width="156" height="316" rx="10"/><path class="draw stirrup" d="M98 62 l-14 18 M114 62 l-14 18"/></g>
+          <!-- bars -->
+          <g class="rc-step s3 bars-top"><circle cx="102" cy="82" r="8"/><circle cx="218" cy="82" r="8"/></g>
+          <g class="rc-step s3 bars-bot"><circle cx="104" cy="352" r="12"/><circle cx="160" cy="352" r="12"/><circle cx="216" cy="352" r="12"/></g>
+          <!-- compression zone -->
+          <g class="rc-step s4"><rect x="60" y="40" width="200" height="104" fill="#ff6a1a" fill-opacity=".18" /><line x1="40" x2="290" y1="170" y2="170" class="na"/><text x="296" y="174" class="svg-label">axe neutre</text></g>
+          <!-- stress diagram -->
+          <g class="rc-step s5">
+            <line x1="350" x2="350" y1="40" y2="400" class="axis"/>
+            <path d="M350 40 H440 V144 H350 Z" class="stress-c"/>
+            <path d="M350 40 L440 40 L350 170 Z" class="stress-tri"/>
+            <text x="452" y="96" class="svg-label">0,85 f<tspan baseline-shift="sub" font-size="9">cd</tspan></text>
+            <line x1="350" x2="440" y1="352" y2="352" class="fs" marker-end="url(#arr)"/>
+            <text x="452" y="356" class="svg-label">F<tspan baseline-shift="sub" font-size="9">s</tspan></text>
+            <line x1="395" x2="395" y1="92" y2="352" class="lever"/>
+            <text x="404" y="230" class="svg-label">z</text>
+            <text x="456" y="64" class="svg-label">F<tspan baseline-shift="sub" font-size="9">c</tspan></text>
+          </g>
+          <!-- dims -->
+          <g class="rc-step s5 dim-line">
+            <line x1="60" x2="260" y1="432" y2="432"/><line x1="60" x2="60" y1="424" y2="440"/><line x1="260" x2="260" y1="424" y2="440"/>
+            <text x="160" y="458" class="svg-label dim" text-anchor="middle">b = 30 cm</text>
+            <line x1="30" x2="30" y1="40" y2="400"/><line x1="22" x2="38" y1="40" y2="40"/><line x1="22" x2="38" y1="400" y2="400"/>
+            <text x="20" y="224" class="svg-label dim" text-anchor="middle" transform="rotate(-90 20 224)">h = 55 cm</text>
+          </g>
+        </svg>
+      </figure>
+
+      <ol class="rc-steps">
+        <li class="reveal" data-step="1"><span class="mono">01</span><div><b>Le coffrage et le béton</b><p>Section b × h, béton C25/30 : il travaille en compression.</p></div></li>
+        <li class="reveal" data-step="2"><span class="mono">02</span><div><b>Les cadres</b><p>Les armatures transversales reprennent l'effort tranchant.</p></div></li>
+        <li class="reveal" data-step="3"><span class="mono">03</span><div><b>Les aciers longitudinaux</b><p>3 HA16 en fibre tendue : ils reprennent la traction.</p></div></li>
+        <li class="reveal" data-step="4"><span class="mono">04</span><div><b>L'axe neutre</b><p>Au-dessus, ça comprime ; en dessous, le béton fissure et l'acier travaille.</p></div></li>
+        <li class="reveal" data-step="5"><span class="mono">05</span><div><b>L'équilibre</b><p class="formula mono">M<sub>Ed</sub> = F<sub>s</sub> · z = A<sub>s</sub> · f<sub>yd</sub> · z</p></div></li>
+      </ol>
+    </div>
+
+    <!-- Elevation with cracks -->
+    <figure class="elevation reveal" id="elevation">
+      <div class="lab-head mono"><span>FIG. 03 — ÉLÉVATION · FISSURATION</span><span>Flexion au centre · Effort tranchant aux appuis</span></div>
+      <svg viewBox="0 0 1000 220" role="img" aria-label="Élévation d'une poutre en béton armé montrant les fissures de flexion et d'effort tranchant">
+        <rect x="40" y="50" width="920" height="110" fill="url(#concrete)" stroke="#8a9099" stroke-width="2"/>
+        <g id="stirrups" class="stirrups"></g>
+        <line x1="52" x2="948" y1="142" y2="142" class="rebar-main draw"/>
+        <line x1="52" x2="948" y1="64" y2="64" class="rebar-top draw"/>
+        <g id="cracks" class="cracks"></g>
+        <path d="M70 160 l-16 26 h32 z" class="sup"/><path d="M930 160 l-16 22 h32 z" class="sup"/>
+        <circle cx="922" cy="186" r="4" class="sup"/><circle cx="938" cy="186" r="4" class="sup"/>
+        <text x="200" y="36" class="svg-label dim" text-anchor="middle">cadres resserrés · s = 10 cm</text>
+        <text x="500" y="36" class="svg-label dim" text-anchor="middle">s = 20 cm</text>
+        <text x="800" y="36" class="svg-label dim" text-anchor="middle">cadres resserrés · s = 10 cm</text>
+        <text x="500" y="208" class="svg-label accent-t" text-anchor="middle">fissures de flexion</text>
+        <text x="160" y="208" class="svg-label accent-t" text-anchor="middle">fissures à 45° (tranchant)</text>
+        <text x="840" y="208" class="svg-label accent-t" text-anchor="middle">fissures à 45° (tranchant)</text>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- ============ PROGRAM / TRUSS ============ -->
+  <section class="section" id="programme">
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 04 — Le programme</p>
+      <h2>Douze chapitres, <span class="muted">assemblés comme un treillis.</span></h2>
+      <p class="lead">Chaque barre s'appuie sur la précédente. Du chapitre 0 de rappels jusqu'aux méthodes énergétiques, avec une fiche « Ce qu'il faut retenir » à la fin de chaque chapitre.</p>
+    </header>
+    <div class="truss-wrap reveal">
+      <svg id="truss" viewBox="0 0 1000 260" role="img" aria-label="Treillis dont chaque nœud représente un chapitre du programme"></svg>
+    </div>
+    <div class="chapters">
+      <div class="chap-col reveal">
+        <p class="mono kicker">Tome 1</p>
+        <ol>
+          <li><span class="mono">I</span>Statique et réactions d'appui</li>
+          <li><span class="mono">II</span>Efforts internes : diagrammes N, T, M</li>
+          <li><span class="mono">III</span>Caractéristiques des sections</li>
+          <li><span class="mono">IV</span>Traction et compression</li>
+          <li><span class="mono">V</span>Cisaillement</li>
+          <li><span class="mono">VI</span>Flexion simple</li>
+        </ol>
+      </div>
+      <div class="chap-col reveal">
+        <p class="mono kicker">Tome 2</p>
+        <ol>
+          <li><span class="mono">VII</span>Treillis : nœuds, Ritter, Cremona</li>
+          <li><span class="mono">VIII</span>Déformation des poutres</li>
+          <li><span class="mono">IX</span>Structures hyperstatiques</li>
+          <li><span class="mono">X</span>Sollicitations composées, torsion, flambement</li>
+          <li><span class="mono">XI</span>Lignes d'influence, théorème de Barré</li>
+          <li><span class="mono">XII</span>Méthodes énergétiques</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATS ============ -->
+  <section class="stats">
+    <div class="stat reveal"><b class="mono" data-count="106000" data-suffix="+">0</b><span>abonnés suivent les cours en vidéo</span></div>
+    <div class="stat reveal"><b class="mono" data-count="110" data-suffix="+">0</b><span>exercices corrigés pas à pas</span></div>
+    <div class="stat reveal"><b class="mono" data-count="307">0</b><span>pages de cours au total</span></div>
+    <div class="stat reveal"><b class="mono" data-count="83">0</b><span>lecteurs ont déjà choisi ces livres</span></div>
+  </section>
+
+  <!-- ============ REVIEWS ============ -->
+  <!-- Pour ajouter un avis : copier un bloc <figure class="review"> et remplacer le texte.
+       N'afficher que des avis réels, avec l'accord du lecteur. -->
+  <section class="section reviews" id="avis">
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 05 — Avis des lecteurs</p>
+      <h2>Ce qu'en disent <span class="muted">les lecteurs.</span></h2>
+      <p class="lead">Avis vérifiés, laissés par des acheteurs sur la boutique officielle.</p>
+    </header>
+    <div class="review-grid">
+      <figure class="review reveal">
+        <div class="review-top">
+          <span class="avatar mono" aria-hidden="true">CT</span>
+          <div><b>Chantal T.</b><span class="mono">RD Congo · Novembre 2026</span></div>
+          <span class="verified mono" title="Achat vérifié sur la boutique">✓ Achat vérifié</span>
+        </div>
+        <blockquote>« Un grand merci »</blockquote>
+        <figcaption class="mono">Tome 1 — RDM expliquée simplement</figcaption>
+      </figure>
+      <figure class="review review-cta reveal">
+        <p class="mono kicker">Tu as lu un des livres ?</p>
+        <p class="review-ask">Ton avis aide d'autres étudiants à se lancer. Laisse-le sur la page du livre ou envoie-le-moi directement.</p>
+        <a class="btn btn-ghost btn-sm" href="https://wa.me/15817811987?text=Bonjour%20Pierre%2C%20voici%20mon%20avis%20sur%20ton%20livre%20%3A%20" target="_blank" rel="noopener">Donner mon avis</a>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ AUTHOR ============ -->
+  <section class="section author" id="auteur">
+    <div class="author-visual reveal" aria-hidden="true">
+      <svg viewBox="0 0 300 300">
+        <circle cx="150" cy="150" r="130" class="ring r1"/>
+        <circle cx="150" cy="150" r="104" class="ring r2"/>
+        <g class="mohr">
+          <circle cx="150" cy="150" r="70" class="mohr-c"/>
+          <line x1="40" x2="260" y1="150" y2="150" class="axis"/>
+          <line x1="150" x2="150" y1="40" y2="260" class="axis"/>
+          <line x1="100" y1="100" x2="200" y2="200" class="mohr-d"/>
+          <circle cx="100" cy="100" r="5" class="m-dot"/><circle cx="200" cy="200" r="5" class="m-dot"/>
+        </g>
+        <text x="150" y="285" text-anchor="middle" class="svg-label dim">cercle de Mohr</text>
+      </svg>
+      <span class="initials">PN</span>
+    </div>
+    <div class="author-copy reveal">
+      <p class="kicker mono">§ 06 — L'auteur</p>
+      <h2>Pierre Ngalaha</h2>
+      <p class="role mono">Ingénieur en génie civil</p>
+      <p>Plus de 106 000 personnes suivent mes cours en vidéo sur Facebook. J'écris ces livres avec une idée simple : <strong>si tu bloques en RDM, ce n'est pas toi le problème, c'est la façon dont on te l'a expliquée.</strong></p>
+      <p>Chaque chapitre suit la même logique : le principe physique, les formules démontrées, des exemples résolus, puis des exercices. Pour les étudiants (BTS, DUT, licence, école d'ingénieurs), les techniciens, les dessinateurs et les pros du BTP.</p>
+      <p class="signature" aria-label="Signature : Pierre Ngalaha">Pierre Ngalaha</p>
+      <div class="cta-row">
+        <a class="btn btn-ghost js-fb" data-needs="facebook" href="#" target="_blank" rel="noopener">Les cours vidéo sur Facebook</a>
+        <a class="btn btn-ghost js-yt" data-needs="youtube" href="#" target="_blank" rel="noopener">La chaîne YouTube</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMING SOON ============ -->
+  <section class="section" id="bientot">
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 07 — En chantier</p>
+      <h2>Et ensuite ? <span class="muted">La suite se coule.</span></h2>
+    </header>
+    <div class="soon-grid">
+      <article class="soon reveal"><span class="mono tagline">En préparation</span><h3>Béton armé — Eurocode 2</h3><p>Dimensionnement des poutres, dalles, poteaux et semelles, avec des notes de calcul complètes.</p><div class="pour"><span></span></div></article>
+      <article class="soon reveal"><span class="mono tagline">En préparation</span><h3>Formulaires de poche</h3><p>Les formules clés de RDM et de béton armé, à garder sur ton téléphone pendant les examens.</p><div class="pour"><span></span></div></article>
+      <article class="soon reveal"><span class="mono tagline">En préparation</span><h3>Cours vidéo</h3><p>Les notions des livres expliquées en vidéo, avec des animations comme celles de cette page.</p><div class="pour"><span></span></div></article>
+    </div>
+    <p class="soon-cta reveal"><a class="link" href="https://wa.me/15817811987?text=Bonjour%20Pierre%2C%20je%20veux%20%C3%AAtre%20pr%C3%A9venu%20des%20nouvelles%20sorties%20Genie%20Civil%20Pro." target="_blank" rel="noopener">Être prévenu des sorties sur WhatsApp →</a></p>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section faq" id="faq">
+    <header class="section-head reveal">
+      <p class="kicker mono">§ 08 — Questions fréquentes</p>
+      <h2>Avant d'acheter.</h2>
+    </header>
+    <div class="faq-list">
+      <details class="reveal"><summary>Comment je reçois le livre ?</summary><p>Le téléchargement démarre juste après le paiement, sans code d'accès. Le lien t'est aussi envoyé par email pour le retrouver plus tard.</p></details>
+      <details class="reveal"><summary>Quels moyens de paiement sont acceptés ?</summary><p>La carte bancaire et le Mobile Money. Si un paiement Mobile Money échoue : vérifie ton solde, valide la demande reçue sur ton téléphone, ou essaie un autre opérateur ou une carte.</p></details>
+      <details class="reveal"><summary>Je dois lire le Tome 1 avant le Tome 2 ?</summary><p>C'est conseillé, la numérotation est continue. Mais le Tome 2 commence par un chapitre 0 de rappels (unités, trigonométrie, réactions, méthode de travail) pour reprendre sans le Tome 1.</p></details>
+      <details class="reveal"><summary>Quel niveau faut-il ?</summary><p>Aucun pour le Tome 1 : le cours part des unités et de la statique. Il convient aux étudiants en génie civil, aux techniciens, aux dessinateurs et aux professionnels du bâtiment.</p></details>
+      <details class="reveal"><summary>Je peux le lire sur mon téléphone ?</summary><p>Oui. Les PDF sont mis en page pour être lisibles sur téléphone comme sur ordinateur.</p></details>
+      <details class="reveal"><summary>Et si je bloque sur un exercice ?</summary><p>Écris-moi sur WhatsApp au +1 (581) 781-1987. Je réponds aux questions sur les exercices.</p></details>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="section contact" id="contact">
+    <div class="contact-copy reveal">
+      <p class="kicker mono">§ 09 — Nous contacter</p>
+      <h2>Une question ? <span class="muted">Écris-moi.</span></h2>
+      <p class="lead">Un exercice qui bloque, un souci de paiement, une commande pour une classe ou une école : envoie ton message, je te réponds personnellement.</p>
+      <ul class="contact-ways">
+        <li data-needs="email"><span class="mono">Email</span><a class="js-email" href="#"></a></li>
+        <li><span class="mono">Téléphone · WhatsApp</span><a class="js-wa" href="#" target="_blank" rel="noopener">+1 (581) 781-1987</a></li>
+        <li><span class="mono">Réponse</span><b>sous 24 à 48 h</b></li>
+      </ul>
+      <div class="socials socials-lg" aria-label="Réseaux sociaux"></div>
+    </div>
+
+    <form class="contact-form reveal" id="contactForm" novalidate>
+      <div class="lab-head mono"><span>FORMULAIRE — DEMANDE</span><span>Champs * obligatoires</span></div>
+      <div class="field-row">
+        <label class="field"><span>Nom complet *</span><input name="nom" autocomplete="name" required></label>
+        <label class="field"><span>Email *</span><input name="email" type="email" autocomplete="email" required></label>
+      </div>
+      <div class="field-row">
+        <label class="field"><span>Tu es</span>
+          <select name="profil">
+            <option>Étudiant(e)</option><option>Élève</option><option>Enseignant(e)</option>
+            <option>Technicien / professionnel du BTP</option><option>Autre</option>
+          </select>
+        </label>
+        <label class="field"><span>Sujet</span>
+          <select name="sujet">
+            <option>Question sur un livre</option><option>Question sur un exercice</option>
+            <option>Problème de paiement</option><option>Commande groupée (classe, école)</option>
+            <option>Partenariat / autre</option>
+          </select>
+        </label>
+      </div>
+      <label class="field"><span>Message *</span><textarea name="message" rows="6" required></textarea></label>
+      <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn" type="submit">Envoyer le message <i aria-hidden="true">→</i></button>
+      <p class="form-status mono" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="final">
+    <div class="blueprint" aria-hidden="true"></div>
+    <h2>Arrête d'apprendre par cœur.<br><span class="accent">Commence à comprendre.</span></h2>
+    <p class="final-by mono">Les livres de <b>Pierre Ngalaha</b>, ingénieur en génie civil</p>
+    <div class="cta-row center">
+      <a class="btn" href="#livres">Choisir mon livre <i aria-hidden="true">→</i></a>
+      <a class="btn btn-ghost" href="https://vgrisohd.mychariow.store" target="_blank" rel="noopener">Toute la boutique</a>
+    </div>
+  </section>
+  </main>
+
+  <footer class="footer">
+    <div class="foot-brand">
+      <a class="brand" href="#top"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 9h32M4 31h32M20 9v22" /></svg><span>Génie Civil <b>Pro</b></span></a>
+      <p>Cours de génie civil et de RDM conçus et rédigés par <b>Pierre Ngalaha</b>, ingénieur en génie civil.</p>
+    </div>
+    <nav class="foot-links" aria-label="Liens de bas de page">
+      <a href="#livres">Livres</a><a href="#videos" data-needs="videos">Vidéos</a><a href="#programme">Programme</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
+    </nav>
+    <div class="foot-social">
+      <p class="mono">Suivre Pierre Ngalaha</p>
+      <div class="socials" aria-label="Réseaux sociaux"></div>
+    </div>
+    <p class="mono copy">© <span id="year">2026</span> Pierre Ngalaha · Génie Civil Pro · Paiement sécurisé via Chariow</p>
+  </footer>
+
+  <a class="wa-float" href="https://wa.me/15817811987?text=Bonjour%20Pierre%2C%20j'ai%20une%20question%20sur%20tes%20livres." target="_blank" rel="noopener" aria-label="Écrire sur WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.6c-2 0-4-.5-5.6-1.5l-.4-.2-3.9 1 1-3.8-.3-.4A10.6 10.6 0 1 1 16 26.6zm5.8-7.9c-.3-.2-1.9-.9-2.2-1s-.5-.2-.7.2-.8 1-1 1.2-.4.2-.7 0a8.7 8.7 0 0 1-4.3-3.8c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.8 1.2 3.2 1.4 3.4 2.4 3.6 5.8 5c2.1.9 3 1 4 .8.7-.1 1.9-.8 2.2-1.5s.3-1.4.2-1.5-.3-.2-.6-.4z"/></svg>
+  </a>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://geniecivilpro.com/sitemap.xml
