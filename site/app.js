@@ -65,6 +65,19 @@
   }, { threshold: 0.15 });
   $$(".reveal, .hero-facts b").forEach(el => io.observe(el));
 
+  /* ---------------- Livre 3D : la forme suit la vraie couverture ---------------- */
+  $$(".book").forEach(book => {
+    const img = $(".book-front img", book);
+    if (!img) return;
+    const apply = () => {
+      const ar = img.naturalWidth / img.naturalHeight;
+      // bannière large ou image illisible : on garde la couverture dessinée
+      if (!ar || ar > 1.15) { img.remove(); return; }
+      book.style.setProperty("--ar", Math.max(0.62, Math.min(1, ar)).toFixed(3));
+    };
+    if (img.complete) apply(); else img.addEventListener("load", apply, { once: true });
+  });
+
   /* ---------------- 3D book tilt ---------------- */
   $$("[data-tilt]").forEach(book => {
     const stage = book.closest(".book-stage");
@@ -140,10 +153,11 @@
         xs.push(x);
         M.push(RA * x - (q * x * x) / 2 - (x > a ? P * (x - a) : 0));
       }
-      // double integration of −M
+      // double intégration de EI·v'' = +M (M > 0 = fibre inférieure tendue, v > 0 vers le haut) :
+      // la poutre chargée fléchit donc vers le BAS (v < 0).
       const dx = L / N;
       const th = [0], v = [0];
-      for (let i = 1; i <= N; i++) th.push(th[i - 1] - (M[i - 1] + M[i]) / 2 * dx);
+      for (let i = 1; i <= N; i++) th.push(th[i - 1] + (M[i - 1] + M[i]) / 2 * dx);
       for (let i = 1; i <= N; i++) v.push(v[i - 1] + (th[i - 1] + th[i]) / 2 * dx);
       const c = v[N] / L; // remove linear part so v(L)=0
       for (let i = 0; i <= N; i++) v[i] -= c * xs[i];
