@@ -1,9 +1,9 @@
-# Met en ligne le dossier site/ sur GitHub Pages à chaque modification de la branche principale.
+# Met en ligne le dossier site/ sur GitHub Pages à chaque modification de la branche principale du dépôt.
 name: Mettre le site en ligne
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/remotion-dev-skills-o2j237]
     paths: ["site/**", ".github/workflows/deploy-site.yml"]
   workflow_dispatch:
 
