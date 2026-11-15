@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confidentialité — Génie Civil Pro</title>
+  <meta name="description" content="Quelles données le site Génie Civil Pro collecte, pourquoi, et comment les refuser ou les faire effacer.">
+  <link rel="canonical" href="https://geniecivilpro.com/confidentialite.html">
+  <meta name="theme-color" content="#0d0f12">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav" style="position:absolute">
+    <a class="brand" href="./"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 9h32M4 31h32M20 9v22"/></svg><span>Génie Civil <b>Pro</b></span></a>
+    <a class="btn btn-sm" href="./" style="margin-left:auto">Retour au site</a>
+  </header>
+  <main class="legal">
+    <p class="kicker mono">Confidentialité</p>
+    <h1>Tes données, en clair.</h1>
+    <p class="date">Dernière mise à jour : 15 novembre 2026</p>
+
+    <h2>Qui est responsable de ce site ?</h2>
+    <p>Pierre Ngalaha, ingénieur en génie civil, éditeur du site Génie Civil Pro (geniecivilpro.com). Contact : <a href="mailto:contact@geniecivilpro.com">contact@geniecivilpro.com</a>.</p>
+
+    <h2>Quelles données sont collectées, et pourquoi ?</h2>
+    <ul>
+      <li><b>Formulaire de contact</b> : ton nom, ton email, ton profil, ton sujet et ton message, pour te répondre. Le message passe par le service d'envoi FormSubmit, puis arrive dans ma boîte email. Je le conserve le temps nécessaire pour te répondre et suivre ta demande.</li>
+      <li><b>Mesure d'audience (Metricool)</b> : pages vues, provenance de la visite, pays, type d'appareil. <b>Ce suivi ne démarre que si tu cliques sur « Accepter »</b> dans le bandeau. Si tu refuses, ou si ton navigateur envoie le signal « Global Privacy Control », rien n'est mesuré.</li>
+      <li><b>Achats</b> : ils se font sur ma boutique Chariow, qui traite le paiement et tes données de commande selon sa propre politique. Ce site ne reçoit ni ne conserve tes données de paiement.</li>
+    </ul>
+
+    <h2>Contenus de tiers</h2>
+    <ul>
+      <li><b>Polices d'écriture</b> : elles sont chargées depuis Google Fonts, ce qui transmet ton adresse IP à Google.</li>
+      <li><b>Vidéos</b> : une vidéo YouTube ou Facebook ne se charge que lorsque tu cliques dessus. YouTube est utilisé en mode « sans cookies » (youtube-nocookie.com).</li>
+      <li><b>Liens vers les réseaux sociaux</b> : en les ouvrant, tu quittes ce site et tu dépends des règles de chaque réseau.</li>
+    </ul>
+
+    <h2>Tes droits</h2>
+    <p>Tu peux demander l'accès à tes données, leur correction ou leur suppression, ou retirer ton consentement à tout moment, en écrivant à <a href="mailto:contact@geniecivilpro.com">contact@geniecivilpro.com</a>. Pour changer ton choix sur la mesure d'audience, utilise le lien « Mesure d'audience » en bas du site.</p>
+
+    <h2>Modifications</h2>
+    <p>Si ces pratiques changent, cette page sera mise à jour et la date ci-dessus aussi.</p>
+  </main>
+  <div class="consent" id="consent" hidden>
+    <p><b>Mesure d'audience.</b> Ce site compte les visites avec Metricool, <u>uniquement si tu acceptes</u>.</p>
+    <div class="consent-btns"><button type="button" class="btn btn-sm" data-consent="yes">Accepter</button><button type="button" class="btn btn-sm btn-ghost" data-consent="no">Refuser</button></div>
+  </div>
+  <script type="text/plain" id="metricool-tracker">function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"1d21bad2dfe304331cb88680fee936b1"})});</script>
+  <script>
+  (() => { const KEY="gcp-consent", box=document.getElementById("consent");
+    const read=()=>{try{return localStorage.getItem(KEY)}catch(_){return null}}, write=v=>{try{localStorage.setItem(KEY,v)}catch(_){}};
+    let loaded=false; const load=()=>{ if(loaded) return; loaded=true; const s=document.createElement("script"); s.textContent=document.getElementById("metricool-tracker").textContent; document.head.appendChild(s); };
+    const apply=()=>{ const v=navigator.globalPrivacyControl?"no":read(); if(v==="yes"){load();box.hidden=true;} else if(v==="no"){box.hidden=true;} else box.hidden=false; };
+    document.addEventListener("click",e=>{const b=e.target.closest("[data-consent]"); if(b){write(b.dataset.consent);apply();}});
+    apply(); })();
+  </script>
+</body>
+</html>
