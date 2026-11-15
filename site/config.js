@@ -9,11 +9,9 @@ window.SITE = {
      adresse : il suffit de cliquer une fois sur le lien pour l'activer. */
   email: "np.ngalaha@gmail.com",
 
-  /* Téléphone affiché dans la section Contact. */
-  telephone: "+1 (581) 781-1987",
 
   /* Numéro WhatsApp (chiffres seulement, avec l'indicatif du pays). */
-  whatsapp: "12633831075",
+  whatsapp: "15817811987",
 
   /* Réseaux sociaux : coller l'adresse complète de chaque page. */
   socials: {
