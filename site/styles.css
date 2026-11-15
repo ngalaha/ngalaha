@@ -317,6 +317,29 @@ h3 { font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; letter-spacing: -.02
 .stat b { display: block; font-size: clamp(36px, 4.4vw, 60px); color: var(--text); letter-spacing: -.04em; line-height: 1; font-weight: 700; }
 .stat span { color: var(--muted); font-size: 15px; display: block; margin-top: 10px; }
 
+/* ---------- Author name ---------- */
+.tag-name { color: var(--text); font-weight: 700; }
+.byline { margin: -14px 0 22px; font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; }
+.byline b { color: var(--accent); font-weight: 700; }
+.signature { font-family: "Caveat", cursive; font-size: clamp(40px, 4vw, 54px); color: var(--accent); line-height: 1; margin: 6px 0 26px; transform: rotate(-3deg); transform-origin: left; }
+.final-by { color: var(--muted); font-size: 14px; margin: -20px 0 36px; text-transform: uppercase; letter-spacing: .12em; }
+.final-by b { color: var(--text); }
+
+/* ---------- Reviews ---------- */
+.review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.review { margin: 0; padding: 28px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); display: flex; flex-direction: column; gap: 18px; position: relative; }
+.review::before { content: "“"; position: absolute; bottom: -30px; right: 18px; font-size: 96px; line-height: 1; color: var(--accent); opacity: .18; font-weight: 900; }
+.review-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.review-top b { display: block; font-size: 17px; }
+.review-top span.mono { font-size: 12px; color: var(--dim); }
+.avatar { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,106,26,.12); border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; flex: none; }
+.verified { margin-left: auto; font-size: 11px; color: #7ee0a4; border: 1px solid rgba(126,224,164,.35); padding: 4px 10px; border-radius: 999px; }
+.review blockquote { margin: 0; font-size: 22px; line-height: 1.35; font-weight: 600; letter-spacing: -.01em; }
+.review figcaption { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-top: auto; }
+.review-cta { border-style: dashed; background: transparent; justify-content: center; align-items: flex-start; }
+.review-cta::before { display: none; }
+.review-ask { color: var(--muted); margin: 0; }
+
 /* ---------- Author ---------- */
 .author { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 6vw, 90px); align-items: center; }
 .author-visual { position: relative; aspect-ratio: 1; max-width: 420px; width: 100%; margin: 0 auto; }
@@ -329,7 +352,7 @@ h3 { font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; letter-spacing: -.02
 .mohr-c { fill: rgba(255,106,26,.06); stroke: var(--accent); stroke-width: 1.5; }
 .mohr-d { stroke: var(--accent); stroke-width: 1.5; }
 .initials { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(56px, 8vw, 92px); font-weight: 900; letter-spacing: -.06em; color: #fff; text-shadow: 0 10px 40px rgba(0,0,0,.8); }
-.author-copy p { color: var(--muted); }
+.author-copy p:not(.kicker):not(.signature):not(.role) { color: var(--muted); }
 .role { color: var(--accent) !important; font-size: 14px; margin-top: -10px; }
 
 /* ---------- Coming soon ---------- */
