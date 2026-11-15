@@ -7,7 +7,7 @@ window.SITE = {
   /* Adresse email qui reçoit les messages du formulaire « Nous contacter ».
      Au premier message, FormSubmit envoie un email de confirmation à cette
      adresse : il suffit de cliquer une fois sur le lien pour l'activer. */
-  email: "np.ngalaha@gmail.com",
+  email: "contact@geniecivilpro.com",
 
 
   /* Numéro WhatsApp (chiffres seulement, avec l'indicatif du pays). */
