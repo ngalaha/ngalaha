@@ -245,7 +245,19 @@ h3 { font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; letter-spacing: -.02
 .cover-fallback { position: absolute; inset: 0; padding: 22px 20px; display: flex; flex-direction: column; gap: 10px; border-left: 8px solid var(--accent); }
 .cover-fallback .mono { font-size: 11px; color: var(--accent); letter-spacing: .2em; }
 .cover-fallback strong { font-size: 30px; line-height: 1; letter-spacing: -.03em; font-weight: 900; }
-.cover-fallback svg { width: 100%; margin-top: auto; fill: none; stroke: var(--steel); stroke-width: 2.5; }
+.cover-fallback svg { width: 100%; margin-top: auto; fill: none; stroke: var(--steel); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.cover-diagram .beam { stroke: #d7dbe0; stroke-width: 3.4; stroke-linecap: butt; }
+.cover-diagram .ar { stroke: var(--steel); stroke-width: 1.2; }
+.cover-diagram .head { fill: var(--steel); stroke: none; }
+.cover-diagram .sup { stroke: var(--steel); stroke-width: 1.3; fill: rgba(143,179,217,.12); }
+.cover-diagram .hat { stroke: var(--steel); stroke-width: .8; opacity: .8; }
+.cover-diagram .dim { stroke: var(--dim); stroke-width: .8; }
+.cover-diagram .lbl { fill: var(--text); stroke: none; font: italic 600 9px var(--mono); }
+.cover-diagram .lbl.dm { fill: var(--muted); font-size: 8px; }
+.cover-diagram .mb { stroke: #d7dbe0; stroke-width: 2; }
+.cover-diagram .nd { fill: #14171b; stroke: var(--accent); stroke-width: 1.3; }
+.t2 .cover-diagram .ar, .t2 .cover-diagram .head { stroke: var(--accent); }
+.t2 .cover-diagram .head { fill: var(--accent); stroke: none; }
 .cover-fallback em { font-style: normal; font-size: 12px; color: var(--muted); }
 .t2 .cover-fallback { border-left-color: var(--steel); }
 .t2 .cover-fallback .mono { color: var(--steel); }
