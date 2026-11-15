@@ -7,19 +7,22 @@ window.SITE = {
   /* Adresse email qui reçoit les messages du formulaire « Nous contacter ».
      Au premier message, FormSubmit envoie un email de confirmation à cette
      adresse : il suffit de cliquer une fois sur le lien pour l'activer. */
-  email: "",
+  email: "np.ngalaha@gmail.com",
+
+  /* Téléphone affiché dans la section Contact. */
+  telephone: "+1 (581) 781-1987",
 
   /* Numéro WhatsApp (chiffres seulement, avec l'indicatif du pays). */
   whatsapp: "12633831075",
 
   /* Réseaux sociaux : coller l'adresse complète de chaque page. */
   socials: {
-    facebook:  "",
+    facebook:  "https://www.facebook.com/share/1TTpaNo5F3/",
     youtube:   "https://www.youtube.com/channel/UC7PMl8XA_weEr8ogXugtCUw",
     tiktok:    "https://www.tiktok.com/@np.construction_officiel",
     instagram: "https://www.instagram.com/quebec_construction/",
     threads:   "https://www.threads.net/@quebec_construction",
-    linkedin:  "",
+    linkedin:  "https://www.linkedin.com/in/pierre-ngalaha-421797405",
     pinterest: "https://www.pinterest.com/pierrengalaha/",
     telegram:  "",
     x:         "",

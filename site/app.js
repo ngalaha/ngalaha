@@ -393,7 +393,7 @@
   const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   /* ---- éléments conditionnels (data-needs="videos" | "facebook|youtube" ...) ---- */
-  const has = key => key === "videos" ? videos.length > 0 : key === "email" ? !!C.email : !!socials[key];
+  const has = key => key === "videos" ? videos.length > 0 : key === "email" ? !!C.email : key === "telephone" ? !!C.telephone : !!socials[key];
   $$("[data-needs]").forEach(el => {
     const ok = el.dataset.needs.split("|").some(has);
     el.hidden = !ok;
@@ -500,6 +500,7 @@
 
   /* ---- contact ---- */
   $$(".js-email").forEach(a => { if (C.email) { a.href = `mailto:${C.email}`; a.textContent = C.email; } });
+  $$(".js-tel").forEach(a => { if (C.telephone) { a.href = "tel:" + C.telephone.replace(/[^\d+]/g, ""); a.textContent = C.telephone; } });
   $$(".js-wa").forEach(a => { if (waNum) a.href = `https://wa.me/${waNum}`; });
 
   const form = $("#contactForm");
