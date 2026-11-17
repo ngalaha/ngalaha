@@ -279,10 +279,18 @@
     setStep(1);
     if (reduce) setStep(5);
     else {
-      const stepIO = new IntersectionObserver(entries => {
-        entries.forEach(en => { if (en.isIntersecting) setStep(+en.target.dataset.step); });
-      }, { rootMargin: "-45% 0px -45% 0px" });
-      steps.forEach(li => stepIO.observe(li));
+      // lecture automatique 1 → 5 quand la section est visible ; un clic sur une étape reprend la main
+      let cur = 1, timer = null, done = false;
+      const stop = () => { clearInterval(timer); timer = null; };
+      const play = () => {
+        if (timer || done) return;
+        timer = setInterval(() => {
+          if (cur >= 5) { done = true; stop(); return; }
+          setStep(++cur);
+        }, 2400);
+      };
+      steps.forEach(li => li.addEventListener("click", () => { done = true; stop(); cur = +li.dataset.step; setStep(cur); }));
+      new IntersectionObserver(([en]) => { en.isIntersecting ? play() : stop(); }, { threshold: 0.35 }).observe(rcFig);
     }
   }
 
@@ -464,6 +472,23 @@
   };
   const grid = $(".video-grid");
   const filters = $(".video-filters");
+  const LIMIT = 6;
+  const toggle = $(".video-toggle");
+  const layout = () => {
+    if (!grid) return;
+    let n = 0;
+    $$(".video-card", grid).forEach(card => {
+      const extra = !card.hidden && ++n > LIMIT;
+      card.classList.toggle("extra", extra);
+    });
+    if (toggle) {
+      const collapsed = grid.classList.contains("collapsed");
+      toggle.hidden = n <= LIMIT;
+      toggle.textContent = collapsed ? `Voir les ${n} vidéos` : "Voir moins";
+    }
+  };
+  if (toggle) toggle.addEventListener("click", () => { grid.classList.toggle("collapsed"); layout(); });
+  queueMicrotask(layout);
   if (grid && videos.length) {
     grid.innerHTML = videos.map((v, i) => {
       const p = parse(v.lien);
@@ -508,6 +533,7 @@
         $$(".video-card", grid).forEach(card => {
           card.hidden = b.dataset.cat !== "Toutes" && card.dataset.cat !== b.dataset.cat;
         });
+        layout();
       });
     } else filters.hidden = true;
   }
