@@ -243,10 +243,11 @@
     <header class="section-head reveal">
       <p class="kicker mono">§ 02 — Les vidéos</p>
       <h2>Épreuves corrigées <span class="muted">au tableau, pas à pas.</span></h2>
-      <p class="lead">Les cours en vidéo de <strong>Pierre Ngalaha</strong> : résolution d'épreuves d'examen, notions de RDM et de béton armé expliquées simplement. Gratuites, à regarder avant ou après les livres.</p>
+      <p class="lead">Épreuves d'examen résolues, notions de RDM et de béton armé : les cours en vidéo de <strong>Pierre Ngalaha</strong>, gratuits.</p>
     </header>
     <div class="video-filters reveal" role="tablist" aria-label="Filtrer les vidéos"></div>
-    <div class="video-grid"></div>
+    <div class="video-grid collapsed"></div>
+    <button type="button" class="btn btn-ghost video-toggle" hidden></button>
     <p class="video-more reveal" data-needs="youtube|facebook"></p>
   </section>
 
@@ -255,7 +256,7 @@
     <header class="section-head reveal">
       <p class="kicker mono">§ 03 — La méthode</p>
       <h2>Comprendre ce qui se passe <span class="accent">dans</span> la matière.</h2>
-      <p class="lead">Le béton résiste à la compression, l'acier reprend la traction. Chaque notion est construite comme une poutre : couche par couche, avec un schéma, une formule et un exemple chiffré.</p>
+      <p class="lead">Le béton résiste à la compression, l'acier reprend la traction. Clique sur une étape pour voir la poutre se construire.</p>
     </header>
 
     <div class="rc-grid">
@@ -336,11 +337,13 @@
     <header class="section-head reveal">
       <p class="kicker mono">§ 04 — Le programme</p>
       <h2>Douze chapitres, <span class="muted">assemblés comme un treillis.</span></h2>
-      <p class="lead">Chaque barre s'appuie sur la précédente. Du chapitre 0 de rappels jusqu'aux méthodes énergétiques, avec une fiche « Ce qu'il faut retenir » à la fin de chaque chapitre.</p>
+      <p class="lead">Du chapitre 0 de rappels aux méthodes énergétiques, avec une fiche « Ce qu'il faut retenir » à chaque chapitre.</p>
     </header>
     <div class="truss-wrap reveal">
       <svg id="truss" viewBox="0 0 1000 260" role="img" aria-label="Treillis dont chaque nœud représente un chapitre du programme"></svg>
     </div>
+    <details class="chapters-more reveal">
+      <summary class="btn btn-ghost">Voir le détail des 12 chapitres</summary>
     <div class="chapters">
       <div class="chap-col reveal">
         <p class="mono kicker">Tome 1</p>
@@ -365,6 +368,7 @@
         </ol>
       </div>
     </div>
+    </details>
   </section>
 
   <!-- ============ STATS ============ -->
@@ -433,20 +437,6 @@
     </div>
   </section>
 
-  <!-- ============ COMING SOON ============ -->
-  <section class="section" id="bientot">
-    <header class="section-head reveal">
-      <p class="kicker mono">§ 07 — En chantier</p>
-      <h2>Et ensuite ? <span class="muted">La suite se coule.</span></h2>
-    </header>
-    <div class="soon-grid">
-      <article class="soon reveal"><span class="mono tagline">En préparation</span><h3>Béton armé — Eurocode 2</h3><p>Dimensionnement des poutres, dalles, poteaux et semelles, avec des notes de calcul complètes.</p><div class="pour"><span></span></div></article>
-      <article class="soon reveal"><span class="mono tagline">En préparation</span><h3>Formulaires de poche</h3><p>Les formules clés de RDM et de béton armé, à garder sur ton téléphone pendant les examens.</p><div class="pour"><span></span></div></article>
-      <article class="soon reveal"><span class="mono tagline">En préparation</span><h3>Cours vidéo</h3><p>Les notions des livres expliquées en vidéo, avec des animations comme celles de cette page.</p><div class="pour"><span></span></div></article>
-    </div>
-    <p class="soon-cta reveal"><a class="link" href="https://wa.me/15817811987?text=Bonjour%20Pierre%2C%20je%20veux%20%C3%AAtre%20pr%C3%A9venu%20des%20nouvelles%20sorties%20Genie%20Civil%20Pro." target="_blank" rel="noopener">Être prévenu des sorties sur WhatsApp →</a></p>
-  </section>
-
   <!-- ============ FAQ ============ -->
   <section class="section faq" id="faq">
     <header class="section-head reveal">
@@ -509,8 +499,7 @@
   <section class="final">
     <div class="blueprint" aria-hidden="true"></div>
     <h2>Arrête d'apprendre par cœur.<br><span class="accent">Commence à comprendre.</span></h2>
-    <p class="final-by mono">Les livres de <b>Pierre Ngalaha</b>, ingénieur en génie civil</p>
-    <div class="cta-row center">
+        <div class="cta-row center">
       <a class="btn" href="#livres">Choisir mon livre <i aria-hidden="true">→</i></a>
       <a class="btn btn-ghost" href="https://vgrisohd.mychariow.store" target="_blank" rel="noopener">Toute la boutique</a>
     </div>
